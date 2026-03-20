@@ -1,0 +1,29 @@
+# 環境変数
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# 中間データ（パイプラインの一時ファイル）
+data/themes.json
+data/candidates.json
+data/stock_data.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

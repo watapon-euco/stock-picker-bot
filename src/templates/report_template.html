@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テーマ株レポート {{YEAR_MONTH}}号</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d1a;
+    color: #e0e0f0;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  a { color: #7eb8ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ===== LAYOUT ===== */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(135deg, #0d0d2a 0%, #1a1a3e 100%);
+    border-bottom: 1px solid #2a2a5a;
+    padding: 32px 0 24px;
+  }
+  header .container { display: flex; flex-direction: column; gap: 8px; }
+  .header-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #5577cc;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.3;
+  }
+  .header-meta {
+    font-size: 13px;
+    color: #8888aa;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  /* ===== NAV (archive) ===== */
+  nav {
+    background: #111124;
+    border-bottom: 1px solid #1e1e40;
+    padding: 10px 0;
+    font-size: 13px;
+  }
+  nav .container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  nav span { color: #555577; }
+
+  /* ===== MAIN ===== */
+  main { padding: 32px 0 64px; }
+
+  /* ===== SECTION ===== */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5577cc;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1e1e40;
+  }
+
+  /* ===== THEME OVERVIEW ===== */
+  .theme-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .theme-summary-card {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .theme-summary-card .icon { font-size: 28px; margin-bottom: 8px; }
+  .theme-summary-card h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .theme-summary-card p { font-size: 13px; color: #9999bb; line-height: 1.7; }
+  .theme-score-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .score-chip {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #1e1e40;
+    color: #8888cc;
+  }
+
+  /* ===== THEME SECTION ===== */
+  .theme-section { margin-bottom: 48px; }
+  .theme-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .theme-icon { font-size: 32px; }
+  .theme-title-block h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  .theme-title-block .stock-count {
+    font-size: 13px;
+    color: #5577cc;
+    margin-top: 2px;
+  }
+
+  /* ===== TIER LABEL ===== */
+  .tier-label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .tier-honmei    { background: #3a1f60; color: #cc88ff; border: 1px solid #5a3080; }
+  .tier-ogata     { background: #1a3a1a; color: #66cc66; border: 1px solid #2a5a2a; }
+  .tier-hirisuku  { background: #3a1a1a; color: #ff6666; border: 1px solid #5a2a2a; }
+  .tier-omowaku   { background: #3a2a1a; color: #ffaa44; border: 1px solid #5a4a2a; }
+  .tier-okure     { background: #1a2a3a; color: #44aaff; border: 1px solid #2a4a5a; }
+
+  /* ===== STOCK CARD ===== */
+  .stock-list { display: flex; flex-direction: column; gap: 12px; }
+  .stock-card {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stock-card:hover { border-color: #4444aa; }
+  .stock-card.rank-1 { border-color: #5a3080; box-shadow: 0 0 12px rgba(120,60,160,0.15); }
+  .stock-card.rank-2 { border-color: #2a5a2a; }
+  .stock-card.rank-3 { border-color: #3a4a1a; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .rank-badge {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    background: #1e1e40;
+    color: #8888cc;
+  }
+  .rank-1 .rank-badge { background: #3a1f60; color: #cc88ff; }
+  .rank-2 .rank-badge { background: #1a3a1a; color: #66cc66; }
+  .rank-3 .rank-badge { background: #2a2a1a; color: #aaaa44; }
+
+  .card-info { flex: 1; min-width: 0; }
+  .card-info .stock-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-info .stock-code { font-size: 12px; color: #5577cc; margin-top: 1px; }
+
+  .card-metrics {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .metric { text-align: right; }
+  .metric .value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .metric .label { font-size: 10px; color: #6666aa; margin-top: 1px; }
+  .metric .change.up { color: #44cc88; }
+  .metric .change.down { color: #ff5555; }
+
+  .card-expand-icon {
+    font-size: 18px;
+    color: #4444aa;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .stock-card.open .card-expand-icon { transform: rotate(180deg); }
+
+  /* ===== CARD DETAIL ===== */
+  .card-detail {
+    display: none;
+    padding: 0 18px 18px;
+    border-top: 1px solid #1e1e40;
+  }
+  .stock-card.open .card-detail { display: block; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #1a1a36;
+  }
+  .detail-item .d-label { font-size: 10px; color: #6666aa; }
+  .detail-item .d-value { font-size: 14px; font-weight: 600; color: #ccccee; margin-top: 2px; }
+
+  .detail-text { margin-top: 14px; }
+  .detail-text .dt-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5577cc;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .detail-text p { font-size: 13px; color: #aaaacc; line-height: 1.7; }
+
+  /* ===== SCORE BAR ===== */
+  .score-bar-section { margin-top: 14px; }
+  .score-bar-label { font-size: 10px; color: #6666aa; margin-bottom: 6px; }
+  .score-bars { display: flex; flex-direction: column; gap: 6px; }
+  .score-bar-row { display: flex; align-items: center; gap: 8px; }
+  .score-bar-name { font-size: 11px; color: #8888aa; width: 100px; flex-shrink: 0; }
+  .score-bar-track {
+    flex: 1;
+    height: 6px;
+    background: #1e1e40;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #3355aa, #7799ff);
+    transition: width 0.4s ease;
+  }
+  .score-bar-val { font-size: 11px; color: #6677aa; width: 24px; text-align: right; flex-shrink: 0; }
+
+  /* ===== HEALTH STARS ===== */
+  .health-stars { color: #ffaa00; font-size: 12px; }
+  .health-stars .empty { color: #333355; }
+
+  /* ===== DISCLAIMER ===== */
+  .disclaimer {
+    background: #0d0d1a;
+    border: 1px solid #1e1e40;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 12px;
+    color: #555577;
+    line-height: 1.7;
+  }
+  .disclaimer strong { color: #7777aa; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: #0a0a15;
+    border-top: 1px solid #1a1a36;
+    padding: 20px 0;
+    font-size: 12px;
+    color: #3a3a5a;
+    text-align: center;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    h1 { font-size: 20px; }
+    .card-metrics { display: none; }
+    .detail-grid { grid-template-columns: repeat(2, 1fr); }
+    .score-bar-name { width: 72px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="header-tag">AI Generated Stock Report</div>
+    <h1>📊 テーマ株レポート {{YEAR_MONTH}}号</h1>
+    <div class="header-meta">
+      <span>生成日: {{GENERATED_DATE}}</span>
+      <span>テーマ数: {{THEME_COUNT}}件</span>
+      <span>対象銘柄: {{TOTAL_STOCKS}}銘柄</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <span>アーカイブ:</span>
+    {{ARCHIVE_LINKS}}
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <!-- 今月のテーマ一覧 -->
+    <section class="section">
+      <div class="section-title">今月の注目テーマ</div>
+      <div class="theme-summary-grid">
+        {{THEME_SUMMARY_CARDS}}
+      </div>
+    </section>
+
+    <!-- 各テーマのランキング -->
+    {{THEME_RANKING_SECTIONS}}
+
+    <!-- 免責事項 -->
+    <section class="section">
+      <div class="section-title">免責事項</div>
+      <div class="disclaimer">
+        <strong>【重要】投資に関するご注意</strong><br>
+        本レポートはAI（Gemini 3.1 Flash-Lite / Claude Sonnet）が自動生成した情報提供を目的としたものであり、
+        <strong>投資助言・勧誘を目的とするものではありません。</strong>
+        記載されている情報の正確性・完全性を保証するものではなく、
+        株価・財務データはyfinance（Yahoo Finance非公式API）から取得しており、
+        遅延・欠損が含まれる場合があります。
+        投資の最終判断はご自身の責任においてお行いください。
+        本レポートの情報に基づく投資行動について、当レポートは一切の責任を負いません。
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    自動生成レポート | GitHub Pages | データソース: Google News RSS / yfinance
+  </div>
+</footer>
+
+<script>
+// カード開閉
+document.querySelectorAll('.card-header').forEach(function(header) {
+  header.addEventListener('click', function() {
+    var card = this.closest('.stock-card');
+    card.classList.toggle('open');
+  });
+});
+
+// スコアバーのアニメーション（IntersectionObserver）
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.score-bar-fill').forEach(function(bar) {
+        bar.style.width = bar.getAttribute('data-width') + '%';
+      });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.score-bar-section').forEach(function(el) {
+  el.querySelectorAll('.score-bar-fill').forEach(function(bar) {
+    var w = bar.getAttribute('data-width') || '0';
+    bar.style.width = '0%';
+    setTimeout(function() { bar.style.width = w + '%'; }, 100);
+  });
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>
