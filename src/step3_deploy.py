@@ -73,6 +73,12 @@ def run():
     # 現在のブランチを取得してプッシュ
     branch_result = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
     branch = branch_result.stdout.strip()
+
+    # ブランチ名バリデーション（フラグ注入防止）
+    import re as _re
+    if not _re.match(r'^[a-zA-Z0-9/_.\-]+$', branch):
+        raise ValueError(f"Unexpected branch name format: {branch!r}")
+
     logger.info(f"Pushing to origin/{branch}...")
 
     _run(["git", "push", "-u", "origin", branch])

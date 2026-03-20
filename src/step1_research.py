@@ -92,11 +92,17 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
         raise RuntimeError("No news articles fetched. Check RSS feed URLs.")
 
     # ニューステキストを構築（トークン節約のため上位100件）
+    # プロンプトインジェクション対策: 改行・制御文字を除去し長さを制限
+    def _sanitize(text: str, max_len: int = 200) -> str:
+        return " ".join(text.replace("\n", " ").replace("\r", " ").split())[:max_len]
+
     news_lines = []
     for i, art in enumerate(articles[:100]):
-        news_lines.append(f"{i+1}. 【{art['source']}】{art['title']}")
+        title = _sanitize(art["title"], 150)
+        source = _sanitize(art["source"], 30)
+        news_lines.append(f"{i+1}. 【{source}】{title}")
         if art["summary"]:
-            news_lines.append(f"   {art['summary'][:150]}")
+            news_lines.append(f"   {_sanitize(art['summary'], 150)}")
     news_text = "\n".join(news_lines)
 
     past_themes = _load_theme_history()
