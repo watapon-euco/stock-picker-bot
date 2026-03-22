@@ -105,12 +105,13 @@ def build_prompt(themes: List[Dict], stock_data: List[Dict], template_html: str)
     now = datetime.now(timezone.utc).astimezone()
     generated_date = now.strftime("%Y年%m月%d日")
 
-    return ANALYSIS_PROMPT.format(
-        generated_date=generated_date,
-        themes_json=json.dumps(themes, ensure_ascii=False, indent=2),
-        stock_data_json=json.dumps(stock_data, ensure_ascii=False, indent=2),
-        template_html=template_html,
-    )
+    # .format() を使うと {{YEAR_MONTH}} が {YEAR_MONTH} に変換されてテンプレートと不整合になるため
+    # str.replace() を使ってプレースホルダーを置換する
+    return (ANALYSIS_PROMPT
+            .replace("{generated_date}", generated_date)
+            .replace("{themes_json}", json.dumps(themes, ensure_ascii=False, indent=2))
+            .replace("{stock_data_json}", json.dumps(stock_data, ensure_ascii=False, indent=2))
+            .replace("{template_html}", template_html))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -307,6 +308,22 @@ def run():
         start = 1 if lines[0].startswith("```") else 0
         end = len(lines) - 1 if lines[-1] == "```" else len(lines)
         html = "\n".join(lines[start:end])
+
+    # Claudeが置換し損ねたシンプルなプレースホルダーをPython側でフォールバック処理
+    dt = datetime.now(timezone.utc).astimezone()
+    year_month_label = f"{dt.year}年{dt.month}月"
+    generated_date_label = dt.strftime("%Y年%m月%d日")
+    total_stocks = sum(len(t.get("stocks", [])) for t in stock_data)
+    archive_link_html = '<a href="archive/index.html">アーカイブ一覧</a>'
+
+    html = html.replace("{{YEAR_MONTH}}", year_month_label)
+    html = html.replace("{{GENERATED_DATE}}", generated_date_label)
+    html = html.replace("{{THEME_COUNT}}", str(len(themes)))
+    html = html.replace("{{TOTAL_STOCKS}}", str(total_stocks))
+    html = html.replace("{{ARCHIVE_LINKS}}", archive_link_html)
+
+    if "{{THEME_SUMMARY_CARDS}}" in html or "{{THEME_RANKING_SECTIONS}}" in html:
+        logger.warning("Claude did not fill in theme cards/ranking sections. HTML may be incomplete.")
 
     # 保存
     save_report(html, year_month_str, fallback_template=template_html)
