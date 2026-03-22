@@ -1,9 +1,9 @@
 """
 Step 2: Claude Sonnet Batch API で分析・ランキング・HTML生成
 
-入力: data/themes.json + data/stock_data.json
+入力: data/themes.json + data/stock_data.json + data/news_articles.json
 出力: docs/index.html (最新号) + docs/archive/YYYY-MM.html + docs/archive/index.html
-      data/theme_history.json (更新)
+      data/theme_history.json (更新) + data/report_summary.json (更新)
 """
 import json
 import logging
@@ -12,7 +12,7 @@ import re
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 
@@ -30,6 +30,8 @@ TEMPLATE_PATH = Path("src/templates/report_template.html")
 THEMES_FILE = DATA_DIR / "themes.json"
 STOCK_DATA_FILE = DATA_DIR / "stock_data.json"
 THEME_HISTORY_FILE = DATA_DIR / "theme_history.json"
+NEWS_ARTICLES_FILE = DATA_DIR / "news_articles.json"
+REPORT_SUMMARY_FILE = DATA_DIR / "report_summary.json"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -42,6 +44,83 @@ SYSTEM_PROMPT = """
 <!DOCTYPE html>、<html>、<head>、<body>タグは含めないでください。
 説明文や前置きは不要です。HTMLコードのみを出力してください。
 """
+
+# ── ニュース概況と投資戦略 ──
+
+NEWS_STRATEGY_PROMPT = """
+以下のニュース概況とテーマ情報をもとに、「先月のニュース概況と投資戦略」セクションのHTMLを生成してください。
+
+## 生成対象
+{{NEWS_STRATEGY_SECTION}} 部分に挿入するHTMLフラグメントです。
+
+## 構成
+1. ニュース概況（.news-overview-box 内にまとめ）:
+   - 先月の株式・経済の主要トピック5〜8個を段落形式で要約
+   - 市場全体のトレンドや注目イベントを含む
+2. テーマ別の投資戦略（.strategy-cards 内に .strategy-card 要素群）:
+   - 各テーマについて、ニュースからどのような投資戦略を導き出したかを説明
+
+## ニュース全体の概況
+{news_overview}
+
+## テーマデータ（テーマ名・要約・投資視点を含む）
+{themes_json}
+
+## 出力フォーマット例
+<div class="news-overview-box">
+  <p>先月の日本株式市場は...（5〜8行の概況）</p>
+</div>
+<div class="strategy-cards">
+  <div class="strategy-card">
+    <div class="theme-name">🚀 防衛・宇宙テック</div>
+    <div class="angle">このテーマに関連するニュースから読み取れる投資戦略の説明（3〜5行）</div>
+  </div>
+  （テーマ数分繰り返す）
+</div>
+
+HTMLフラグメントのみ出力してください。
+"""
+
+# ── 前月レポートからの変化 ──
+
+CHANGES_PROMPT = """
+以下の今月と前月のレポートデータをもとに、「前月レポートからの変化」セクションのHTMLを生成してください。
+
+## 生成対象
+{{CHANGES_SECTION}} 部分に挿入するHTMLフラグメントです。
+前月レポートが存在しない場合は空のHTMLを返してください。
+
+## 分析観点
+- テーマの入れ替わり（新規テーマ・継続テーマ・終了テーマ）
+- 注目銘柄の変化
+- 市場環境の変化
+
+## 今月のデータ
+テーマ: {current_themes_json}
+銘柄: {current_stocks_json}
+
+## 前月のデータ
+{previous_data_section}
+
+## 使用するCSSクラス
+- section.section : セクション全体
+- .section-title : セクションタイトル
+- .changes-box : 変化内容のボックス
+
+## 出力フォーマット例
+<section class="section">
+  <div class="section-title">前月レポートからの変化</div>
+  <div class="changes-box">
+    <p><strong>テーマの変化:</strong> 先月の「〇〇」に代わり、今月は「△△」が新たに登場しました。...</p>
+    <p><strong>注目銘柄の動き:</strong> ...</p>
+    <p><strong>市場環境:</strong> ...</p>
+  </div>
+</section>
+
+HTMLフラグメントのみ出力してください。前月データがない場合は空文字を返してください。
+"""
+
+# ── テーマ概要カード ──
 
 SUMMARY_CARDS_PROMPT = """
 以下のテーマ情報をもとに、各テーマの概要カードHTMLを生成してください。
@@ -74,6 +153,8 @@ SUMMARY_CARDS_PROMPT = """
 
 HTMLフラグメントのみ出力してください。<!DOCTYPE html>や<html>タグは不要です。
 """
+
+# ── 銘柄ランキング ──
 
 RANKING_SECTIONS_PROMPT = """
 以下のデータをもとに、各テーマの銘柄ランキングセクションHTMLを生成してください。
@@ -182,6 +263,40 @@ HTMLフラグメントのみ出力してください。上位3銘柄にはrank-1
 """
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# プロンプトビルダー
+# ─────────────────────────────────────────────────────────────────────────────
+
+def build_news_strategy_prompt(
+    news_overview: str, themes: List[Dict]
+) -> str:
+    """ニュース概況＋投資戦略セクション用プロンプトを構築する"""
+    return (NEWS_STRATEGY_PROMPT
+            .replace("{news_overview}", news_overview or "（概況データなし）")
+            .replace("{themes_json}", json.dumps(themes, ensure_ascii=False, indent=2)))
+
+
+def build_changes_prompt(
+    current_themes: List[Dict],
+    current_stocks: List[Dict],
+    previous_summary: Optional[Dict],
+) -> str:
+    """前月比較セクション用プロンプトを構築する"""
+    if previous_summary:
+        prev_section = (
+            f"前月テーマ: {json.dumps(previous_summary.get('themes', []), ensure_ascii=False, indent=2)}\n"
+            f"前月銘柄: {json.dumps(previous_summary.get('top_stocks', []), ensure_ascii=False, indent=2)}\n"
+            f"前月年月: {previous_summary.get('year_month', '不明')}"
+        )
+    else:
+        prev_section = "前月レポートのデータはありません（初回実行）。"
+
+    return (CHANGES_PROMPT
+            .replace("{current_themes_json}", json.dumps(current_themes, ensure_ascii=False, indent=2))
+            .replace("{current_stocks_json}", json.dumps(current_stocks, ensure_ascii=False, indent=2))
+            .replace("{previous_data_section}", prev_section))
+
+
 def build_summary_cards_prompt(themes: List[Dict]) -> str:
     """テーマ概要カード用プロンプトを構築する"""
     return SUMMARY_CARDS_PROMPT.replace(
@@ -204,6 +319,114 @@ def strip_code_fence(text: str) -> str:
         end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
         return "\n".join(lines[start:end])
     return text
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ソースリンク生成（Python処理）
+# ─────────────────────────────────────────────────────────────────────────────
+
+def build_source_links_html(
+    themes: List[Dict], articles: List[Dict]
+) -> str:
+    """テーマ別の主要ソースリンクHTMLを生成する"""
+    if not articles:
+        return '<p style="color:#555577;font-size:13px">ソース記事データがありません。</p>'
+
+    html_parts = []
+
+    for theme in themes:
+        theme_name = theme.get("name", "")
+        icon = theme.get("icon", "💹")
+        source_indices = theme.get("source_articles", [])
+
+        # テーマに紐づく記事を取得
+        theme_articles = []
+        for idx in source_indices:
+            # 1-indexed → 0-indexed
+            i = idx - 1 if isinstance(idx, int) else -1
+            if 0 <= i < len(articles):
+                art = articles[i]
+                if art.get("link"):
+                    theme_articles.append(art)
+
+        if not theme_articles:
+            # source_articlesが空の場合、キーワードで簡易マッチ
+            keywords = theme.get("keywords", [])
+            for art in articles[:50]:
+                title = art.get("title", "")
+                if any(kw in title for kw in keywords):
+                    if art.get("link"):
+                        theme_articles.append(art)
+                if len(theme_articles) >= 5:
+                    break
+
+        if not theme_articles:
+            continue
+
+        items = []
+        for art in theme_articles[:5]:
+            source = art.get("source", "")
+            title = art.get("title", "")
+            link = art.get("link", "#")
+            source_tag = f'<span class="source-tag">{source}</span>' if source else ""
+            items.append(
+                f'<li>{source_tag}<a href="{link}" target="_blank" rel="noopener">{title}</a></li>'
+            )
+
+        html_parts.append(
+            f'<div class="source-group">\n'
+            f'  <h4>{icon} {theme_name}</h4>\n'
+            f'  <ul class="source-list">\n'
+            f'    {"".join(items)}\n'
+            f'  </ul>\n'
+            f'</div>'
+        )
+
+    if not html_parts:
+        return '<p style="color:#555577;font-size:13px">関連ソース記事が見つかりませんでした。</p>'
+
+    return "\n".join(html_parts)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 前月レポートサマリーの読み込み・保存
+# ─────────────────────────────────────────────────────────────────────────────
+
+def load_previous_summary() -> Optional[Dict]:
+    """前月のレポートサマリーを読み込む"""
+    if REPORT_SUMMARY_FILE.exists():
+        with open(REPORT_SUMMARY_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+
+def save_report_summary(
+    themes: List[Dict], stock_data: List[Dict], year_month_str: str
+) -> None:
+    """今月のレポートサマリーを保存する（来月の比較用）"""
+    # テーマ名と各テーマの上位銘柄を保存
+    top_stocks = []
+    for td in stock_data:
+        stocks = td.get("stocks", [])
+        for s in stocks[:3]:  # 各テーマ上位3銘柄
+            top_stocks.append({
+                "theme": td.get("theme_name", ""),
+                "code": s.get("code", ""),
+                "name": s.get("name", ""),
+            })
+
+    summary = {
+        "year_month": year_month_str,
+        "themes": [
+            {"name": t.get("name", ""), "icon": t.get("icon", "💹")}
+            for t in themes
+        ],
+        "top_stocks": top_stocks,
+    }
+
+    with open(REPORT_SUMMARY_FILE, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    logger.info(f"Report summary saved to {REPORT_SUMMARY_FILE}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -340,11 +563,26 @@ def run():
         raise FileNotFoundError(f"{STOCK_DATA_FILE} not found. Run step1_research first.")
 
     with open(THEMES_FILE, encoding="utf-8") as f:
-        themes = json.load(f).get("themes", [])
+        themes_data = json.load(f)
+    themes = themes_data.get("themes", [])
+    news_overview = themes_data.get("news_overview", "")
+
     with open(STOCK_DATA_FILE, encoding="utf-8") as f:
         stock_data = json.load(f).get("themes", [])
     with open(TEMPLATE_PATH, encoding="utf-8") as f:
         template_html = f.read()
+
+    # ニュース記事を読み込み（ソースリンク表示用）
+    articles: List[Dict] = []
+    if NEWS_ARTICLES_FILE.exists():
+        with open(NEWS_ARTICLES_FILE, encoding="utf-8") as f:
+            articles = json.load(f).get("articles", [])
+        logger.info(f"Loaded {len(articles)} news articles for source links")
+
+    # 前月レポートサマリーを読み込み
+    previous_summary = load_previous_summary()
+    if previous_summary:
+        logger.info(f"Loaded previous report summary: {previous_summary.get('year_month', '?')}")
 
     if not themes:
         raise RuntimeError("themes.json is empty")
@@ -355,34 +593,47 @@ def run():
     now = datetime.now(timezone.utc).astimezone()
     year_month_str = now.strftime("%Y-%m")
 
-    # Claudeへのプロンプトを2件のバッチリクエストとして送信
-    # （サマリーカードとランキングセクションを分割することでトークン上限問題を回避）
+    # Claudeへのプロンプトを4件のバッチリクエストとして送信
+    news_strategy_prompt = build_news_strategy_prompt(news_overview, themes)
+    changes_prompt = build_changes_prompt(themes, stock_data, previous_summary)
     summary_prompt = build_summary_cards_prompt(themes)
     ranking_prompt = build_ranking_sections_prompt(themes, stock_data)
 
-    logger.info(f"Summary cards prompt: {len(summary_prompt)} chars")
-    logger.info(f"Ranking sections prompt: {len(ranking_prompt)} chars")
+    batch_requests = [
+        {"custom_id": "news_strategy", "user_message": news_strategy_prompt},
+        {"custom_id": "changes", "user_message": changes_prompt},
+        {"custom_id": "summary_cards", "user_message": summary_prompt},
+        {"custom_id": "ranking_sections", "user_message": ranking_prompt},
+    ]
+
+    for req in batch_requests:
+        logger.info(f"{req['custom_id']} prompt: {len(req['user_message'])} chars")
 
     claude = ClaudeBatchClient(api_key=api_key)
     results = claude.run_batch(
-        requests=[
-            {"custom_id": "summary_cards", "user_message": summary_prompt},
-            {"custom_id": "ranking_sections", "user_message": ranking_prompt},
-        ],
+        requests=batch_requests,
         system_prompt=SYSTEM_PROMPT,
         max_tokens=8000,
     )
 
+    # Claude結果を取得・コードフェンス除去
+    news_strategy_html = strip_code_fence(results.get("news_strategy", "").strip())
+    changes_html = strip_code_fence(results.get("changes", "").strip())
     summary_cards_html = strip_code_fence(results.get("summary_cards", "").strip())
     ranking_sections_html = strip_code_fence(results.get("ranking_sections", "").strip())
 
-    logger.info(f"summary_cards response: {len(summary_cards_html)} chars")
-    logger.info(f"ranking_sections response: {len(ranking_sections_html)} chars")
+    for name, content in [
+        ("news_strategy", news_strategy_html),
+        ("changes", changes_html),
+        ("summary_cards", summary_cards_html),
+        ("ranking_sections", ranking_sections_html),
+    ]:
+        logger.info(f"{name} response: {len(content)} chars")
+        if not content:
+            logger.warning(f"{name} response is empty!")
 
-    if not summary_cards_html:
-        logger.warning("summary_cards response is empty!")
-    if not ranking_sections_html:
-        logger.warning("ranking_sections response is empty!")
+    # ソースリンクHTML（Python生成）
+    source_links_html = build_source_links_html(themes, articles)
 
     # テンプレートの全プレースホルダーをPythonで置換
     year_month_label = f"{now.year}年{now.month}月"
@@ -396,14 +647,20 @@ def run():
     html = html.replace("{{THEME_COUNT}}", str(len(themes)))
     html = html.replace("{{TOTAL_STOCKS}}", str(total_stocks))
     html = html.replace("{{ARCHIVE_LINKS}}", archive_link_html)
+    html = html.replace("{{NEWS_STRATEGY_SECTION}}", news_strategy_html)
     html = html.replace("{{THEME_SUMMARY_CARDS}}", summary_cards_html)
+    html = html.replace("{{CHANGES_SECTION}}", changes_html)
     html = html.replace("{{THEME_RANKING_SECTIONS}}", ranking_sections_html)
+    html = html.replace("{{SOURCE_LINKS_SECTION}}", source_links_html)
 
     # 保存
     save_report(html, year_month_str)
 
     # テーマ履歴更新
     update_theme_history(themes, year_month_str)
+
+    # 来月の比較用にレポートサマリーを保存
+    save_report_summary(themes, stock_data, year_month_str)
 
     logger.info("Step 2 complete.")
 

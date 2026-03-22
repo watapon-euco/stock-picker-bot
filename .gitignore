@@ -18,6 +18,7 @@ venv/
 data/themes.json
 data/candidates.json
 data/stock_data.json
+data/news_articles.json
 
 # IDE
 .idea/

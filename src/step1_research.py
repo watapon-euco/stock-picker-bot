@@ -26,6 +26,7 @@ THEMES_FILE = DATA_DIR / "themes.json"
 CANDIDATES_FILE = DATA_DIR / "candidates.json"
 STOCK_DATA_FILE = DATA_DIR / "stock_data.json"
 THEME_HISTORY_FILE = DATA_DIR / "theme_history.json"
+NEWS_ARTICLES_FILE = DATA_DIR / "news_articles.json"
 
 
 def _load_theme_history() -> List[str]:
@@ -75,9 +76,12 @@ PHASE_A_PROMPT = """
         "sustainability": 6
       }},
       "total_score": 30,
-      "icon": "絵文字1文字"
+      "icon": "絵文字1文字",
+      "source_articles": [1, 5, 12],
+      "investment_angle": "このテーマからどのような投資戦略が考えられるかの概要（2〜3文）"
     }}
   ],
+  "news_overview": "先月の株式・経済ニュース全体の概況まとめ（5〜8行）",
   "candidates_count": 10
 }}
 """
@@ -96,14 +100,29 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
     def _sanitize(text: str, max_len: int = 200) -> str:
         return " ".join(text.replace("\n", " ").replace("\r", " ").split())[:max_len]
 
+    top_articles = articles[:100]
     news_lines = []
-    for i, art in enumerate(articles[:100]):
+    for i, art in enumerate(top_articles):
         title = _sanitize(art["title"], 150)
         source = _sanitize(art["source"], 30)
         news_lines.append(f"{i+1}. 【{source}】{title}")
         if art["summary"]:
             news_lines.append(f"   {_sanitize(art['summary'], 150)}")
     news_text = "\n".join(news_lines)
+
+    # ニュース記事をファイルに保存（step2でソースリンク表示に使用）
+    DATA_DIR.mkdir(exist_ok=True)
+    saved_articles = []
+    for art in top_articles:
+        saved_articles.append({
+            "title": _sanitize(art["title"], 200),
+            "link": art.get("link", ""),
+            "source": _sanitize(art["source"], 50),
+            "published": art.get("published", ""),
+        })
+    with open(NEWS_ARTICLES_FILE, "w", encoding="utf-8") as f:
+        json.dump({"articles": saved_articles}, f, ensure_ascii=False, indent=2)
+    logger.info(f"[Phase A] Saved {len(saved_articles)} articles to {NEWS_ARTICLES_FILE}")
 
     past_themes = _load_theme_history()
     past_text = "、".join(past_themes) if past_themes else "なし"
@@ -124,9 +143,14 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
     themes = sorted(themes, key=lambda t: t.get("total_score", 0), reverse=True)[:3]
     logger.info(f"[Phase A] Extracted {len(themes)} themes: {[t['name'] for t in themes]}")
 
-    DATA_DIR.mkdir(exist_ok=True)
+    # ニュース全体の概況もthemes.jsonに保存
+    news_overview = result.get("news_overview", "")
+
     with open(THEMES_FILE, "w", encoding="utf-8") as f:
-        json.dump({"themes": themes}, f, ensure_ascii=False, indent=2)
+        json.dump({
+            "themes": themes,
+            "news_overview": news_overview,
+        }, f, ensure_ascii=False, indent=2)
 
     return themes
 

@@ -279,6 +279,79 @@
   .health-stars { color: #ffaa00; font-size: 12px; }
   .health-stars .empty { color: #333355; }
 
+  /* ===== NEWS OVERVIEW ===== */
+  .news-overview-box {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 20px 24px;
+    line-height: 1.8;
+    color: #bbbbdd;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .strategy-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .strategy-card {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .strategy-card .theme-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .strategy-card .angle {
+    font-size: 13px;
+    color: #9999bb;
+    line-height: 1.7;
+  }
+
+  /* ===== CHANGES SECTION ===== */
+  .changes-box {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-size: 14px;
+    color: #bbbbdd;
+    line-height: 1.8;
+  }
+
+  /* ===== SOURCE LINKS ===== */
+  .source-list {
+    list-style: none;
+  }
+  .source-list li {
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .source-list .source-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: #1e1e40;
+    color: #6677aa;
+    margin-right: 6px;
+  }
+  .source-group {
+    margin-bottom: 16px;
+  }
+  .source-group h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ccccee;
+    margin-bottom: 8px;
+  }
+
   /* ===== DISCLAIMER ===== */
   .disclaimer {
     background: #0d0d1a;
@@ -334,6 +407,12 @@
 <main>
   <div class="container">
 
+    <!-- ニュース概況と投資戦略 -->
+    <section class="section">
+      <div class="section-title">先月のニュース概況と投資戦略</div>
+      {{NEWS_STRATEGY_SECTION}}
+    </section>
+
     <!-- 今月のテーマ一覧 -->
     <section class="section">
       <div class="section-title">今月の注目テーマ</div>
@@ -342,8 +421,17 @@
       </div>
     </section>
 
+    <!-- 前月レポートからの変化 -->
+    {{CHANGES_SECTION}}
+
     <!-- 各テーマのランキング -->
     {{THEME_RANKING_SECTIONS}}
+
+    <!-- 主要ソース -->
+    <section class="section">
+      <div class="section-title">主要ソース</div>
+      {{SOURCE_LINKS_SECTION}}
+    </section>
 
     <!-- 免責事項 -->
     <section class="section">
