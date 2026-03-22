@@ -10,6 +10,7 @@ import logging
 import os
 import re
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -18,8 +19,8 @@ from dotenv import load_dotenv
 
 from src.config import CLAUDE_MODEL, GEMINI_MODEL
 from src.utils.claude_batch import ClaudeBatchClient
-from src.utils.helpers import build_source_links_html, safe_url as _safe_url
-from src.utils.yfinance_fetcher import fetch_stock_data
+from src.utils.helpers import build_source_links_html
+from src.utils.yfinance_fetcher import fetch_multiple
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -329,27 +330,27 @@ def strip_code_fence(text: str) -> str:
     return text
 
 
-# build_source_links_html, safe_url は src.utils.helpers からインポート済み
-
 # ─────────────────────────────────────────────────────────────────────────────
 # 前月推奨銘柄のパフォーマンス追跡
 # ─────────────────────────────────────────────────────────────────────────────
 
 def fetch_performance(previous_summary: Dict) -> List[Dict]:
-    """前月推奨銘柄の現在株価を取得してパフォーマンスを計算する"""
+    """前月推奨銘柄の現在株価をまとめて取得してパフォーマンスを計算する"""
     top_stocks = previous_summary.get("top_stocks", [])
-    if not top_stocks:
+    eligible = [s for s in top_stocks if s.get("code") and s.get("price_at_report") is not None]
+    if not eligible:
         return []
 
+    codes = [s["code"] for s in eligible]
+    stock_map = fetch_multiple(codes, min_success=0)
+
     results = []
-    for stock in top_stocks:
-        code = stock.get("code")
-        price_at_report = stock.get("price_at_report")
-        if not code or price_at_report is None:
-            continue
-        data = fetch_stock_data(code)
+    for stock in eligible:
+        code = stock["code"]
+        data = stock_map.get(code)
         if data and data.get("current_price"):
             current_price = data["current_price"]
+            price_at_report = stock["price_at_report"]
             change_pct = (current_price - price_at_report) / price_at_report * 100
             results.append({
                 "code": code,
@@ -621,11 +622,19 @@ def run():
         logger.info(f"{req['custom_id']} prompt: {len(req['user_message'])} chars")
 
     claude = ClaudeBatchClient(api_key=api_key)
-    results = claude.run_batch(
-        requests=batch_requests,
-        system_prompt=SYSTEM_PROMPT,
-        max_tokens=8000,
-    )
+
+    # バッチ送信と並行してパフォーマンスデータを取得（Claudeの待機時間を有効活用）
+    with ThreadPoolExecutor(max_workers=1) as perf_exec:
+        perf_future = (
+            perf_exec.submit(fetch_performance, previous_summary)
+            if previous_summary else None
+        )
+        results = claude.run_batch(
+            requests=batch_requests,
+            system_prompt=SYSTEM_PROMPT,
+            max_tokens=8000,
+        )
+        perf_data = perf_future.result() if perf_future else []
 
     # Claude結果を取得・コードフェンス除去
     news_strategy_html = strip_code_fence(results.get("news_strategy", "").strip())
@@ -646,16 +655,13 @@ def run():
     # ソースリンクHTML（Python生成）
     source_links_html = build_source_links_html(themes, articles)
 
-    # 前月推奨銘柄のパフォーマンス（Python生成）
+    # パフォーマンスHTML生成（バッチ並行取得済み）
     performance_html = ""
-    if previous_summary:
-        logger.info("Fetching performance data for previous top stocks...")
-        perf_data = fetch_performance(previous_summary)
-        if perf_data:
-            performance_html = build_performance_html(
-                perf_data, previous_summary.get("year_month", "前月")
-            )
-            logger.info(f"Performance data: {len(perf_data)} stocks")
+    if perf_data:
+        performance_html = build_performance_html(
+            perf_data, previous_summary.get("year_month", "前月")
+        )
+        logger.info(f"Performance data: {len(perf_data)} stocks")
 
     # テンプレートの全プレースホルダーをPythonで置換
     year_month_label = f"{now.year}年{now.month}月"
@@ -664,19 +670,23 @@ def run():
     archive_link_html = '<a href="archive/index.html">アーカイブ一覧</a>'
     ai_models_text = f"{GEMINI_MODEL} / {CLAUDE_MODEL}"
 
+    replacements = {
+        "{{YEAR_MONTH}}": year_month_label,
+        "{{GENERATED_DATE}}": generated_date_label,
+        "{{THEME_COUNT}}": str(len(themes)),
+        "{{TOTAL_STOCKS}}": str(total_stocks),
+        "{{ARCHIVE_LINKS}}": archive_link_html,
+        "{{AI_MODELS_TEXT}}": ai_models_text,
+        "{{NEWS_STRATEGY_SECTION}}": news_strategy_html,
+        "{{THEME_SUMMARY_CARDS}}": summary_cards_html,
+        "{{CHANGES_SECTION}}": changes_html,
+        "{{PERFORMANCE_SECTION}}": performance_html,
+        "{{THEME_RANKING_SECTIONS}}": ranking_sections_html,
+        "{{SOURCE_LINKS_SECTION}}": source_links_html,
+    }
     html = template_html
-    html = html.replace("{{YEAR_MONTH}}", year_month_label)
-    html = html.replace("{{GENERATED_DATE}}", generated_date_label)
-    html = html.replace("{{THEME_COUNT}}", str(len(themes)))
-    html = html.replace("{{TOTAL_STOCKS}}", str(total_stocks))
-    html = html.replace("{{ARCHIVE_LINKS}}", archive_link_html)
-    html = html.replace("{{AI_MODELS_TEXT}}", ai_models_text)
-    html = html.replace("{{NEWS_STRATEGY_SECTION}}", news_strategy_html)
-    html = html.replace("{{THEME_SUMMARY_CARDS}}", summary_cards_html)
-    html = html.replace("{{CHANGES_SECTION}}", changes_html)
-    html = html.replace("{{PERFORMANCE_SECTION}}", performance_html)
-    html = html.replace("{{THEME_RANKING_SECTIONS}}", ranking_sections_html)
-    html = html.replace("{{SOURCE_LINKS_SECTION}}", source_links_html)
+    for placeholder, value in replacements.items():
+        html = html.replace(placeholder, value)
 
     # 保存
     save_report(html, year_month_str)

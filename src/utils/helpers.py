@@ -76,6 +76,10 @@ def build_source_links_html(themes: List[Dict], articles: List[Dict]) -> str:
     if not articles:
         return '<p style="color:#555577;font-size:13px">ソース記事データがありません。</p>'
 
+    # キーワードフォールバック用に記事タイトルを事前インデックス化（全テーマで共有）
+    candidate_articles = articles[:50]
+    title_index: List[str] = [art.get("title", "") for art in candidate_articles]
+
     html_parts = []
 
     for theme in themes:
@@ -93,11 +97,9 @@ def build_source_links_html(themes: List[Dict], articles: List[Dict]) -> str:
 
         if not theme_articles:
             keywords = theme.get("keywords", [])
-            for art in articles[:50]:
-                title = art.get("title", "")
-                if any(kw in title for kw in keywords):
-                    if art.get("link"):
-                        theme_articles.append(art)
+            for i, title in enumerate(title_index):
+                if any(kw in title for kw in keywords) and candidate_articles[i].get("link"):
+                    theme_articles.append(candidate_articles[i])
                 if len(theme_articles) >= 5:
                     break
 

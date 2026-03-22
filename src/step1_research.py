@@ -39,11 +39,6 @@ def _load_theme_history() -> List[str]:
     return []
 
 
-# validate_themes, validate_candidates は src.utils.helpers からインポート済み
-_validate_themes = validate_themes
-_validate_candidates = validate_candidates
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase A: ニュース収集 + テーマ抽出
 # ─────────────────────────────────────────────────────────────────────────────
@@ -142,7 +137,7 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
     logger.info("[Phase A] Calling Gemini for theme extraction...")
     result = gemini.generate_json(prompt)
 
-    themes = _validate_themes(result.get("themes", []))
+    themes = validate_themes(result.get("themes", []))
     if not themes:
         raise RuntimeError("Gemini returned no valid themes in Phase A")
 
@@ -209,7 +204,7 @@ def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Di
             keywords="、".join(theme.get("keywords", [])),
         )
         result = gemini.generate_json(prompt)
-        candidates = _validate_candidates(result.get("candidates", []))
+        candidates = validate_candidates(result.get("candidates", []))
 
         if not candidates:
             logger.warning(f"No valid candidates found for theme: {theme['name']}")
