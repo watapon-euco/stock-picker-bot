@@ -8,12 +8,14 @@ Phase C: yfinance で株価データ取得 + Gemini で構造化
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 
 from src.utils.gemini_client import GeminiClient
+from src.utils.helpers import validate_candidates, validate_themes
 from src.utils.rss_fetcher import fetch_news
 from src.utils.yfinance_fetcher import fetch_multiple
 
@@ -35,6 +37,11 @@ def _load_theme_history() -> List[str]:
             data = json.load(f)
         return [t.get("name", "") for t in data.get("themes", [])]
     return []
+
+
+# validate_themes, validate_candidates は src.utils.helpers からインポート済み
+_validate_themes = validate_themes
+_validate_candidates = validate_candidates
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -135,9 +142,9 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
     logger.info("[Phase A] Calling Gemini for theme extraction...")
     result = gemini.generate_json(prompt)
 
-    themes = result.get("themes", [])
+    themes = _validate_themes(result.get("themes", []))
     if not themes:
-        raise RuntimeError("Gemini returned no themes in Phase A")
+        raise RuntimeError("Gemini returned no valid themes in Phase A")
 
     # テーマを最大3件に絞り込み（スコア順）
     themes = sorted(themes, key=lambda t: t.get("total_score", 0), reverse=True)[:3]
@@ -192,36 +199,40 @@ PHASE_B_PROMPT = """
 
 
 def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Dict]:
-    """各テーマの関連銘柄候補をリストアップする"""
-    all_candidates = []
+    """各テーマの関連銘柄候補をリストアップする（テーマ間は並列実行）"""
 
-    for theme in themes:
+    def _fetch_one(theme: Dict) -> Optional[Dict]:
         logger.info(f"[Phase B] Listing candidates for theme: {theme['name']}")
         prompt = PHASE_B_PROMPT.format(
             theme_name=theme["name"],
             theme_summary=theme["summary"],
             keywords="、".join(theme.get("keywords", [])),
         )
-
         result = gemini.generate_json(prompt)
-        candidates = result.get("candidates", [])
+        candidates = _validate_candidates(result.get("candidates", []))
 
         if not candidates:
-            logger.warning(f"No candidates found for theme: {theme['name']}")
-            continue
+            logger.warning(f"No valid candidates found for theme: {theme['name']}")
+            return None
 
-        # 最大8件に絞り込み
         candidates = candidates[:8]
-        all_candidates.append({
-            "theme_name": theme["name"],
-            "candidates": candidates,
-        })
-        logger.info(
-            f"[Phase B] Theme '{theme['name']}': {len(candidates)} candidates selected"
-        )
+        logger.info(f"[Phase B] Theme '{theme['name']}': {len(candidates)} candidates selected")
+        return {"theme_name": theme["name"], "candidates": candidates}
+
+    all_candidates = []
+    with ThreadPoolExecutor(max_workers=min(3, len(themes))) as executor:
+        futures = {executor.submit(_fetch_one, theme): theme for theme in themes}
+        for future in as_completed(futures):
+            result = future.result()
+            if result:
+                all_candidates.append(result)
 
     if not all_candidates:
         raise RuntimeError("No stock candidates found for any theme")
+
+    # テーマ順を維持
+    theme_order = {t["name"]: i for i, t in enumerate(themes)}
+    all_candidates.sort(key=lambda x: theme_order.get(x["theme_name"], 99))
 
     with open(CANDIDATES_FILE, "w", encoding="utf-8") as f:
         json.dump({"themes": all_candidates}, f, ensure_ascii=False, indent=2)
@@ -328,12 +339,21 @@ def phase_c_fetch_and_structure(
             logger.warning(f"Gemini returned no structured stocks for: {theme_name}")
             continue
 
+        failed_codes = [
+            c["code"] for c in candidates
+            if raw_results.get(c.get("code")) is None
+        ]
+        if failed_codes:
+            logger.warning(f"[Phase C] Failed to fetch data for: {failed_codes}")
+
         structured_themes.append({
             "theme_name": theme_name,
             "stocks": stocks,
+            "failed_codes": failed_codes,
         })
         logger.info(
             f"[Phase C] Structured {len(stocks)} stocks for theme: {theme_name}"
+            + (f" ({len(failed_codes)} failed)" if failed_codes else "")
         )
 
     if not structured_themes:

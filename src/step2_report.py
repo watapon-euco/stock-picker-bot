@@ -16,7 +16,10 @@ from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 
+from src.config import CLAUDE_MODEL, GEMINI_MODEL
 from src.utils.claude_batch import ClaudeBatchClient
+from src.utils.helpers import build_source_links_html, safe_url as _safe_url
+from src.utils.yfinance_fetcher import fetch_stock_data
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -183,6 +186,11 @@ section.theme-section 要素群のみを出力してください。
 {themes_json}
 
 ## 銘柄データ
+stock_dataの各テーマには "failed_codes" フィールドがあり、yfinanceでデータ取得できなかった銘柄コードが含まれます。
+これらの銘柄はランキングに含めず、テーマセクションの末尾に以下のような注釈を追加してください:
+<p style="font-size:12px;color:#555577;margin-top:8px">※ データ未取得: 6789, 1234（yfinance取得エラー）</p>
+failed_codesが空の場合は注釈不要です。
+
 {stock_data_json}
 
 ## 出力フォーマット例
@@ -321,71 +329,74 @@ def strip_code_fence(text: str) -> str:
     return text
 
 
+# build_source_links_html, safe_url は src.utils.helpers からインポート済み
+
 # ─────────────────────────────────────────────────────────────────────────────
-# ソースリンク生成（Python処理）
+# 前月推奨銘柄のパフォーマンス追跡
 # ─────────────────────────────────────────────────────────────────────────────
 
-def build_source_links_html(
-    themes: List[Dict], articles: List[Dict]
-) -> str:
-    """テーマ別の主要ソースリンクHTMLを生成する"""
-    if not articles:
-        return '<p style="color:#555577;font-size:13px">ソース記事データがありません。</p>'
+def fetch_performance(previous_summary: Dict) -> List[Dict]:
+    """前月推奨銘柄の現在株価を取得してパフォーマンスを計算する"""
+    top_stocks = previous_summary.get("top_stocks", [])
+    if not top_stocks:
+        return []
 
-    html_parts = []
-
-    for theme in themes:
-        theme_name = theme.get("name", "")
-        icon = theme.get("icon", "💹")
-        source_indices = theme.get("source_articles", [])
-
-        # テーマに紐づく記事を取得
-        theme_articles = []
-        for idx in source_indices:
-            # 1-indexed → 0-indexed
-            i = idx - 1 if isinstance(idx, int) else -1
-            if 0 <= i < len(articles):
-                art = articles[i]
-                if art.get("link"):
-                    theme_articles.append(art)
-
-        if not theme_articles:
-            # source_articlesが空の場合、キーワードで簡易マッチ
-            keywords = theme.get("keywords", [])
-            for art in articles[:50]:
-                title = art.get("title", "")
-                if any(kw in title for kw in keywords):
-                    if art.get("link"):
-                        theme_articles.append(art)
-                if len(theme_articles) >= 5:
-                    break
-
-        if not theme_articles:
+    results = []
+    for stock in top_stocks:
+        code = stock.get("code")
+        price_at_report = stock.get("price_at_report")
+        if not code or price_at_report is None:
             continue
+        data = fetch_stock_data(code)
+        if data and data.get("current_price"):
+            current_price = data["current_price"]
+            change_pct = (current_price - price_at_report) / price_at_report * 100
+            results.append({
+                "code": code,
+                "name": stock.get("name", code),
+                "theme": stock.get("theme", ""),
+                "price_at_report": price_at_report,
+                "current_price": current_price,
+                "change_pct": round(change_pct, 2),
+            })
+        else:
+            logger.warning(f"Could not fetch current price for {code} (performance tracking)")
+    return results
 
-        items = []
-        for art in theme_articles[:5]:
-            source = art.get("source", "")
-            title = art.get("title", "")
-            link = art.get("link", "#")
-            source_tag = f'<span class="source-tag">{source}</span>' if source else ""
-            items.append(
-                f'<li>{source_tag}<a href="{link}" target="_blank" rel="noopener">{title}</a></li>'
-            )
 
-        html_parts.append(
-            f'<div class="source-group">\n'
-            f'  <h4>{icon} {theme_name}</h4>\n'
-            f'  <ul class="source-list">\n'
-            f'    {"".join(items)}\n'
-            f'  </ul>\n'
-            f'</div>'
+def build_performance_html(perf_data: List[Dict], prev_year_month: str) -> str:
+    """前月推奨銘柄のパフォーマンス表HTML（Python生成）"""
+    if not perf_data:
+        return ""
+
+    rows = []
+    for s in perf_data:
+        chg = s["change_pct"]
+        direction = "up" if chg >= 0 else "down"
+        sign = "+" if chg >= 0 else ""
+        rows.append(
+            f'<tr>'
+            f'<td>{s["name"]}<br><small style="color:#555577">{s["code"]}</small></td>'
+            f'<td>{s["theme"]}</td>'
+            f'<td>¥{s["price_at_report"]:,.0f}</td>'
+            f'<td>¥{s["current_price"]:,.0f}</td>'
+            f'<td class="change {direction}">{sign}{chg:.1f}%</td>'
+            f'</tr>'
         )
 
-    if not html_parts:
-        return '<p style="color:#555577;font-size:13px">関連ソース記事が見つかりませんでした。</p>'
-
-    return "\n".join(html_parts)
+    return (
+        f'<section class="section">\n'
+        f'  <div class="section-title">前月（{prev_year_month}）推奨銘柄のパフォーマンス</div>\n'
+        f'  <div style="overflow-x:auto">\n'
+        f'  <table class="perf-table">\n'
+        f'    <thead><tr>'
+        f'<th>銘柄</th><th>テーマ</th><th>推奨時株価</th><th>現在株価</th><th>騰落率</th>'
+        f'</tr></thead>\n'
+        f'    <tbody>{"".join(rows)}</tbody>\n'
+        f'  </table>\n'
+        f'  </div>\n'
+        f'</section>\n'
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -403,8 +414,7 @@ def load_previous_summary() -> Optional[Dict]:
 def save_report_summary(
     themes: List[Dict], stock_data: List[Dict], year_month_str: str
 ) -> None:
-    """今月のレポートサマリーを保存する（来月の比較用）"""
-    # テーマ名と各テーマの上位銘柄を保存
+    """今月のレポートサマリーを保存する（来月の比較・パフォーマンス追跡用）"""
     top_stocks = []
     for td in stock_data:
         stocks = td.get("stocks", [])
@@ -413,6 +423,7 @@ def save_report_summary(
                 "theme": td.get("theme_name", ""),
                 "code": s.get("code", ""),
                 "name": s.get("name", ""),
+                "price_at_report": s.get("current_price"),  # パフォーマンス追跡用
             })
 
     summary = {
@@ -635,11 +646,23 @@ def run():
     # ソースリンクHTML（Python生成）
     source_links_html = build_source_links_html(themes, articles)
 
+    # 前月推奨銘柄のパフォーマンス（Python生成）
+    performance_html = ""
+    if previous_summary:
+        logger.info("Fetching performance data for previous top stocks...")
+        perf_data = fetch_performance(previous_summary)
+        if perf_data:
+            performance_html = build_performance_html(
+                perf_data, previous_summary.get("year_month", "前月")
+            )
+            logger.info(f"Performance data: {len(perf_data)} stocks")
+
     # テンプレートの全プレースホルダーをPythonで置換
     year_month_label = f"{now.year}年{now.month}月"
     generated_date_label = now.strftime("%Y年%m月%d日")
     total_stocks = sum(len(t.get("stocks", [])) for t in stock_data)
     archive_link_html = '<a href="archive/index.html">アーカイブ一覧</a>'
+    ai_models_text = f"{GEMINI_MODEL} / {CLAUDE_MODEL}"
 
     html = template_html
     html = html.replace("{{YEAR_MONTH}}", year_month_label)
@@ -647,9 +670,11 @@ def run():
     html = html.replace("{{THEME_COUNT}}", str(len(themes)))
     html = html.replace("{{TOTAL_STOCKS}}", str(total_stocks))
     html = html.replace("{{ARCHIVE_LINKS}}", archive_link_html)
+    html = html.replace("{{AI_MODELS_TEXT}}", ai_models_text)
     html = html.replace("{{NEWS_STRATEGY_SECTION}}", news_strategy_html)
     html = html.replace("{{THEME_SUMMARY_CARDS}}", summary_cards_html)
     html = html.replace("{{CHANGES_SECTION}}", changes_html)
+    html = html.replace("{{PERFORMANCE_SECTION}}", performance_html)
     html = html.replace("{{THEME_RANKING_SECTIONS}}", ranking_sections_html)
     html = html.replace("{{SOURCE_LINKS_SECTION}}", source_links_html)
 

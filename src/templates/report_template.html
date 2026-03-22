@@ -352,6 +352,29 @@
     margin-bottom: 8px;
   }
 
+  /* ===== PERFORMANCE TABLE ===== */
+  .perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .perf-table th {
+    background: #1a1a36;
+    color: #9999bb;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .perf-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1a1a36;
+    color: #ccccee;
+  }
+  .perf-table tr:last-child td { border-bottom: none; }
+  .perf-table .change.up   { color: #22cc88; font-weight: 700; }
+  .perf-table .change.down { color: #ff5566; font-weight: 700; }
+
   /* ===== DISCLAIMER ===== */
   .disclaimer {
     background: #0d0d1a;
@@ -424,6 +447,9 @@
     <!-- 前月レポートからの変化 -->
     {{CHANGES_SECTION}}
 
+    <!-- 前月推奨銘柄のパフォーマンス -->
+    {{PERFORMANCE_SECTION}}
+
     <!-- 各テーマのランキング -->
     {{THEME_RANKING_SECTIONS}}
 
@@ -438,7 +464,7 @@
       <div class="section-title">免責事項</div>
       <div class="disclaimer">
         <strong>【重要】投資に関するご注意</strong><br>
-        本レポートはAI（Gemini 3.1 Flash-Lite / Claude Sonnet）が自動生成した情報提供を目的としたものであり、
+        本レポートはAI（{{AI_MODELS_TEXT}}）が自動生成した情報提供を目的としたものであり、
         <strong>投資助言・勧誘を目的とするものではありません。</strong>
         記載されている情報の正確性・完全性を保証するものではなく、
         株価・財務データはyfinance（Yahoo Finance非公式API）から取得しており、

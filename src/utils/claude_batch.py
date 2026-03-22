@@ -5,9 +5,9 @@ from typing import Dict, List, Optional
 
 import anthropic
 
-logger = logging.getLogger(__name__)
+from src.config import CLAUDE_MODEL
 
-CLAUDE_MODEL = "claude-sonnet-4-6"
+logger = logging.getLogger(__name__)
 POLL_INTERVAL = 30       # ポーリング間隔（秒）
 MAX_POLL_MINUTES = 55    # 最大待機時間（分）
 
