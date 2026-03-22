@@ -52,34 +52,25 @@ SYSTEM_PROMPT = """
 # ── ニュース概況と投資戦略 ──
 
 NEWS_STRATEGY_PROMPT = """
-以下のニュース概況とテーマ情報をもとに、「先月のニュース概況と投資戦略」セクションのHTMLを生成してください。
+以下のニュース概況をもとに、「先月のニュース概況」セクションのHTMLを生成してください。
 
 ## 生成対象
 {{NEWS_STRATEGY_SECTION}} 部分に挿入するHTMLフラグメントです。
 
 ## 構成
-1. ニュース概況（.news-overview-box 内にまとめ）:
+ニュース概況（.news-overview-box 内にまとめ）:
    - 先月の株式・経済の主要トピック5〜8個を段落形式で要約
    - 市場全体のトレンドや注目イベントを含む
-2. テーマ別の投資戦略（.strategy-cards 内に .strategy-card 要素群）:
-   - 各テーマについて、ニュースからどのような投資戦略を導き出したかを説明
 
 ## ニュース全体の概況
 {news_overview}
 
-## テーマデータ（テーマ名・要約・投資視点を含む）
+## テーマデータ（参考情報）
 {themes_json}
 
 ## 出力フォーマット例
 <div class="news-overview-box">
   <p>先月の日本株式市場は...（5〜8行の概況）</p>
-</div>
-<div class="strategy-cards">
-  <div class="strategy-card">
-    <div class="theme-name">🚀 防衛・宇宙テック</div>
-    <div class="angle">このテーマに関連するニュースから読み取れる投資戦略の説明（3〜5行）</div>
-  </div>
-  （テーマ数分繰り返す）
 </div>
 
 HTMLフラグメントのみ出力してください。
@@ -137,6 +128,7 @@ SUMMARY_CARDS_PROMPT = """
 - .theme-summary-card : カード全体
 - .icon : テーマアイコン（絵文字）
 - .theme-score-row + .score-chip : スコアチップ行
+- .angle : 投資戦略・着眼点の説明文
 
 ## テーマデータ
 {themes_json}
@@ -146,6 +138,7 @@ SUMMARY_CARDS_PROMPT = """
   <div class="icon">🚀</div>
   <h2>防衛・宇宙テック</h2>
   <p>テーマの要約文（3〜5行）</p>
+  <div class="angle">このテーマに関連するニュースから読み取れる投資戦略・着眼点（2〜4行）</div>
   <div class="theme-score-row">
     <span class="score-chip">政策: 8</span>
     <span class="score-chip">市場: 7</span>
