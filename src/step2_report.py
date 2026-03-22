@@ -12,7 +12,7 @@ import re
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from dotenv import load_dotenv
 
@@ -33,106 +33,182 @@ THEME_HISTORY_FILE = DATA_DIR / "theme_history.json"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Claude Batch プロンプト構築
+# Claude Batch プロンプト
 # ─────────────────────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """
 あなたは日本株式市場の専門アナリストです。
-提供されたテーマ情報と銘柄データをもとに、
-投資家向けの高品質なHTMLレポートを生成してください。
-出力は完全なHTMLコードのみです。説明文や前置きは不要です。
+指定されたHTMLフラグメントのみを生成してください。
+<!DOCTYPE html>、<html>、<head>、<body>タグは含めないでください。
+説明文や前置きは不要です。HTMLコードのみを出力してください。
 """
 
-ANALYSIS_PROMPT = """
-# タスク
-以下のデータをもとに、完成した株式テーマレポートのHTMLを生成してください。
+SUMMARY_CARDS_PROMPT = """
+以下のテーマ情報をもとに、各テーマの概要カードHTMLを生成してください。
 
-## 実行日時
-{generated_date}
+## 生成対象
+テーマ一覧セクションの {{THEME_SUMMARY_CARDS}} 部分に挿入するHTMLフラグメントです。
+<div class="theme-summary-grid"> の中に入る .theme-summary-card 要素群のみを出力してください。
 
-## テーマ一覧
+## 使用するCSSクラス（既存スタイルシートで定義済み）
+- .theme-summary-card : カード全体
+- .icon : テーマアイコン（絵文字）
+- .theme-score-row + .score-chip : スコアチップ行
+
+## テーマデータ
 {themes_json}
 
-## 銘柄データ（テーマ別）
-{stock_data_json}
+## 出力フォーマット例
+<div class="theme-summary-card">
+  <div class="icon">🚀</div>
+  <h2>防衛・宇宙テック</h2>
+  <p>テーマの要約文（3〜5行）</p>
+  <div class="theme-score-row">
+    <span class="score-chip">政策: 8</span>
+    <span class="score-chip">市場: 7</span>
+    <span class="score-chip">新規: 9</span>
+    <span class="score-chip">持続: 6</span>
+  </div>
+</div>
+（テーマ数分繰り返す）
 
-## HTMLテンプレート
-以下のテンプレートに従って、完全なHTMLを生成してください。
-プレースホルダー（{{YEAR_MONTH}} など）を実際の値に置き換えてください。
+HTMLフラグメントのみ出力してください。<!DOCTYPE html>や<html>タグは不要です。
+"""
 
-{template_html}
+RANKING_SECTIONS_PROMPT = """
+以下のデータをもとに、各テーマの銘柄ランキングセクションHTMLを生成してください。
 
-## 5軸評価の重み付け（各銘柄をスコアリングしてランキングを決定）
+## 生成対象
+{{THEME_RANKING_SECTIONS}} 部分に挿入するHTMLフラグメントです。
+section.theme-section 要素群のみを出力してください。
+
+## 5軸スコアリングの重み付け（各銘柄に適用してランキングを決定）
 - テーマ直結度: 30%（テーマのコア事業か間接的か）
 - 業績モメンタム: 25%（直近決算の売上・利益成長）
-- バリュエーション: 20%（PER・PBRが業界水準と比較して割安か）
+- バリュエーション: 20%（PER・PBRが業界水準比）
 - 財務健全性: 15%（financial_health スコア）
-- カタリスト期待: 10%（今後のイベント・ニュースによる株価上昇余地）
+- カタリスト期待: 10%（今後のイベント・ニュースによる上昇余地）
 
-## ティア分類
-各銘柄を以下のティアに分類し、対応するCSSクラスを適用してください:
-- 本命 (tier-honmei): 総合スコア最上位、テーマ直結かつ業績好調
-- 大型安定 (tier-ogata): 大型株でリスク低め、安定した収益基盤
-- ハイリスク (tier-hirisuku): 成長性高いが赤字・高バリュエーション
-- 思惑 (tier-omowaku): テーマ関連の話題性先行、業績はまだ小さい
-- 出遅れ (tier-okure): テーマ関連性はあるが株価が出遅れている割安株
+各スコアは 0〜100 の数値で表現し、data-width 属性に設定してください。
 
-## HTMLプレースホルダーの置換ルール
-- {{YEAR_MONTH}}: 年月（例: "2026年4月"）
-- {{GENERATED_DATE}}: 生成日（例: "2026年4月1日"）
-- {{THEME_COUNT}}: テーマ数
-- {{TOTAL_STOCKS}}: 合計銘柄数
-- {{ARCHIVE_LINKS}}: アーカイブリンク（archive/index.html へのリンクを含む）
-- {{THEME_SUMMARY_CARDS}}: 各テーマのサマリーカードHTML
-- {{THEME_RANKING_SECTIONS}}: 各テーマのランキングセクションHTML
+## ティア分類（対応CSSクラス）
+- tier-honmei（本命）: 総合スコア最上位
+- tier-ogata（大型安定）: 大型株でリスク低め
+- tier-hirisuku（ハイリスク）: 成長性高いが高リスク
+- tier-omowaku（思惑）: 話題性先行
+- tier-okure（出遅れ）: 割安な出遅れ株
 
-## HTMLの要件
-1. 自己完結型（CSSとJSをすべてインライン）
-2. 全銘柄をスコアリングして順位をつける（各テーマ内でランキング）
-3. 上位3銘柄はカードに rank-1/rank-2/rank-3 クラスを付与
-4. 各カードにスコアバー（5軸）を含める（score-bar-fill の data-width に数値を設定）
-5. テーマごとに section.theme-section を作成
-6. 各テーマに適切なアイコン（絵文字）を選ぶ
-7. 日本語で記述
-8. 完全なHTMLを出力（<!DOCTYPE html>から</html>まで）
+## テーマデータ
+{themes_json}
 
-必ず完全なHTMLファイルを出力してください。途中で切れないようにしてください。
+## 銘柄データ
+{stock_data_json}
+
+## 出力フォーマット例
+<section class="theme-section">
+  <div class="theme-header">
+    <div class="theme-icon">🚀</div>
+    <div class="theme-title-block">
+      <h3>防衛・宇宙テック</h3>
+      <div class="stock-count">5銘柄</div>
+    </div>
+  </div>
+  <div class="stock-list">
+    <div class="stock-card rank-1">
+      <div class="card-header">
+        <div class="rank-badge">1</div>
+        <span class="tier-label tier-honmei">本命</span>
+        <div class="card-info">
+          <div class="stock-name">IHI</div>
+          <div class="stock-code">7013 / 航空・宇宙</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥8,430</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change up">+2.3%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">15.2x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">2.1x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">1.5%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>テーマとの関連ポイント（2〜3文）</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>主なリスク（1〜2文）</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="85" style="width:0%"></div></div>
+              <div class="score-bar-val">85</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width:0%"></div></div>
+              <div class="score-bar-val">70</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="60" style="width:0%"></div></div>
+              <div class="score-bar-val">60</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
+              <div class="score-bar-val">80</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="75" style="width:0%"></div></div>
+              <div class="score-bar-val">75</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    （銘柄数分繰り返す）
+  </div>
+</section>
+（テーマ数分繰り返す）
+
+HTMLフラグメントのみ出力してください。上位3銘柄にはrank-1/rank-2/rank-3クラスを付与してください。
 """
 
 
-def build_prompt(themes: List[Dict], stock_data: List[Dict], template_html: str) -> str:
-    """Claudeへのプロンプトを構築する"""
-    now = datetime.now(timezone.utc).astimezone()
-    generated_date = now.strftime("%Y年%m月%d日")
+def build_summary_cards_prompt(themes: List[Dict]) -> str:
+    """テーマ概要カード用プロンプトを構築する"""
+    return SUMMARY_CARDS_PROMPT.replace(
+        "{themes_json}", json.dumps(themes, ensure_ascii=False, indent=2)
+    )
 
-    # .format() を使うと {{YEAR_MONTH}} が {YEAR_MONTH} に変換されてテンプレートと不整合になるため
-    # str.replace() を使ってプレースホルダーを置換する
-    return (ANALYSIS_PROMPT
-            .replace("{generated_date}", generated_date)
+
+def build_ranking_sections_prompt(themes: List[Dict], stock_data: List[Dict]) -> str:
+    """銘柄ランキングセクション用プロンプトを構築する"""
+    return (RANKING_SECTIONS_PROMPT
             .replace("{themes_json}", json.dumps(themes, ensure_ascii=False, indent=2))
-            .replace("{stock_data_json}", json.dumps(stock_data, ensure_ascii=False, indent=2))
-            .replace("{template_html}", template_html))
+            .replace("{stock_data_json}", json.dumps(stock_data, ensure_ascii=False, indent=2)))
+
+
+def strip_code_fence(text: str) -> str:
+    """Claudeが出力したコードフェンス（```html ... ```）を除去する"""
+    if text.startswith("```"):
+        lines = text.split("\n")
+        start = 1 if lines[0].startswith("```") else 0
+        end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
+        return "\n".join(lines[start:end])
+    return text
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 出力ファイル処理
 # ─────────────────────────────────────────────────────────────────────────────
-
-def validate_html(html: str) -> bool:
-    """生成されたHTMLの基本バリデーション"""
-    checks = [
-        "<!DOCTYPE html>" in html or "<!doctype html>" in html.lower(),
-        "<html" in html,
-        "</html>" in html,
-        "<body" in html,
-        "</body>" in html,
-        "免責事項" in html,
-    ]
-    passed = sum(1 for c in checks if c)
-    if passed < len(checks):
-        logger.warning(f"HTML validation: {passed}/{len(checks)} checks passed")
-    return passed >= 4  # 最低4項目はパス
-
 
 def update_archive_index(archive_dir: Path, year_month_str: str) -> None:
     """
@@ -211,7 +287,7 @@ def update_theme_history(themes: List[Dict], year_month_str: str) -> None:
             "icon": theme.get("icon", "💹"),
         })
 
-    # 直近12ヶ月分のみ保持
+    # 直近36エントリ（約3年分）のみ保持
     history["themes"] = history["themes"][-36:]
 
     with open(THEME_HISTORY_FILE, "w", encoding="utf-8") as f:
@@ -219,26 +295,21 @@ def update_theme_history(themes: List[Dict], year_month_str: str) -> None:
     logger.info(f"Theme history updated: {len(history['themes'])} entries total")
 
 
-def save_report(
-    html: str,
-    year_month_str: str,
-    fallback_template: Optional[str] = None,
-) -> None:
+def save_report(html: str, year_month_str: str) -> None:
     """
     HTMLレポートを docs/ に保存する。
 
     Args:
-        html: 生成されたHTMLコード
+        html: 完成したHTMLコード
         year_month_str: 年月文字列 (例: "2026-04")
-        fallback_template: バリデーション失敗時のフォールバックHTML
     """
     DOCS_DIR.mkdir(exist_ok=True)
     ARCHIVE_DIR.mkdir(exist_ok=True)
 
-    # バリデーション
-    if not validate_html(html):
-        logger.error("HTML validation failed. Using fallback template.")
-        html = fallback_template or html
+    # 残存プレースホルダーの警告
+    remaining = re.findall(r"\{\{[A-Z_]+\}\}", html)
+    if remaining:
+        logger.warning(f"Unreplaced placeholders found: {set(remaining)}")
 
     # 最新号
     (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
@@ -284,49 +355,52 @@ def run():
     now = datetime.now(timezone.utc).astimezone()
     year_month_str = now.strftime("%Y-%m")
 
-    # Claudeへのプロンプトを1件のバッチリクエストとして送信
-    prompt = build_prompt(themes, stock_data, template_html)
+    # Claudeへのプロンプトを2件のバッチリクエストとして送信
+    # （サマリーカードとランキングセクションを分割することでトークン上限問題を回避）
+    summary_prompt = build_summary_cards_prompt(themes)
+    ranking_prompt = build_ranking_sections_prompt(themes, stock_data)
 
-    logger.info(f"Prompt length: {len(prompt)} chars (~{len(prompt)//4} tokens estimated)")
+    logger.info(f"Summary cards prompt: {len(summary_prompt)} chars")
+    logger.info(f"Ranking sections prompt: {len(ranking_prompt)} chars")
 
     claude = ClaudeBatchClient(api_key=api_key)
     results = claude.run_batch(
-        requests=[{"custom_id": "report", "user_message": prompt}],
+        requests=[
+            {"custom_id": "summary_cards", "user_message": summary_prompt},
+            {"custom_id": "ranking_sections", "user_message": ranking_prompt},
+        ],
         system_prompt=SYSTEM_PROMPT,
-        max_tokens=16000,
+        max_tokens=8000,
     )
 
-    html = results.get("report", "")
-    if not html:
-        raise RuntimeError("Claude batch returned empty response for 'report'")
+    summary_cards_html = strip_code_fence(results.get("summary_cards", "").strip())
+    ranking_sections_html = strip_code_fence(results.get("ranking_sections", "").strip())
 
-    # HTMLの先頭/末尾のコードフェンスを除去（念のため）
-    html = html.strip()
-    if html.startswith("```"):
-        lines = html.split("\n")
-        # ```html ... ``` の形式に対応
-        start = 1 if lines[0].startswith("```") else 0
-        end = len(lines) - 1 if lines[-1] == "```" else len(lines)
-        html = "\n".join(lines[start:end])
+    logger.info(f"summary_cards response: {len(summary_cards_html)} chars")
+    logger.info(f"ranking_sections response: {len(ranking_sections_html)} chars")
 
-    # Claudeが置換し損ねたシンプルなプレースホルダーをPython側でフォールバック処理
-    dt = datetime.now(timezone.utc).astimezone()
-    year_month_label = f"{dt.year}年{dt.month}月"
-    generated_date_label = dt.strftime("%Y年%m月%d日")
+    if not summary_cards_html:
+        logger.warning("summary_cards response is empty!")
+    if not ranking_sections_html:
+        logger.warning("ranking_sections response is empty!")
+
+    # テンプレートの全プレースホルダーをPythonで置換
+    year_month_label = f"{now.year}年{now.month}月"
+    generated_date_label = now.strftime("%Y年%m月%d日")
     total_stocks = sum(len(t.get("stocks", [])) for t in stock_data)
     archive_link_html = '<a href="archive/index.html">アーカイブ一覧</a>'
 
+    html = template_html
     html = html.replace("{{YEAR_MONTH}}", year_month_label)
     html = html.replace("{{GENERATED_DATE}}", generated_date_label)
     html = html.replace("{{THEME_COUNT}}", str(len(themes)))
     html = html.replace("{{TOTAL_STOCKS}}", str(total_stocks))
     html = html.replace("{{ARCHIVE_LINKS}}", archive_link_html)
-
-    if "{{THEME_SUMMARY_CARDS}}" in html or "{{THEME_RANKING_SECTIONS}}" in html:
-        logger.warning("Claude did not fill in theme cards/ranking sections. HTML may be incomplete.")
+    html = html.replace("{{THEME_SUMMARY_CARDS}}", summary_cards_html)
+    html = html.replace("{{THEME_RANKING_SECTIONS}}", ranking_sections_html)
 
     # 保存
-    save_report(html, year_month_str, fallback_template=template_html)
+    save_report(html, year_month_str)
 
     # テーマ履歴更新
     update_theme_history(themes, year_month_str)
