@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>テーマ株レポート {{YEAR_MONTH}}号</title>
+<title>テーマ株レポート 2026年3月号</title>
 <style>
   /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -315,11 +315,11 @@
 <header>
   <div class="container">
     <div class="header-tag">AI Generated Stock Report</div>
-    <h1>📊 テーマ株レポート {{YEAR_MONTH}}号</h1>
+    <h1>📊 テーマ株レポート 2026年3月号</h1>
     <div class="header-meta">
-      <span>生成日: {{GENERATED_DATE}}</span>
-      <span>テーマ数: {{THEME_COUNT}}件</span>
-      <span>対象銘柄: {{TOTAL_STOCKS}}銘柄</span>
+      <span>生成日: 2026年03月22日</span>
+      <span>テーマ数: 3件</span>
+      <span>対象銘柄: 24銘柄</span>
     </div>
   </div>
 </header>
@@ -327,7 +327,7 @@
 <nav>
   <div class="container">
     <span>アーカイブ:</span>
-    {{ARCHIVE_LINKS}}
+    <a href="archive/index.html">アーカイブ一覧</a>
   </div>
 </nav>
 
@@ -338,12 +338,470 @@
     <section class="section">
       <div class="section-title">今月の注目テーマ</div>
       <div class="theme-summary-grid">
-        {{THEME_SUMMARY_CARDS}}
+        <div class="theme-summary-card">
+  <div class="icon">💰</div>
+  <h2>高配当・増配株投資</h2>
+  <p>日本企業の資本効率改善や株主還元強化の動きが加速しており、3期連続増配や自社株買いを積極的に行う企業への注目度が高まっている。インフレ環境下で安定したキャッシュフローを生む高配当銘柄は、市場のボラティリティが高い局面でも投資家の防衛的かつ収益的な選択肢として根強い人気を誇る。</p>
+  <div class="theme-score-row">
+    <span class="score-chip">政策: 8</span>
+    <span class="score-chip">市場: 9</span>
+    <span class="score-chip">新規: 6</span>
+    <span class="score-chip">持続: 9</span>
+  </div>
+</div>
+
+<div class="theme-summary-card">
+  <div class="icon">🚚</div>
+  <h2>物流フィジカルインターネット</h2>
+  <p>物流の2024年問題以降、効率化が急務となる中で、デジタル技術を活用して物流網を最適化する「フィジカルインターネット」が注目されている。政府の物流DX推進政策と連動し、自動化設備やシステム構築を担う企業は、人手不足解消の切り札として中長期的な成長が見込まれる。</p>
+  <div class="theme-score-row">
+    <span class="score-chip">政策: 9</span>
+    <span class="score-chip">市場: 8</span>
+    <span class="score-chip">新規: 7</span>
+    <span class="score-chip">持続: 8</span>
+  </div>
+</div>
+
+<div class="theme-summary-card">
+  <div class="icon">🤖</div>
+  <h2>AIコンパニオン・ヒューマンインターフェース</h2>
+  <p>生成AIの進化により、単なる情報検索ツールから、長期記憶を持ち人間と関係を構築する「AIコンパニオン」への転換が始まっている。サービス業やヘルスケア分野での応用が期待されており、日本独自のきめ細やかなサービスと融合することで、新たな市場価値を創出する可能性が高い。</p>
+  <div class="theme-score-row">
+    <span class="score-chip">政策: 7</span>
+    <span class="score-chip">市場: 8</span>
+    <span class="score-chip">新規: 9</span>
+    <span class="score-chip">持続: 7</span>
+  </div>
+</div>
       </div>
     </section>
 
     <!-- 各テーマのランキング -->
-    {{THEME_RANKING_SECTIONS}}
+    <section class="theme-section">
+  <div class="theme-header">
+    <div class="theme-icon">💰</div>
+    <div class="theme-title-block">
+      <h3>高配当・増配株投資</h3>
+      <div class="stock-count">8銘柄</div>
+    </div>
+  </div>
+  <div class="stock-list">
+
+    <div class="stock-card rank-1">
+      <div class="card-header">
+        <div class="rank-badge">1</div>
+        <span class="tier-label tier-honmei">本命</span>
+        <div class="card-info">
+          <div class="stock-name">Mitsubishi UFJ Financial Group</div>
+          <div class="stock-code">8306 / Financial Services</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥2,686</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change down">-1.65%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">15.95x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">1.43x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">2.90%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★★</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>累進配当の導入と大規模な自社株買いを継続し、株主還元姿勢が極めて強固。メガバンクとしての圧倒的な資本力と、金利上昇局面での収益拡大期待も高く、インカム投資家にとって最優先の選択肢。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>国内外の金利動向や経済環境の変化による貸倒引当金の増加リスクがある。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="95" style="width:0%"></div></div>
+              <div class="score-bar-val">95</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="82" style="width:0%"></div></div>
+              <div class="score-bar-val">82</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="78" style="width:0%"></div></div>
+              <div class="score-bar-val">78</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="100" style="width:0%"></div></div>
+              <div class="score-bar-val">100</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="85" style="width:0%"></div></div>
+              <div class="score-bar-val">85</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-card rank-2">
+      <div class="card-header">
+        <div class="rank-badge">2</div>
+        <span class="tier-label tier-honmei">本命</span>
+        <div class="card-info">
+          <div class="stock-name">NTT, Inc.</div>
+          <div class="stock-code">9432 / Communication Services</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥158.6</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change up">+0.38%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">12.63x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">1.36x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">3.34%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★★</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>12期連続増配を達成し、通信インフラという極めて安定した収益基盤を持つ。長期的な連続増配実績が投資家の信頼を集め、割安なPERが中長期投資の魅力を高めている。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>通信料金値下げ圧力や、次世代通信技術への巨額投資による利益圧迫に注意が必要。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="92" style="width:0%"></div></div>
+              <div class="score-bar-val">92</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="74" style="width:0%"></div></div>
+              <div class="score-bar-val">74</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="86" style="width:0%"></div></div>
+              <div class="score-bar-val">86</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="100" style="width:0%"></div></div>
+              <div class="score-bar-val">100</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width:0%"></div></div>
+              <div class="score-bar-val">70</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-card rank-3">
+      <div class="card-header">
+        <div class="rank-badge">3</div>
+        <span class="tier-label tier-ogata">大型安定</span>
+        <div class="card-info">
+          <div class="stock-name">ITOCHU Corporation</div>
+          <div class="stock-code">8001 / Industrials</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥2,024</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change down">-5.07%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">15.22x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">2.24x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">2.17%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>累進配当を掲げ、資本効率改善と株主還元強化を経営の最優先事項としている。非資源分野に強みを持ち、安定した収益力とROE向上に向けた経営効率化が継続中で、大型商社株の中でも安定感が際立つ。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>世界的な景気減速による貿易・物流需要の低下が業績に影響を与える可能性がある。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="88" style="width:0%"></div></div>
+              <div class="score-bar-val">88</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="76" style="width:0%"></div></div>
+              <div class="score-bar-val">76</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="72" style="width:0%"></div></div>
+              <div class="score-bar-val">72</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
+              <div class="score-bar-val">80</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="68" style="width:0%"></div></div>
+              <div class="score-bar-val">68</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-card">
+      <div class="card-header">
+        <div class="rank-badge">4</div>
+        <span class="tier-label tier-ogata">大型安定</span>
+        <div class="card-info">
+          <div class="stock-name">Japan Tobacco Inc.</div>
+          <div class="stock-code">2914 / Consumer Defensive</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥5,847</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change down">-1.98%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">20.79x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">2.54x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">4.14%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>タバコ事業の強力なキャッシュ創出力により、業界最高水準の配当利回り4.14%を維持。ディフェンシブ銘柄としてポートフォリオの安定剤となり、市場波乱局面でも相対的な強さを発揮する。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>世界的な禁煙規制の強化や、為替変動による海外収益への影響が長期的なリスクとなる。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="85" style="width:0%"></div></div>
+              <div class="score-bar-val">85</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="65" style="width:0%"></div></div>
+              <div class="score-bar-val">65</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="60" style="width:0%"></div></div>
+              <div class="score-bar-val">60</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
+              <div class="score-bar-val">80</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="60" style="width:0%"></div></div>
+              <div class="score-bar-val">60</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-card">
+      <div class="card-header">
+        <div class="rank-badge">5</div>
+        <span class="tier-label tier-ogata">大型安定</span>
+        <div class="card-info">
+          <div class="stock-name">ORIX Corporation</div>
+          <div class="stock-code">8591 / Financial Services</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥4,736</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change down">-3.48%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">11.38x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">1.14x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">3.96%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>多角的な事業展開により安定した収益を確保し、配当性向の引き上げ方針が明確。低PBRと高配当利回りの組み合わせは割安感が強く、インカム投資家から根強い人気がある。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>金融市場の混乱や不動産市況の悪化による資産価値の変動リスクがある。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="72" style="width:0%"></div></div>
+              <div class="score-bar-val">72</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width:0%"></div></div>
+              <div class="score-bar-val">70</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="88" style="width:0%"></div></div>
+              <div class="score-bar-val">88</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
+              <div class="score-bar-val">80</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="65" style="width:0%"></div></div>
+              <div class="score-bar-val">65</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-card">
+      <div class="card-header">
+        <div class="rank-badge">6</div>
+        <span class="tier-label tier-okure">出遅れ</span>
+        <div class="card-info">
+          <div class="stock-name">Sekisui House, Ltd.</div>
+          <div class="stock-code">1928 / Consumer Cyclical</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥3,490</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change down">-3.27%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">9.75x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">1.06x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">4.18%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>連続増配銘柄として知られ、住宅業界での高いブランド力と安定した増配実績が強み。PER9.75倍・PBR1.06倍という割安なバリュエーションと4%超の配当利回りが出遅れ株としての魅力を際立たせる。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>国内の人口減少や金利上昇による住宅需要の減退が中長期的なリスク。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="68" style="width:0%"></div></div>
+              <div class="score-bar-val">68</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="72" style="width:0%"></div></div>
+              <div class="score-bar-val">72</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="90" style="width:0%"></div></div>
+              <div class="score-bar-val">90</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
+              <div class="score-bar-val">80</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="58" style="width:0%"></div></div>
+              <div class="score-bar-val">58</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stock-card">
+      <div class="card-header">
+        <div class="rank-badge">7</div>
+        <span class="tier-label tier-ogata">大型安定</span>
+        <div class="card-info">
+          <div class="stock-name">Mitsubishi Corporation</div>
+          <div class="stock-code">8058 / Industrials</div>
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="value">¥5,397</div><div class="label">現在値</div></div>
+          <div class="metric"><div class="value change down">-5.51%</div><div class="label">前日比</div></div>
+        </div>
+        <div class="card-expand-icon">▼</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">30.77x</div></div>
+          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">2.20x</div></div>
+          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">2.04%</div></div>
+          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
+        </div>
+        <div class="detail-text">
+          <div class="dt-label">注目ポイント</div>
+          <p>累進配当の導入に加え、機動的な自社株買いを実施し株主還元策を大幅に拡充。資源価格の変動を吸収するポートフォリオ経営を推進し、市場からの信頼が厚い。</p>
+          <div class="dt-label" style="margin-top:10px">リスク要因</div>
+          <p>資源価格の急落や地政学リスクによる業績ボラティリティが高く、PERの割高感がバリュエーション面での弱点。</p>
+        </div>
+        <div class="score-bar-section">
+          <div class="score-bar-label">5軸スコア評価</div>
+          <div class="score-bars">
+            <div class="score-bar-row">
+              <div class="score-bar-name">テーマ直結度</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="82" style="width:0%"></div></div>
+              <div class="score-bar-val">82</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">業績モメンタム</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="68" style="width:0%"></div></div>
+              <div class="score-bar-val">68</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">バリュエーション</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="45" style="width:0%"></div></div>
+              <div class="score-bar-val">45</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">財務健全性</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
+              <div class="score-bar-val">80</div>
+            </div>
+            <div class="score-bar-row">
+              <div class="score-bar-name">カタリスト期待</div>
+              <div class="score-bar-track"><div class="score-bar-fill" data-width="65" style="width:0%"></div></div>
+              <div class="score-bar-val">65</div>
+            </div>
 
     <!-- 免責事項 -->
     <section class="section">
