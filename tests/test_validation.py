@@ -75,8 +75,16 @@ def test_validate_candidates_pads_short_code():
     assert result[0]["code"] == "0998"
 
 
-def test_validate_candidates_skips_alphabetic_code():
+def test_validate_candidates_alphabetic_code_treated_as_us():
+    """大文字英字コードは market 未指定でも US 銘柄として受け入れる。"""
     result = validate_candidates([{"code": "SONY"}])
+    assert len(result) == 1
+    assert result[0]["market"] == "US"
+
+
+def test_validate_candidates_skips_alphabetic_code_when_market_jp():
+    """market="JP" を明示して英字コードを渡した場合はスキップする。"""
+    result = validate_candidates([{"code": "SONY", "market": "JP"}])
     assert result == []
 
 
@@ -95,3 +103,31 @@ def test_validate_candidates_fills_defaults():
     assert result[0]["relation"] == "indirect"
     assert result[0]["reason"] == ""
     assert result[0]["name"] == "7013"
+
+
+def test_validate_candidates_us_explicit_market():
+    """market="US" を明示した米国株候補が正常に通ること。"""
+    result = validate_candidates([{"code": "AAPL", "market": "US", "name": "Apple"}])
+    assert len(result) == 1
+    assert result[0]["code"] == "AAPL"
+    assert result[0]["market"] == "US"
+
+
+def test_validate_candidates_us_dot_b():
+    """BRK.B のようなドット付き US コードが通ること。"""
+    result = validate_candidates([{"code": "BRK.B", "market": "US"}])
+    assert len(result) == 1
+    assert result[0]["code"] == "BRK.B"
+
+
+def test_validate_candidates_jp_gets_default_market():
+    """market フィールドなしの数字コードは JP として扱われること。"""
+    result = validate_candidates([{"code": "6758"}])
+    assert len(result) == 1
+    assert result[0]["market"] == "JP"
+
+
+def test_validate_candidates_skips_invalid_mixed_code():
+    """英数字混在コードはスキップされること。"""
+    result = validate_candidates([{"code": "abc123"}])
+    assert result == []

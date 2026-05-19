@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>推奨銘柄成績ダッシュボード</title>
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+  crossorigin="anonymous"></script>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d1a;
+    color: #e0e0f0;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  a { color: #7eb8ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ===== LAYOUT ===== */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(135deg, #0d0d2a 0%, #1a1a3e 100%);
+    border-bottom: 1px solid #2a2a5a;
+    padding: 32px 0 24px;
+  }
+  header .container { display: flex; flex-direction: column; gap: 8px; }
+  .header-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #5577cc;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.3;
+  }
+  .header-meta {
+    font-size: 13px;
+    color: #8888aa;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    background: #111124;
+    border-bottom: 1px solid #1e1e40;
+    padding: 10px 0;
+    font-size: 13px;
+  }
+  nav .container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  nav span { color: #555577; }
+
+  /* ===== MAIN ===== */
+  main { padding: 32px 0 64px; }
+
+  /* ===== SECTION ===== */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5577cc;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #1e1e40;
+  }
+
+  /* ===== SUMMARY CARDS ===== */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .summary-card {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .summary-card .card-label {
+    font-size: 11px;
+    color: #6666aa;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .summary-card .card-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+  }
+  .summary-card .card-sub {
+    font-size: 12px;
+    color: #8888aa;
+    margin-top: 4px;
+  }
+  .summary-card.positive .card-value { color: #22cc88; }
+  .summary-card.negative .card-value { color: #ff5566; }
+
+  /* ===== TABLES ===== */
+  .table-wrapper { overflow-x: auto; }
+  .perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .perf-table th {
+    background: #1a1a36;
+    color: #9999bb;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  .perf-table th:hover { color: #ccccee; }
+  .perf-table th .sort-icon { margin-left: 4px; font-size: 10px; color: #4444aa; }
+  .perf-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #1a1a36;
+    color: #ccccee;
+  }
+  .perf-table tr:last-child td { border-bottom: none; }
+  .perf-table tr:hover td { background: #131330; }
+  .change-up   { color: #22cc88; font-weight: 700; }
+  .change-down { color: #ff5566; font-weight: 700; }
+  .change-flat { color: #8888aa; }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .filter-bar label { font-size: 12px; color: #8888aa; }
+  .filter-bar select {
+    background: #1a1a36;
+    color: #ccccee;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  /* ===== CHART ===== */
+  .chart-wrapper {
+    background: #131326;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .chart-canvas { width: 100%; height: 280px; display: block; }
+
+  /* ===== DISCLAIMER ===== */
+  .disclaimer {
+    background: #0d0d1a;
+    border: 1px solid #1e1e40;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 12px;
+    color: #555577;
+    line-height: 1.7;
+  }
+  .disclaimer strong { color: #7777aa; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: #0a0a15;
+    border-top: 1px solid #1a1a36;
+    padding: 20px 0;
+    font-size: 12px;
+    color: #3a3a5a;
+    text-align: center;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    h1 { font-size: 20px; }
+    .summary-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="header-tag">Backtest Performance Dashboard</div>
+    <h1>📊 推奨銘柄成績ダッシュボード</h1>
+    <div class="header-meta">
+      <span>更新日時: {{UPDATED_AT}}</span>
+      <span>集計期間: {{PERIOD_RANGE}}</span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <span>ナビゲーション:</span>
+    <a href="index.html">最新レポート</a>
+    <span>|</span>
+    <a href="archive/">アーカイブ</a>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <!-- サマリーカード -->
+    <section class="section">
+      <div class="section-title">累計サマリー</div>
+      {{SUMMARY_CARDS}}
+    </section>
+
+    <!-- 月別パフォーマンスチャート -->
+    <section class="section">
+      <div class="section-title">月別平均リターン推移</div>
+      <div class="chart-wrapper">
+        <canvas id="monthlyReturnChart" class="chart-canvas"></canvas>
+      </div>
+    </section>
+
+    <!-- 月別パフォーマンステーブル -->
+    <section class="section">
+      <div class="section-title">月別パフォーマンス</div>
+      <div class="table-wrapper">
+        <table class="perf-table" id="monthly-table">
+          <thead>
+            <tr>
+              <th>月</th>
+              <th>推奨数</th>
+              <th>勝率</th>
+              <th>平均リターン</th>
+              <th>最高</th>
+              <th>最低</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{MONTHLY_TABLE_ROWS}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 個別銘柄テーブル -->
+    <section class="section">
+      <div class="section-title">個別銘柄パフォーマンス</div>
+      <div class="filter-bar">
+        <label for="theme-filter">テーマで絞り込み:</label>
+        <select id="theme-filter">
+          <option value="">すべて</option>
+          {{THEME_FILTER_OPTIONS}}
+        </select>
+        <label for="month-filter">月で絞り込み:</label>
+        <select id="month-filter">
+          <option value="">すべて</option>
+          {{MONTH_FILTER_OPTIONS}}
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <table class="perf-table" id="stocks-table">
+          <thead>
+            <tr>
+              <th data-col="year_month">推奨月<span class="sort-icon">⇅</span></th>
+              <th data-col="code">コード<span class="sort-icon">⇅</span></th>
+              <th data-col="name">銘柄名<span class="sort-icon">⇅</span></th>
+              <th data-col="price_at_pick">推奨時価格<span class="sort-icon">⇅</span></th>
+              <th data-col="current_price">現在価格<span class="sort-icon">⇅</span></th>
+              <th data-col="return_pct">リターン<span class="sort-icon">⇅</span></th>
+              <th data-col="theme">テーマ<span class="sort-icon">⇅</span></th>
+            </tr>
+          </thead>
+          <tbody id="stocks-tbody">
+            {{STOCKS_TABLE_ROWS}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 免責事項 -->
+    <section class="section">
+      <div class="section-title">免責事項</div>
+      <div class="disclaimer">
+        <strong>【重要】投資に関するご注意</strong><br>
+        本ダッシュボードはAIが自動生成した過去パフォーマンスの情報提供を目的としたものであり、
+        <strong>投資助言・勧誘を目的とするものではありません。</strong>
+        過去のパフォーマンスは将来の結果を保証するものではありません。
+        株価データはyfinance（Yahoo Finance非公式API）から取得しており、遅延・欠損が含まれる場合があります。
+        投資の最終判断はご自身の責任においてお行いください。
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    バックテストダッシュボード | GitHub Pages | データソース: yfinance
+  </div>
+</footer>
+
+<script>
+// ===== チャート初期化 =====
+(function() {
+  var labels = {{CHART_LABELS}};
+  var returns = {{CHART_RETURNS}};
+
+  if (!labels.length) return;
+
+  var ctx = document.getElementById('monthlyReturnChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '月別平均リターン (%)',
+        data: returns,
+        borderColor: '#5577cc',
+        backgroundColor: 'rgba(85,119,204,0.15)',
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: returns.map(function(v) {
+          return v === null ? 'transparent' : (v >= 0 ? '#22cc88' : '#ff5566');
+        }),
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9999bb' } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var v = ctx.parsed.y;
+              return v === null ? 'データなし' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8888aa' }, grid: { color: '#1a1a36' } },
+        y: {
+          ticks: {
+            color: '#8888aa',
+            callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; }
+          },
+          grid: { color: '#1a1a36' }
+        }
+      }
+    }
+  });
+})();
+
+// ===== テーブルソート =====
+(function() {
+  var tbody = document.getElementById('stocks-tbody');
+  var sortState = { col: null, asc: true };
+
+  document.querySelectorAll('#stocks-table th[data-col]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      var col = this.getAttribute('data-col');
+      if (sortState.col === col) {
+        sortState.asc = !sortState.asc;
+      } else {
+        sortState.col = col;
+        sortState.asc = true;
+      }
+      sortTable(col, sortState.asc);
+    });
+  });
+
+  function sortTable(col, asc) {
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort(function(a, b) {
+      var va = a.getAttribute('data-' + col) || '';
+      var vb = b.getAttribute('data-' + col) || '';
+      var na = parseFloat(va);
+      var nb = parseFloat(vb);
+      if (!isNaN(na) && !isNaN(nb)) {
+        return asc ? na - nb : nb - na;
+      }
+      return asc ? va.localeCompare(vb, 'ja') : vb.localeCompare(va, 'ja');
+    });
+    rows.forEach(function(r) { tbody.appendChild(r); });
+  }
+})();
+
+// ===== フィルタ =====
+(function() {
+  var themeFilter = document.getElementById('theme-filter');
+  var monthFilter = document.getElementById('month-filter');
+
+  function applyFilter() {
+    var theme = themeFilter.value;
+    var month = monthFilter.value;
+    document.querySelectorAll('#stocks-tbody tr').forEach(function(row) {
+      var rowTheme = row.getAttribute('data-theme') || '';
+      var rowMonth = row.getAttribute('data-year_month') || '';
+      var show = true;
+      if (theme && rowTheme !== theme) show = false;
+      if (month && rowMonth !== month) show = false;
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  themeFilter.addEventListener('change', applyFilter);
+  monthFilter.addEventListener('change', applyFilter);
+})();
+</script>
+
+</body>
+</html>

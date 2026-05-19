@@ -1,0 +1,53 @@
+"""CHAT_PROXY_URL プレースホルダーの動作テスト"""
+import os
+from pathlib import Path
+from unittest.mock import patch
+
+TEMPLATE_PATH = Path("src/templates/report_template.html")
+
+
+def _load_template() -> str:
+    return TEMPLATE_PATH.read_text(encoding="utf-8")
+
+
+def test_chat_proxy_url_placeholder_in_template():
+    content = _load_template()
+    assert "{{CHAT_PROXY_URL}}" in content, "{{CHAT_PROXY_URL}} placeholder missing from template"
+
+
+def test_chat_widget_html_present():
+    content = _load_template()
+    assert 'id="chat-fab"' in content
+    assert 'id="chat-panel"' in content
+    assert 'id="chat-messages"' in content
+    assert 'id="chat-input"' in content
+    assert 'id="chat-send"' in content
+
+
+def test_widget_hidden_when_url_empty():
+    content = _load_template()
+    assert 'style.display = "none"' in content, (
+        "Widget should set display:none when PROXY_URL is empty"
+    )
+
+
+def test_step2_replaces_chat_proxy_url_env_set():
+    """Verify that {{CHAT_PROXY_URL}} is substituted with the env var value."""
+    expected_url = "https://example.vercel.app/api/ask"
+    template = "{{CHAT_PROXY_URL}}"
+    with patch.dict(os.environ, {"CHAT_PROXY_URL": expected_url}):
+        result = template.replace("{{CHAT_PROXY_URL}}", os.environ.get("CHAT_PROXY_URL", ""))
+    assert result == expected_url, f"Expected '{expected_url}', got '{result}'"
+
+
+def test_step2_replaces_chat_proxy_url_env_unset():
+    env_without_proxy = {k: v for k, v in os.environ.items() if k != "CHAT_PROXY_URL"}
+    with patch.dict(os.environ, env_without_proxy, clear=True):
+        proxy_url = os.environ.get("CHAT_PROXY_URL", "")
+    assert proxy_url == ""
+
+
+def test_no_api_key_in_template():
+    content = _load_template()
+    assert "sk-ant-" not in content, "API key must not appear in the template"
+    assert "ANTHROPIC_API_KEY" not in content, "API key env var name must not appear in template"

@@ -34,6 +34,7 @@ jobs:
       - name: Step 2 - Report Generation (Claude Batch)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CHAT_PROXY_URL: ${{ secrets.CHAT_PROXY_URL }}
         run: python -m src.step2_report
 
       - name: Step 3 - Deploy to GitHub Pages

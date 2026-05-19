@@ -1,0 +1,49 @@
+name: Weekly Flash Report
+
+on:
+  schedule:
+    - cron: '0 8 * * 5'   # 毎週金曜 17:00 JST (UTC 08:00)
+  workflow_dispatch:
+
+permissions:
+  contents: write   # docs/weekly/ を commit するため
+
+jobs:
+  weekly-flash:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate Weekly Flash Report
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+          LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
+          REPORT_URL: ${{ secrets.REPORT_URL }}
+          WEEKLY_REPORT_BASE_URL: ${{ secrets.REPORT_URL }}
+        run: python -m src.step_weekly_flash
+
+      - name: Commit and push weekly report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/weekly/ data/cost_log.json || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            WEEK=$(python -c "from datetime import datetime,timezone; print(datetime.now(timezone.utc).astimezone().strftime('%G-W%V'))")
+            git commit -m "⚡ Auto-generate weekly flash report ${WEEK}"
+            git push
+          fi

@@ -1,0 +1,45 @@
+name: Watchlist Check
+
+on:
+  schedule:
+    - cron: '0 8 * * 1-5'  # 平日 UTC 08:00（JST 17:00）
+  workflow_dispatch:         # 手動実行も可能
+
+permissions:
+  contents: write            # data/watchlist.json の git push に必要
+
+jobs:
+  check-watchlist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Step 5 - Watchlist Check
+        env:
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+          LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
+        run: python -m src.main --step 5
+
+      - name: Commit and push watchlist last_prices
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/watchlist.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: update watchlist last_prices [skip ci]"
+            git push
+          fi

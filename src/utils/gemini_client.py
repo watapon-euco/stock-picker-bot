@@ -8,6 +8,7 @@ from typing import Any, Optional
 import google.generativeai as genai
 
 from src.config import GEMINI_MODEL
+from src.utils.cost_logger import log_api_call
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +51,35 @@ class GeminiClient:
         last_error: Optional[Exception] = None
 
         for attempt in range(MAX_RETRIES):
+            start = time.time()
             try:
                 response = model.generate_content(prompt)
                 text = response.text.strip()
                 logger.debug(f"Gemini response ({len(text)} chars)")
+
+                usage = getattr(response, "usage_metadata", None)
+                in_tok = getattr(usage, "prompt_token_count", 0) or 0
+                out_tok = getattr(usage, "candidates_token_count", 0) or 0
+                log_api_call(
+                    provider="gemini",
+                    model=GEMINI_MODEL,
+                    operation="generate",
+                    input_tokens=in_tok,
+                    output_tokens=out_tok,
+                    duration_sec=time.time() - start,
+                    success=True,
+                )
                 return text
             except Exception as e:
                 last_error = e
+                log_api_call(
+                    provider="gemini",
+                    model=GEMINI_MODEL,
+                    operation="generate",
+                    duration_sec=time.time() - start,
+                    success=False,
+                    extra={"error": str(e), "attempt": attempt + 1},
+                )
                 err_str = str(e).lower()
                 # レート制限（429）は通常より長いウェイト
                 is_rate_limit = "429" in err_str or "quota" in err_str or "rate" in err_str

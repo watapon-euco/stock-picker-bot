@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>テーマ株レポート {{YEAR_MONTH}}号</title>
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+  crossorigin="anonymous"></script>
 <style>
   /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -201,6 +205,20 @@
   }
   .card-info .stock-code { font-size: 12px; color: #5577cc; margin-top: 1px; }
 
+  /* ===== MARKET BADGE ===== */
+  .market-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .market-badge-jp { background: #1a2a4a; color: #6699dd; border: 1px solid #2a3a6a; }
+  .market-badge-us { background: #1a3a2a; color: #55bb88; border: 1px solid #2a5a3a; }
+
   .card-metrics {
     display: flex;
     gap: 16px;
@@ -375,6 +393,308 @@
   .perf-table .change.up   { color: #22cc88; font-weight: 700; }
   .perf-table .change.down { color: #ff5566; font-weight: 700; }
 
+  /* ===== SECTOR WARNING BANNER ===== */
+  .sector-warning-banner {
+    background: #2a1a00;
+    border: 1px solid #aa6600;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #ffcc66;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .sector-warning-banner strong { color: #ffdd88; }
+
+  /* ===== RISK SCENARIOS ===== */
+  .risk-scenarios-section {
+    background: #1a1020;
+    border: 1px solid #3a2040;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 20px;
+  }
+  .risk-scenarios-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #cc6688;
+    margin-bottom: 10px;
+  }
+  .risk-list {
+    padding-left: 18px;
+    font-size: 13px;
+    color: #aaaacc;
+    line-height: 1.8;
+  }
+  .risk-list li { margin-bottom: 6px; }
+  .risk-list strong { color: #ee88aa; }
+
+  /* ===== SUPPLY CHAIN ===== */
+  .supply-chain-section {
+    background: #101a20;
+    border: 1px solid #203040;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .supply-chain-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #5599cc;
+    margin-bottom: 10px;
+  }
+  .supply-chain-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .supply-chain-table th {
+    background: #162030;
+    color: #7799bb;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .supply-chain-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1a2a36;
+    color: #ccccee;
+    vertical-align: top;
+  }
+  .supply-chain-table tr:last-child td { border-bottom: none; }
+  .supply-chain-table ul { padding-left: 14px; margin: 0; }
+  .supply-chain-table li { margin-bottom: 2px; }
+
+  /* ===== STOCK COMPARISON TABLE ===== */
+  .stock-comparison-section {
+    background: #101820;
+    border: 1px solid #1e2e3e;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .stock-comparison-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #66aacc;
+    margin-bottom: 10px;
+  }
+  .stock-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .stock-comparison-table th {
+    background: #162030;
+    color: #7799bb;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .stock-comparison-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1a2a36;
+    color: #ccccee;
+  }
+  .stock-comparison-table tr:last-child td { border-bottom: none; }
+  .score-cell { color: #ffcc44; font-size: 14px; white-space: nowrap; }
+
+  /* ===== PRICE CHART ===== */
+  .price-chart-wrapper {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #1a1a36;
+  }
+  .price-chart-label {
+    font-size: 10px;
+    color: #6666aa;
+    margin-bottom: 6px;
+  }
+  .price-chart-canvas {
+    display: block;
+    width: 100%;
+    height: 200px;
+  }
+
+  /* ===== CHAT WIDGET ===== */
+  #chat-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3355aa, #5577dd);
+    color: #fff;
+    font-size: 22px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(50,80,180,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(50,80,180,0.6); }
+
+  #chat-panel {
+    position: fixed;
+    bottom: 88px;
+    right: 24px;
+    width: 360px;
+    max-height: 520px;
+    background: #111124;
+    border: 1px solid #2a2a5a;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    z-index: 901;
+    overflow: hidden;
+    transform: translateY(16px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+  }
+  #chat-panel.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #chat-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #0d0d2a;
+    border-bottom: 1px solid #1e1e40;
+    flex-shrink: 0;
+  }
+  #chat-panel-header span {
+    font-size: 13px;
+    font-weight: 700;
+    color: #aaaacc;
+    letter-spacing: 0.04em;
+  }
+  #chat-close {
+    background: none;
+    border: none;
+    color: #555577;
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+  }
+  #chat-close:hover { color: #aaaacc; }
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 14px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a5a transparent;
+  }
+  .chat-bubble {
+    max-width: 88%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+  .chat-bubble.user {
+    align-self: flex-end;
+    background: #1e2a5a;
+    color: #ccddff;
+    border-bottom-right-radius: 3px;
+  }
+  .chat-bubble.assistant {
+    align-self: flex-start;
+    background: #1a1a36;
+    color: #ccccee;
+    border: 1px solid #2a2a4a;
+    border-bottom-left-radius: 3px;
+  }
+  .chat-bubble.loading { color: #555577; font-style: italic; }
+  #chat-hints {
+    padding: 0 14px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .chat-hint-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: #1a1a36;
+    border: 1px solid #2a2a5a;
+    border-radius: 16px;
+    color: #7799cc;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .chat-hint-btn:hover { background: #1e2a4a; color: #aaccff; }
+  #chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid #1a1a36;
+    flex-shrink: 0;
+  }
+  #chat-input {
+    flex: 1;
+    background: #0d0d1a;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    color: #e0e0f0;
+    font-size: 13px;
+    padding: 7px 10px;
+    resize: none;
+    height: 36px;
+    min-height: 36px;
+    max-height: 80px;
+    font-family: inherit;
+    line-height: 1.4;
+    overflow-y: auto;
+  }
+  #chat-input:focus { outline: none; border-color: #3355aa; }
+  #chat-send {
+    background: #2244aa;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  #chat-send:hover { background: #3355cc; }
+  #chat-send:disabled { background: #1a1a36; color: #444466; cursor: not-allowed; }
+
+  @media (max-width: 640px) {
+    #chat-panel {
+      width: calc(100vw - 16px);
+      right: 8px;
+      bottom: 80px;
+      max-height: 70vh;
+    }
+    #chat-fab { bottom: 16px; right: 16px; }
+  }
+
   /* ===== DISCLAIMER ===== */
   .disclaimer {
     background: #0d0d1a;
@@ -430,6 +750,9 @@
 <main>
   <div class="container">
 
+    <!-- セクター分散警告バナー（sector_overlap_warning=true の場合のみ表示） -->
+    {{SECTOR_WARNING_BANNER}}
+
     <!-- ニュース概況と投資戦略 -->
     <section class="section">
       <div class="section-title">先月のニュース概況</div>
@@ -452,6 +775,24 @@
 
     <!-- 各テーマのランキング -->
     {{THEME_RANKING_SECTIONS}}
+
+    <!-- リスクシナリオ -->
+    <section class="section">
+      <div class="section-title">リスクシナリオ</div>
+      {{RISK_SCENARIOS_SECTION}}
+    </section>
+
+    <!-- サプライチェーン分析 -->
+    <section class="section">
+      <div class="section-title">サプライチェーン分析</div>
+      {{SUPPLY_CHAIN_SECTION}}
+    </section>
+
+    <!-- 銘柄比較表 -->
+    <section class="section">
+      <div class="section-title">銘柄比較表</div>
+      {{STOCK_COMPARISON_SECTION}}
+    </section>
 
     <!-- 主要ソース -->
     <section class="section">
@@ -512,6 +853,159 @@ document.querySelectorAll('.score-bar-section').forEach(function(el) {
   });
   observer.observe(el);
 });
+</script>
+
+{{CHART_INIT_SCRIPT}}
+
+<!-- ===== CHAT WIDGET ===== -->
+<button id="chat-fab" aria-label="レポートについて質問">💬</button>
+
+<div id="chat-panel" role="dialog" aria-label="チャット">
+  <div id="chat-panel-header">
+    <span>レポートについて質問</span>
+    <button id="chat-close" aria-label="閉じる">✕</button>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-hints">
+    <button class="chat-hint-btn">テーマの背景を詳しく</button>
+    <button class="chat-hint-btn">このレポートの注意点は？</button>
+    <button class="chat-hint-btn">他に関連する企業は？</button>
+  </div>
+  <div id="chat-input-row">
+    <textarea id="chat-input" placeholder="質問を入力..." rows="1"></textarea>
+    <button id="chat-send" aria-label="送信">➤</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var PROXY_URL = "{{CHAT_PROXY_URL}}";
+  if (!PROXY_URL) {
+    document.getElementById("chat-fab").style.display = "none";
+    return;
+  }
+
+  var fab = document.getElementById("chat-fab");
+  var panel = document.getElementById("chat-panel");
+  var closeBtn = document.getElementById("chat-close");
+  var messagesEl = document.getElementById("chat-messages");
+  var hintsEl = document.getElementById("chat-hints");
+  var inputEl = document.getElementById("chat-input");
+  var sendBtn = document.getElementById("chat-send");
+
+  var messages = [];
+  var hintsShown = true;
+
+  fab.addEventListener("click", function() {
+    panel.classList.toggle("open");
+  });
+
+  closeBtn.addEventListener("click", function() {
+    panel.classList.remove("open");
+  });
+
+  document.querySelectorAll(".chat-hint-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      inputEl.value = btn.textContent;
+      if (hintsEl) hintsEl.style.display = "none";
+      hintsShown = false;
+      sendMessage();
+    });
+  });
+
+  sendBtn.addEventListener("click", sendMessage);
+
+  inputEl.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function appendBubble(role, text) {
+    var bubble = document.createElement("div");
+    bubble.className = "chat-bubble " + role;
+    bubble.textContent = text;
+    messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return bubble;
+  }
+
+  // W6: cache reportContext so we don't re-traverse the DOM on every send
+  var cachedReportContext = null;
+
+  function getReportContext() {
+    if (cachedReportContext !== null) return cachedReportContext;
+    var main = document.querySelector("main");
+    cachedReportContext = main ? main.innerText.replace(/\s+/g, " ").trim().slice(0, 5000) : "";
+    return cachedReportContext;
+  }
+
+  async function sendMessage() {
+    var text = inputEl.value.trim();
+    if (!text) return;
+
+    if (hintsShown && hintsEl) {
+      hintsEl.style.display = "none";
+      hintsShown = false;
+    }
+
+    inputEl.value = "";
+    sendBtn.disabled = true;
+
+    appendBubble("user", text);
+    messages.push({ role: "user", content: text });
+
+    var loadingBubble = appendBubble("assistant loading", "考え中...");
+
+    // W4: abort fetch after 35 seconds to avoid indefinite hangs
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, 35000);
+
+    try {
+      var res = await fetch(PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages.slice(-10),
+          reportContext: getReportContext(),
+        }),
+        signal: controller.signal,
+      });
+
+      messagesEl.removeChild(loadingBubble);
+
+      if (!res.ok) {
+        var errData = {};
+        try { errData = await res.json(); } catch (_) {}
+        appendBubble("assistant", "エラー: " + (errData.error || res.statusText));
+        messages.pop();
+        return;
+      }
+
+      var data = await res.json();
+      var reply = data.reply || "";
+      appendBubble("assistant", reply);
+      messages.push({ role: "assistant", content: reply });
+
+      if (messages.length > 20) {
+        messages = messages.slice(-20);
+      }
+    } catch (e) {
+      messagesEl.removeChild(loadingBubble);
+      if (e.name === "AbortError") {
+        appendBubble("assistant", "⏱️ 応答がタイムアウトしました。再度お試しください。");
+      } else {
+        appendBubble("assistant", "⚠️ ネットワークエラー: " + e.message);
+      }
+      messages.pop();
+    } finally {
+      clearTimeout(timer);
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+})();
 </script>
 
 </body>

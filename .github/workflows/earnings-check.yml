@@ -1,0 +1,46 @@
+name: Earnings Alert Check
+
+on:
+  schedule:
+    - cron: '0 0 * * 1-5'  # 平日 UTC 00:00（JST 09:00）
+  workflow_dispatch:          # 手動実行も可能
+
+permissions:
+  contents: write             # data/earnings_notified.json の git push に必要
+
+jobs:
+  earnings-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Earnings Alert Check
+        env:
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+          LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
+          REPORT_URL: ${{ secrets.REPORT_URL }}
+        run: python -m src.step_earnings_check
+
+      - name: Commit and push earnings_notified.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/earnings_notified.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: update earnings_notified [skip ci]"
+            git push
+          fi

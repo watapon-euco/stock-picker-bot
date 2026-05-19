@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 import anthropic
 
 from src.config import CLAUDE_MODEL
+from src.utils.cost_logger import log_api_call
 
 logger = logging.getLogger(__name__)
 POLL_INTERVAL = 30       # ポーリング間隔（秒）
@@ -54,9 +55,40 @@ class ClaudeBatchClient:
                 "params": params,
             })
 
-        batch = self._batches.create(requests=batch_requests)
-        logger.info(f"Batch submitted: id={batch.id}, requests={len(batch_requests)}")
-        return batch.id
+        start = time.time()
+        try:
+            batch = self._batches.create(requests=batch_requests)
+            logger.info(f"Batch submitted: id={batch.id}, requests={len(batch_requests)}")
+            estimated_chars = sum(
+                len(r["params"]["messages"][0]["content"])
+                for r in batch_requests
+            )
+            log_api_call(
+                provider="claude",
+                model=CLAUDE_MODEL,
+                operation="batch_submit",
+                input_tokens=0,
+                output_tokens=0,
+                duration_sec=time.time() - start,
+                success=True,
+                extra={
+                    "batch_id": batch.id,
+                    "request_count": len(batch_requests),
+                    "estimated_input_chars": estimated_chars,
+                    "estimated_input_tokens_approx": estimated_chars // 4,
+                },
+            )
+            return batch.id
+        except Exception as e:
+            log_api_call(
+                provider="claude",
+                model=CLAUDE_MODEL,
+                operation="batch_submit",
+                duration_sec=time.time() - start,
+                success=False,
+                extra={"error": str(e)},
+            )
+            raise
 
     def wait_for_completion(self, batch_id: str) -> Dict[str, str]:
         """
@@ -97,6 +129,9 @@ class ClaudeBatchClient:
         # 結果収集
         results: Dict[str, str] = {}
         error_count = 0
+        total_input_tokens = 0
+        total_output_tokens = 0
+        collect_start = time.time()
 
         for result in self._batches.results(batch_id):
             custom_id = result.custom_id
@@ -105,6 +140,9 @@ class ClaudeBatchClient:
                 text = content[0].text if content else ""
                 results[custom_id] = text
                 logger.info(f"Batch result {custom_id}: {len(text)} chars")
+                usage = getattr(result.result.message, "usage", None)
+                total_input_tokens += getattr(usage, "input_tokens", 0) or 0
+                total_output_tokens += getattr(usage, "output_tokens", 0) or 0
             elif result.result.type == "errored":
                 error = result.result.error
                 logger.error(f"Batch request {custom_id} errored: {error}")
@@ -114,10 +152,29 @@ class ClaudeBatchClient:
                 error_count += 1
 
         if not results:
+            log_api_call(
+                provider="claude",
+                model=CLAUDE_MODEL,
+                operation="batch_result",
+                output_tokens=0,
+                duration_sec=time.time() - collect_start,
+                success=False,
+                extra={"batch_id": batch_id, "error_count": error_count},
+            )
             raise RuntimeError(
                 f"All batch requests failed (errors: {error_count})"
             )
 
+        log_api_call(
+            provider="claude",
+            model=CLAUDE_MODEL,
+            operation="batch_result",
+            input_tokens=total_input_tokens,
+            output_tokens=total_output_tokens,
+            duration_sec=time.time() - collect_start,
+            success=True,
+            extra={"batch_id": batch_id, "succeeded": len(results), "failed": error_count},
+        )
         logger.info(
             f"Batch complete: {len(results)} succeeded, {error_count} failed"
         )

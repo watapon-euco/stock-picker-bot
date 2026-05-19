@@ -2,6 +2,13 @@
 .env
 .env.local
 
+# Claude Code ローカル設定（個人用）
+.claude/
+
+# Node.js (proxy/ 用)
+node_modules/
+.vercel/
+
 # Python
 __pycache__/
 *.pyc

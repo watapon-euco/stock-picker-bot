@@ -8,14 +8,16 @@ Phase C: yfinance で株価データ取得 + Gemini で構造化
 import json
 import logging
 import os
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from dotenv import load_dotenv
 
 from src.utils.gemini_client import GeminiClient
-from src.utils.helpers import validate_candidates, validate_themes
+from src.utils.helpers import atomic_write_json, validate_candidates, validate_themes
 from src.utils.rss_fetcher import fetch_news
 from src.utils.yfinance_fetcher import fetch_multiple
 
@@ -39,12 +41,75 @@ def _load_theme_history() -> List[str]:
     return []
 
 
+def _load_full_theme_history() -> Dict:
+    if THEME_HISTORY_FILE.exists():
+        with open(THEME_HISTORY_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    return {"themes": []}
+
+
+def _record_theme_history(structured_themes: List[Dict], themes_meta: List[Dict]) -> None:
+    """
+    Phase C で確定した推奨銘柄を theme_history.json に追記する。
+    同年月・同テーマ名のエントリが既に存在する場合は上書き（冪等）。
+    書き込み失敗してもメインパイプラインを止めない。
+    """
+    year_month = datetime.now().strftime("%Y-%m")
+
+    # themes.json のメタ情報（icon）を引くための辞書
+    icon_map = {t.get("name", ""): t.get("icon", "📊") for t in themes_meta}
+
+    new_entries = []
+    for theme_data in structured_themes:
+        theme_name = theme_data.get("theme_name", "")
+        stocks = theme_data.get("stocks", [])
+        icon = icon_map.get(theme_name, "📊")
+
+        stock_records = [
+            {
+                "code": str(s.get("code", "")).strip(),
+                "market": s.get("market", "JP"),
+                "name": s.get("name", ""),
+                "rank": s.get("rank", idx + 1),
+                "price_at_pick": s.get("current_price"),
+            }
+            for idx, s in enumerate(stocks[:10])
+        ]
+
+        new_entries.append({
+            "name": theme_name,
+            "year_month": year_month,
+            "icon": icon,
+            "stocks": stock_records,
+        })
+
+    if not new_entries:
+        return
+
+    try:
+        history = _load_full_theme_history()
+        existing = history.get("themes", [])
+
+        # 既存エントリから同年月・同テーマ名を除去してから新エントリを追加
+        new_keys = {(e["year_month"], e["name"]) for e in new_entries}
+        kept = [t for t in existing if (t.get("year_month"), t.get("name")) not in new_keys]
+        history["themes"] = kept + new_entries
+
+        atomic_write_json(str(THEME_HISTORY_FILE), history)
+        logger.info(
+            f"[Phase C] Updated {THEME_HISTORY_FILE} with {len(new_entries)} theme entries "
+            f"for {year_month}"
+        )
+    except Exception as e:
+        logger.warning(f"[Phase C] Failed to update theme_history.json: {e}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase A: ニュース収集 + テーマ抽出
 # ─────────────────────────────────────────────────────────────────────────────
 
 PHASE_A_PROMPT = """
-あなたは日本株式市場の専門アナリストです。
+あなたは日本・米国の株式市場の専門アナリストです。
 以下の直近1ヶ月の株式・経済ニュース見出しを分析し、
 来月の株式投資において注目すべきテーマを選定してください。
 
@@ -55,13 +120,15 @@ PHASE_A_PROMPT = """
 {past_themes}
 
 # 指示
-1. ニュースから投資テーマの候補を10個抽出する
+1. ニュースから投資テーマの候補を10個抽出する（日本株・米国株どちらも対象）
 2. 各候補を以下の4軸でスコアリング（各10点満点）:
    - policy_impact: 政策・規制の追い風
    - market_size: 市場規模・成長性
    - novelty: 新規性・話題性
    - sustainability: 持続性（一過性でないか）
 3. 過去テーマと被らない上位1〜3テーマを選定
+   - 3つのテーマのうち、最低1つは日本株市場（market: "JP"）、最低1つは米国株市場（market: "US"）のテーマにしてください
+   - 例: 「日本AI関連」「米国EV関連」「日本防衛」など
 4. 各テーマの背景を3〜5行で要約
 
 以下のJSON形式で出力してください:
@@ -69,6 +136,7 @@ PHASE_A_PROMPT = """
   "themes": [
     {{
       "name": "テーマ名（簡潔に）",
+      "market": "JP",
       "summary": "テーマ背景の要約（3〜5行）",
       "keywords": ["キーワード1", "キーワード2", ...],
       "scores": {{
@@ -86,6 +154,8 @@ PHASE_A_PROMPT = """
   "news_overview": "先月の株式・経済ニュース全体の概況まとめ（5〜8行）",
   "candidates_count": 10
 }}
+
+market フィールドは必ず "JP" または "US" のどちらかを指定してください。
 """
 
 
@@ -122,8 +192,7 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
             "source": _sanitize(art["source"], 50),
             "published": art.get("published", ""),
         })
-    with open(NEWS_ARTICLES_FILE, "w", encoding="utf-8") as f:
-        json.dump({"articles": saved_articles}, f, ensure_ascii=False, indent=2)
+    atomic_write_json(str(NEWS_ARTICLES_FILE), {"articles": saved_articles})
     logger.info(f"[Phase A] Saved {len(saved_articles)} articles to {NEWS_ARTICLES_FILE}")
 
     past_themes = _load_theme_history()
@@ -148,11 +217,7 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
     # ニュース全体の概況もthemes.jsonに保存
     news_overview = result.get("news_overview", "")
 
-    with open(THEMES_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "themes": themes,
-            "news_overview": news_overview,
-        }, f, ensure_ascii=False, indent=2)
+    atomic_write_json(str(THEMES_FILE), {"themes": themes, "news_overview": news_overview})
 
     return themes
 
@@ -162,16 +227,19 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 PHASE_B_PROMPT = """
-あなたは日本株式市場の専門アナリストです。
-以下のテーマに関連する東証上場銘柄をリストアップしてください。
+あなたは日本・米国の株式市場の専門アナリストです。
+以下のテーマ（市場: {theme_market}）に関連する上場銘柄をリストアップしてください。
 
 # テーマ
 名前: {theme_name}
+市場: {theme_market}
 背景: {theme_summary}
 キーワード: {keywords}
 
 # 指示
 1. このテーマに関連する上場銘柄を15〜20社挙げる（証券コードと銘柄名を必ず含める）
+   - 市場が "JP" の場合: 東証上場銘柄（4桁証券コード）
+   - 市場が "US" の場合: 米国上場銘柄（ティッカーシンボル、例: AAPL, TSLA, BRK.B）
 2. 各銘柄のテーマとの関連度を分類する:
    - "direct": テーマのコア事業が主力
    - "indirect": テーマ関連事業が一部
@@ -184,12 +252,15 @@ PHASE_B_PROMPT = """
   "candidates": [
     {{
       "code": "6758",
+      "market": "{theme_market}",
       "name": "ソニーグループ",
       "relation": "indirect",
       "reason": "選定理由（1〜2文）"
     }}
   ]
 }}
+
+各銘柄に market フィールド（"{theme_market}"）を必ず含めてください。
 """
 
 
@@ -198,8 +269,10 @@ def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Di
 
     def _fetch_one(theme: Dict) -> Optional[Dict]:
         logger.info(f"[Phase B] Listing candidates for theme: {theme['name']}")
+        theme_market = theme.get("market", "JP")
         prompt = PHASE_B_PROMPT.format(
             theme_name=theme["name"],
+            theme_market=theme_market,
             theme_summary=theme["summary"],
             keywords="、".join(theme.get("keywords", [])),
         )
@@ -229,10 +302,53 @@ def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Di
     theme_order = {t["name"]: i for i, t in enumerate(themes)}
     all_candidates.sort(key=lambda x: theme_order.get(x["theme_name"], 99))
 
-    with open(CANDIDATES_FILE, "w", encoding="utf-8") as f:
-        json.dump({"themes": all_candidates}, f, ensure_ascii=False, indent=2)
+    atomic_write_json(str(CANDIDATES_FILE), {"themes": all_candidates})
 
     return all_candidates
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# セクター分散チェック
+# ─────────────────────────────────────────────────────────────────────────────
+
+SECTOR_OVERLAP_THRESHOLD = 2  # 3テーマ中2テーマ以上で共通するセクターがあればアラート
+
+
+def check_sector_overlap(sectors_by_theme: Dict[str, List[str]]) -> Dict:
+    """
+    テーマ間のセクター重複度を検査し、themes.json に書き込むメタデータを返す。
+
+    Args:
+        sectors_by_theme: {theme_name: [sector, ...]} の辞書（銘柄上位3件分のセクター）
+
+    Returns:
+        {"sector_overlap_warning": bool, "dominant_sectors": list[str]}
+    """
+    if len(sectors_by_theme) < 2:
+        return {"sector_overlap_warning": False, "dominant_sectors": []}
+
+    theme_sector_sets = [
+        set(s for s in sectors if s)
+        for sectors in sectors_by_theme.values()
+    ]
+
+    # 複数テーマに共通して現れるセクターを集計
+    sector_count: Counter = Counter()
+    for s_set in theme_sector_sets:
+        for sector in s_set:
+            sector_count[sector] += 1
+
+    dominant = [s for s, cnt in sector_count.items() if cnt >= SECTOR_OVERLAP_THRESHOLD]
+
+    warning = len(dominant) > 0
+    if warning:
+        logger.warning(
+            f"[Sector Check] Sector overlap detected across themes: {dominant}"
+        )
+    else:
+        logger.info("[Sector Check] No significant sector overlap detected.")
+
+    return {"sector_overlap_warning": warning, "dominant_sectors": dominant}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -240,7 +356,7 @@ def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Di
 # ─────────────────────────────────────────────────────────────────────────────
 
 PHASE_C_STRUCTURE_PROMPT = """
-あなたは日本株式市場の専門アナリストです。
+あなたは日本株式市場および米国株式市場の専門アナリストです。
 以下のyfinanceから取得した銘柄データと候補情報をもとに、
 構造化された銘柄プロファイルを作成してください。
 
@@ -290,19 +406,24 @@ def phase_c_fetch_and_structure(
 ) -> List[Dict]:
     """yfinanceでデータ取得後、Geminiで構造化する"""
     structured_themes = []
+    # セクター分散チェック用: {theme_name: [sector, ...]} (上位3銘柄分)
+    sectors_by_theme: Dict[str, List[str]] = {}
 
     for theme_data in candidates_by_theme:
         theme_name = theme_data["theme_name"]
         candidates = theme_data["candidates"]
 
-        # 証券コードを収集
-        codes = [c["code"] for c in candidates if c.get("code")]
-        if not codes:
+        # 証券コードと市場情報を収集
+        code_entries = [
+            {"code": c["code"], "market": c.get("market", "JP")}
+            for c in candidates if c.get("code")
+        ]
+        if not code_entries:
             logger.warning(f"No codes for theme: {theme_name}")
             continue
 
-        logger.info(f"[Phase C] Fetching yfinance data for {len(codes)} stocks...")
-        raw_results = fetch_multiple(codes, min_success=3)
+        logger.info(f"[Phase C] Fetching yfinance data for {len(code_entries)} stocks...")
+        raw_results = fetch_multiple(code_entries, min_success=3)
 
         # 生データとcandidates情報を結合
         combined = []
@@ -318,6 +439,11 @@ def phase_c_fetch_and_structure(
         if not combined:
             logger.warning(f"No valid stock data for theme: {theme_name}")
             continue
+
+        # 上位3銘柄のセクターをセクター分散チェック用に収集
+        sectors_by_theme[theme_name] = [
+            s.get("sector", "") for s in combined[:3] if s.get("sector")
+        ]
 
         # Geminiで構造化
         logger.info(f"[Phase C] Structuring data with Gemini for theme: {theme_name}")
@@ -354,10 +480,26 @@ def phase_c_fetch_and_structure(
     if not structured_themes:
         raise RuntimeError("No structured stock data generated")
 
-    with open(STOCK_DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({"themes": structured_themes}, f, ensure_ascii=False, indent=2)
+    atomic_write_json(str(STOCK_DATA_FILE), {"themes": structured_themes})
 
     logger.info(f"[Phase C] Saved structured data to {STOCK_DATA_FILE}")
+
+    # セクター分散チェックを実行し themes.json を更新
+    overlap_meta = check_sector_overlap(sectors_by_theme)
+    themes_meta: List[Dict] = []
+    if THEMES_FILE.exists():
+        with open(THEMES_FILE, encoding="utf-8") as f:
+            themes_data = json.load(f)
+        themes_meta = themes_data.get("themes", [])
+        themes_data.update(overlap_meta)
+        atomic_write_json(str(THEMES_FILE), themes_data)
+        logger.info(
+            f"[Phase C] Updated {THEMES_FILE} with sector overlap metadata: {overlap_meta}"
+        )
+
+    # 推奨銘柄を theme_history.json に記録
+    _record_theme_history(structured_themes, themes_meta)
+
     return structured_themes
 
 

@@ -1,0 +1,26 @@
+{
+  "stocks": [
+    {
+      "code": "7203",
+      "market": "JP",
+      "name": "(サンプル) トヨタ自動車",
+      "added_date": "2026-05-17",
+      "note": "サンプル銘柄。実際に使うときは編集してください。",
+      "alerts": {
+        "price_change_pct": 5.0
+      }
+    },
+    {
+      "code": "AAPL",
+      "market": "US",
+      "name": "(サンプル) Apple Inc.",
+      "added_date": "2026-01-15",
+      "note": "米国株サンプル。実際に使うときは編集してください。",
+      "alerts": {
+        "price_change_pct": 5.0
+      }
+    }
+  ],
+  "last_check": null,
+  "last_prices": {}
+}
