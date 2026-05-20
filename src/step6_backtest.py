@@ -49,49 +49,120 @@ def _collect_all_codes(theme_history: dict) -> tuple:
     return list(codes), market_map
 
 
+def _build_hero_return(cumulative: dict) -> str:
+    avg = cumulative.get("avg_return_pct", 0.0)
+    sign = "+" if avg >= 0 else ""
+    color = "var(--green)" if avg >= 0 else "var(--red)"
+    return (
+        f'<div class="perf-hero">'
+        f'<span class="perf-hero__num" style="color:{color};">{sign}{avg}</span>'
+        f'<span class="perf-hero__pct" style="color:{color};">%</span>'
+        f'<span class="perf-hero__note">平均リターン</span>'
+        f'</div>'
+    )
+
+
+def _build_best_worst(cumulative: dict) -> str:
+    best = cumulative.get("best_pick_ever")
+    worst = cumulative.get("worst_pick_ever")
+
+    def cell(label, stock, color, arrow_path, is_up):
+        if not stock:
+            val_html = '<div class="tp-best-worst__value" style="color:var(--text-mute)">—</div>'
+            name_html = '<div class="tp-best-worst__name">データなし</div>'
+        else:
+            sign = "+" if stock["return_pct"] >= 0 else ""
+            up_cls = "tp-up" if is_up else "tp-down"
+            val_html = f'<div class="tp-best-worst__value {up_cls}">{sign}{stock["return_pct"]}%</div>'
+            name_html = f'<div class="tp-best-worst__name">{_html.escape(stock.get("name",""))}</div>'
+
+        return (
+            f'<div class="tp-best-worst__cell">'
+            f'<div class="tp-best-worst__head">'
+            f'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="1.7">{arrow_path}</svg>'
+            f'<span class="tp-mini">{label}</span>'
+            f'</div>'
+            f'{name_html}'
+            f'{val_html}'
+            f'</div>'
+        )
+
+    best_cell = cell(
+        "BEST", best, "#7dc679",
+        '<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
+        True
+    )
+    worst_cell = cell(
+        "WORST", worst, "#e16158",
+        '<path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/>',
+        False
+    )
+    return f'<div class="tp-best-worst">{best_cell}{worst_cell}</div>'
+
+
+def _build_top_picks(monthly: list) -> str:
+    # Collect all picks, sort by return_pct desc, take top 5
+    all_picks = []
+    for m in monthly:
+        for pick in m.get("picks", []):
+            if pick.get("return_pct") is not None:
+                all_picks.append({
+                    "name": pick.get("name", ""),
+                    "code": pick.get("code", ""),
+                    "theme": pick.get("theme", ""),
+                    "month": m.get("year_month", ""),
+                    "return": pick["return_pct"],
+                })
+    all_picks.sort(key=lambda x: x["return"], reverse=True)
+    top5 = all_picks[:5]
+
+    if not top5:
+        return '<div style="color:var(--text-mute);font-size:13px;padding:12px 0;">データなし</div>'
+
+    rows = []
+    for i, s in enumerate(top5, start=1):
+        ret = s["return"]
+        ret_cls = "tp-up" if ret >= 0 else "tp-down"
+        sign = "+" if ret >= 0 else ""
+        top_cls = " tp-perf-row--top" if i == 1 else ""
+        rows.append(
+            f'<div class="tp-perf-row{top_cls}">'
+            f'<div class="tp-perf-row__rank">{i}</div>'
+            f'<div class="tp-perf-row__body">'
+            f'<div class="tp-perf-row__name">{_html.escape(s["name"])}</div>'
+            f'<div class="tp-perf-row__sub">{_html.escape(s["code"])} · {_html.escape(s["theme"])} · {_html.escape(s["month"])}</div>'
+            f'</div>'
+            f'<div class="tp-perf-row__return {ret_cls}">{sign}{ret}%</div>'
+            f'</div>'
+        )
+    return "\n".join(rows)
+
+
 def _build_summary_cards(cumulative: dict) -> str:
     total = cumulative.get("total_picks", 0)
-    win_rate = cumulative.get("overall_win_rate", 0.0)
+    win_rate = round(cumulative.get("overall_win_rate", 0.0) * 100, 1)
     avg_ret = cumulative.get("avg_return_pct", 0.0)
-    best = cumulative.get("best_pick_ever")
 
-    win_rate_pct = round(win_rate * 100, 1)
-    avg_cls = "positive" if avg_ret >= 0 else "negative"
-    avg_sign = "+" if avg_ret >= 0 else ""
-    win_cls = "positive" if win_rate_pct >= 50 else "negative"
+    max_dd = cumulative.get("max_drawdown_pct", 0.0)
 
-    best_html = ""
-    if best:
-        sign = "+" if best["return_pct"] >= 0 else ""
-        best_html = (
-            f'<div class="card-value" style="font-size:18px">'
-            f'{_html.escape(best["name"])}</div>'
-            f'<div class="card-sub">{sign}{best["return_pct"]}%</div>'
-        )
-    else:
-        best_html = '<div class="card-value" style="font-size:16px;color:#555577">—</div>'
+    win_months = cumulative.get("win_months", "—")
+    total_months = cumulative.get("total_months", "")
+    win_months_str = f"{win_months} / {total_months}" if total_months else str(win_months)
 
-    return f"""<div class="summary-cards">
-  <div class="summary-card">
-    <div class="card-label">累計推奨数</div>
-    <div class="card-value">{total}</div>
-    <div class="card-sub">銘柄</div>
-  </div>
-  <div class="summary-card {win_cls}">
-    <div class="card-label">全体勝率</div>
-    <div class="card-value">{win_rate_pct}%</div>
-    <div class="card-sub">上昇銘柄の割合</div>
-  </div>
-  <div class="summary-card {avg_cls}">
-    <div class="card-label">平均リターン</div>
-    <div class="card-value">{avg_sign}{avg_ret}%</div>
-    <div class="card-sub">全推奨銘柄平均</div>
-  </div>
-  <div class="summary-card positive">
-    <div class="card-label">最高パフォーマー</div>
-    {best_html}
-  </div>
-</div>"""
+    avg_cls = "tp-kpi__value--green" if avg_ret >= 0 else "tp-kpi__value--red"
+
+    return (
+        '<div class="tp-kpi-grid">\n'
+        f'  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div>'
+        f'<div class="tp-kpi__value">{win_rate}%</div></div>\n'
+        f'  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div>'
+        f'<div class="tp-kpi__value tp-kpi__value--red">{max_dd}%</div></div>\n'
+        f'  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div>'
+        f'<div class="tp-kpi__value tp-kpi__value--green">{_html.escape(str(win_months_str))}</div></div>\n'
+        f'  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div>'
+        f'<div class="tp-kpi__value">{total}</div></div>\n'
+        '</div>'
+    )
 
 
 def _format_pct(val: float, name: str) -> str:
@@ -101,39 +172,48 @@ def _format_pct(val: float, name: str) -> str:
 
 
 def _build_monthly_table_rows(monthly: list) -> str:
+    # Calculate maxAbs for bar normalization
+    avgs = [m.get("avg_return_pct") for m in monthly if m.get("avg_return_pct") is not None]
+    max_abs = max((abs(a) for a in avgs), default=1) or 1
+
     rows = []
     for m in monthly:
         ym = _html.escape(m["year_month"])
-        count = m.get("pick_count", 0)
+        avg_ret = m.get("avg_return_pct")
+        win_pct = round((m.get("win_rate") or 0) * 100, 1)
 
-        if m.get("avg_return_pct") is None:
+        if avg_ret is None:
             rows.append(
-                f'<tr><td>{ym}</td><td>{count}</td>'
-                f'<td colspan="4" style="color:#555577">データなし</td></tr>'
+                f'<div class="tp-monthly-row">'
+                f'<span class="tp-monthly-row__month">{ym}</span>'
+                f'<div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-axis"></div></div>'
+                f'<span class="tp-monthly-row__win">—</span>'
+                f'<span class="tp-monthly-row__return" style="color:var(--text-mute)">データなし</span>'
+                f'</div>'
             )
             continue
 
-        win_pct = round((m["win_rate"] or 0) * 100, 1)
-        avg_ret = m["avg_return_pct"]
-        avg_cls = "change-up" if avg_ret >= 0 else "change-down"
-        avg_sign = "+" if avg_ret >= 0 else ""
+        bar_pct = abs(avg_ret) / max_abs * 50  # 0-50%
+        if avg_ret >= 0:
+            bar_style = f'left:50%;width:{bar_pct:.1f}%;background:var(--green);'
+        else:
+            bar_style = f'left:{50 - bar_pct:.1f}%;width:{bar_pct:.1f}%;background:var(--red);'
 
-        top = m.get("top_performer") or {}
-        worst = m.get("worst_performer") or {}
-        top_str = _format_pct(top["return_pct"], top.get("name", "")) if top else "—"
-        worst_str = _format_pct(worst["return_pct"], worst.get("name", "")) if worst else "—"
+        ret_cls = "tp-up" if avg_ret >= 0 else "tp-down"
+        sign = "+" if avg_ret >= 0 else ""
 
         rows.append(
-            f'<tr>'
-            f'<td>{ym}</td>'
-            f'<td>{count}</td>'
-            f'<td>{win_pct}%</td>'
-            f'<td class="{avg_cls}">{avg_sign}{avg_ret}%</td>'
-            f'<td class="change-up" style="font-size:12px">{top_str}</td>'
-            f'<td class="change-down" style="font-size:12px">{worst_str}</td>'
-            f'</tr>'
+            f'<div class="tp-monthly-row">'
+            f'<span class="tp-monthly-row__month">{ym}</span>'
+            f'<div class="tp-monthly-row__bar">'
+            f'<div class="tp-monthly-row__bar-fill" style="{bar_style}"></div>'
+            f'<div class="tp-monthly-row__bar-axis"></div>'
+            f'</div>'
+            f'<span class="tp-monthly-row__win">{win_pct}%</span>'
+            f'<span class="tp-monthly-row__return {ret_cls}">{sign}{avg_ret}%</span>'
+            f'</div>'
         )
-    return "\n".join(rows) if rows else '<tr><td colspan="6" style="color:#555577">データなし</td></tr>'
+    return "\n".join(rows) if rows else '<div style="color:var(--text-mute);padding:12px 0">データなし</div>'
 
 
 def _build_stocks_table_rows(monthly: list) -> str:
@@ -142,36 +222,26 @@ def _build_stocks_table_rows(monthly: list) -> str:
     for m in monthly:
         for pick in m.get("picks", []):
             ret = pick["return_pct"]
-            ret_cls = "change-up" if ret > 0 else ("change-down" if ret < 0 else "change-flat")
+            ret_cls = "tp-up" if ret > 0 else ("tp-down" if ret < 0 else "")
             sign = "+" if ret > 0 else ""
             currency = pick.get("currency", get_currency(pick.get("market", "JP")))
-            price_pick = (
-                format_price(pick["price_at_pick"], currency) if pick.get("price_at_pick") else "—"
-            )
-            price_now = (
-                format_price(pick["current_price"], currency) if pick.get("current_price") else "—"
-            )
-            market_badge = _html.escape(pick.get("market", "JP"))
+            price_pick = format_price(pick["price_at_pick"], currency) if pick.get("price_at_pick") else "—"
+            price_now = format_price(pick["current_price"], currency) if pick.get("current_price") else "—"
             theme_esc = _html.escape(pick.get("theme", ""))
             name_esc = _html.escape(pick.get("name", ""))
             code_esc = _html.escape(pick.get("code", ""))
             ym_esc = _html.escape(pick.get("year_month", ""))
 
             rows.append(
-                f'<tr data-year_month="{ym_esc}" data-theme="{theme_esc}" '
-                f'data-code="{code_esc}" data-name="{name_esc}" '
-                f'data-return_pct="{ret}" data-price_at_pick="{pick.get("price_at_pick","")}" '
-                f'data-current_price="{pick.get("current_price","")}">'
-                f'<td>{ym_esc}</td>'
-                f'<td>{code_esc} <span style="font-size:10px;color:#5577cc">{market_badge}</span></td>'
-                f'<td>{name_esc}</td>'
-                f'<td>{price_pick}</td>'
-                f'<td>{price_now}</td>'
-                f'<td class="{ret_cls}">{sign}{ret}%</td>'
-                f'<td style="font-size:12px">{theme_esc}</td>'
+                f'<tr data-theme="{theme_esc}" data-year_month="{ym_esc}" data-return_pct="{ret}">'
+                f'<td class="col-month">{ym_esc}</td>'
+                f'<td class="col-code">{code_esc}</td>'
+                f'<td class="col-name">{name_esc}</td>'
+                f'<td class="col-price">{_html.escape(price_pick)} → {_html.escape(price_now)}</td>'
+                f'<td class="col-return {ret_cls}">{sign}{ret}%</td>'
                 f'</tr>'
             )
-    return "\n".join(rows) if rows else '<tr><td colspan="7" style="color:#555577">データなし</td></tr>'
+    return "\n".join(rows) if rows else '<tr><td colspan="5" style="color:var(--text-mute)">データなし</td></tr>'
 
 
 def _build_filter_options(monthly: list, key: str) -> str:
@@ -244,7 +314,10 @@ def run():
     html = template
     html = html.replace("{{UPDATED_AT}}", _html.escape(updated_at))
     html = html.replace("{{PERIOD_RANGE}}", _html.escape(_period_range(monthly)))
+    html = html.replace("{{HERO_RETURN_SECTION}}", _build_hero_return(cumulative))
     html = html.replace("{{SUMMARY_CARDS}}", _build_summary_cards(cumulative))
+    html = html.replace("{{BEST_WORST_SECTION}}", _build_best_worst(cumulative))
+    html = html.replace("{{TOP_PICKS_SECTION}}", _build_top_picks(monthly))
     html = html.replace("{{MONTHLY_TABLE_ROWS}}", _build_monthly_table_rows(monthly))
     html = html.replace("{{STOCKS_TABLE_ROWS}}", _build_stocks_table_rows(monthly))
     html = html.replace("{{THEME_FILTER_OPTIONS}}", _build_filter_options(monthly, "theme"))
