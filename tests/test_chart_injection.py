@@ -29,7 +29,8 @@ def test_script_tag_in_closes_is_escaped():
 
     result = build_chart_init_script(stock_data)
 
-    assert "</script>" not in result
+    # Data is escaped to </script> — only the block's own closing tag remains
+    assert result.count("</script>") == 1
     assert "\\u003c/script>" in result
 
 
@@ -52,7 +53,8 @@ def test_script_tag_in_dates_is_escaped():
 
     result = build_chart_init_script(stock_data)
 
-    assert "</script>" not in result
+    # Data is escaped to </script> — only the block's own closing tag remains
+    assert result.count("</script>") == 1
     assert "\\u003c/script>" in result
 
 
