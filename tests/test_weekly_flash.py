@@ -83,7 +83,7 @@ class TestBuildSurgingStocksHtml:
 
     def test_empty_returns_empty_state(self):
         out = _build_surging_stocks_html([])
-        assert "empty-state" in out
+        assert "ありませんでした" in out
 
     def test_contains_code_and_name(self):
         stocks = self._sample_stocks()
@@ -93,13 +93,13 @@ class TestBuildSurgingStocksHtml:
 
     def test_positive_change_class(self):
         out = _build_surging_stocks_html(self._sample_stocks())
-        assert "change-up" in out
+        assert "#7dc679" in out  # editorial-dark green for positive change
 
     def test_negative_change_class(self):
         stocks = [{"code": "9999", "name": "サンプル", "current_price": 1000.0,
                    "week_change_pct": -3.0, "vol_ratio": None}]
         out = _build_surging_stocks_html(stocks)
-        assert "change-down" in out
+        assert "#e16158" in out  # editorial-dark red for negative change
 
     def test_xss_escaped_in_name(self):
         stocks = [{"code": "1234", "name": '<script>alert(1)</script>',
@@ -115,8 +115,8 @@ class TestBuildSurgingStocksHtml:
             for i in range(1, 6)
         ]
         out = _build_surging_stocks_html(stocks)
-        # 1 header row + 5 data rows
-        assert out.count("<tr>") == 6
+        # 5 stock rows — each has exactly one rank element
+        assert out.count('tp-surge-row__rank') == 5
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ class TestBuildTopNewsHtml:
 
     def test_empty_returns_empty_state(self):
         out = _build_top_news_html([])
-        assert "empty-state" in out
+        assert "ありませんでした" in out
 
     def test_contains_title(self):
         out = _build_top_news_html(self._sample_news())
@@ -408,6 +408,8 @@ EXPECTED_WEEKLY_PLACEHOLDERS = {
     "{{SURGING_STOCKS_SECTION}}",
     "{{TOP_NEWS_SECTION}}",
     "{{MONTHLY_REPORT_URL}}",
+    "{{MARKET_INDICES_SECTION}}",
+    "{{EARNINGS_CALENDAR_SECTION}}",
 }
 
 

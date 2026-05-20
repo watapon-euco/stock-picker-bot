@@ -475,7 +475,7 @@ def build_cover_section(api_key: str, themes: List[Dict], stock_count: int) -> s
         client = anthropic.Anthropic(api_key=api_key)
         t0 = time.monotonic()
         msg = client.messages.create(
-            model="claude-sonnet-4-6",
+            model=CLAUDE_MODEL,
             max_tokens=200,
             system="あなたは金融メディアのコピーライターです。短く印象的な日本語コピーを生成してください。説明なしでJSONのみ出力してください。",
             messages=[{
@@ -489,7 +489,7 @@ pre + focus + post で1つの文になるように。絵文字禁止。"""
         )
         duration = time.monotonic() - t0
         log_api_call(
-            provider="anthropic", model="claude-sonnet-4-6",
+            provider="anthropic", model=CLAUDE_MODEL,
             operation="cover_headline",
             input_tokens=msg.usage.input_tokens,
             output_tokens=msg.usage.output_tokens,

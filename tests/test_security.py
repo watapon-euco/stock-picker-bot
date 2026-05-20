@@ -41,7 +41,7 @@ def test_build_sector_warning_html_escapes_sector_name(payload):
     }
     result = build_sector_warning_html(themes_data)
     assert "<script>" not in result
-    assert "onerror=" not in result
+    assert "<img" not in result  # unescaped img tag must not be injected
     assert payload not in result
 
 
@@ -89,7 +89,7 @@ def test_build_source_links_html_escapes_title(payload):
     articles = [{"title": payload, "link": "https://example.com", "source": "Reuters"}]
     result = build_source_links_html(themes, articles)
     assert "<script>" not in result
-    assert "onerror=" not in result
+    assert "<img" not in result  # unescaped img tag must not be injected
     assert payload not in result
 
 

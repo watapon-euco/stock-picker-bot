@@ -74,7 +74,7 @@ def test_yfinance_success_stooq_not_called():
 
         result = yf_mod.fetch_stock_data("6758")
 
-    mock_yf.assert_called_once_with("6758")
+    mock_yf.assert_called_once_with("6758", "JP")
     mock_stooq.assert_not_called()
     assert result is not None
     assert result["data_source"] == "yfinance"
@@ -95,8 +95,8 @@ def test_yfinance_failure_triggers_stooq():
 
         result = yf_mod.fetch_stock_data("6758")
 
-    mock_yf.assert_called_once_with("6758")
-    mock_stooq.assert_called_once_with("6758")
+    mock_yf.assert_called_once_with("6758", "JP")
+    mock_stooq.assert_called_once_with("6758", market="JP")
     assert result is not None
 
 
