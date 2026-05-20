@@ -150,7 +150,7 @@ def test_missing_price_at_pick_falls_back_to_yfinance():
 
     with patch("src.utils.backtest.fetch_month_end_price", return_value=1000.0) as mock_fetch:
         result = calculate_performance(history, current_prices)
-        mock_fetch.assert_called_once_with("7203", "2026-03")
+        mock_fetch.assert_called_once_with("7203", "2026-03", market="JP")
 
     m = result["monthly"][0]
     assert m["pick_count"] == 1
