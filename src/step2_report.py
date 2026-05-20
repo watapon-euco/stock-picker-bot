@@ -60,9 +60,8 @@ NEWS_STRATEGY_PROMPT = """
 {{NEWS_STRATEGY_SECTION}} 部分に挿入するHTMLフラグメントです。
 
 ## 構成
-ニュース概況（.news-overview-box 内にまとめ）:
-   - 先月の株式・経済の主要トピック5〜8個を段落形式で要約
-   - 市場全体のトレンドや注目イベントを含む
+先月の株式・経済の主要トピックを段落形式で要約（5〜8行）。
+市場全体のトレンドや注目イベントを含む。
 
 ## ニュース全体の概況
 {news_overview}
@@ -71,10 +70,14 @@ NEWS_STRATEGY_PROMPT = """
 {themes_json}
 
 ## 出力フォーマット例
-<div class="news-overview-box">
-  <p>先月の日本株式市場は...（5〜8行の概況）</p>
-</div>
+<section class="tp-section">
+  <div class="tp-lede">
+    <span class="tp-lede__drop">先</span>月の日本株式市場は...（続き）
+  </div>
+  <div class="tp-byline">市場概況</div>
+</section>
 
+注意: tp-lede__drop には本文の最初の1文字を入れ、残りはその後に続けてください。
 HTMLフラグメントのみ出力してください。
 """
 
@@ -99,18 +102,14 @@ CHANGES_PROMPT = """
 ## 前月のデータ
 {previous_data_section}
 
-## 使用するCSSクラス
-- section.section : セクション全体
-- .section-title : セクションタイトル
-- .changes-box : 変化内容のボックス
-
 ## 出力フォーマット例
-<section class="section">
-  <div class="section-title">前月レポートからの変化</div>
-  <div class="changes-box">
-    <p><strong>テーマの変化:</strong> 先月の「〇〇」に代わり、今月は「△△」が新たに登場しました。...</p>
-    <p><strong>注目銘柄の動き:</strong> ...</p>
-    <p><strong>市場環境:</strong> ...</p>
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">前月比較</div></div>
+  <div class="tp-callout">
+    <div class="tp-callout__body">
+      <p>テーマの変化: ...</p>
+      <p>注目銘柄の動き: ...</p>
+    </div>
   </div>
 </section>
 
@@ -198,31 +197,19 @@ SUPPLY_CHAIN_PROMPT = """
 ## 出力形式
 各テーマについて以下の構造のHTMLを生成してください：
 
-<div class="supply-chain-section">
-  <div class="supply-chain-title">🔗 サプライチェーン（テーマ名）</div>
-  <table class="supply-chain-table">
-    <thead>
-      <tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr>
-    </thead>
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析</div></div>
+  <table class="tp-supply-table">
+    <thead><tr><th>銘柄</th><th>上流</th><th>下流</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong>銘柄名</strong><br><small>証券コード</small></td>
-        <td>
-          <ul>
-            <li>企業名（証券コードがある場合: コード）</li>
-            <li>企業名（証券コードがある場合: コード）</li>
-          </ul>
-        </td>
-        <td>
-          <ul>
-            <li>企業名（証券コードがある場合: コード）</li>
-            <li>企業名（証券コードがある場合: コード）</li>
-          </ul>
-        </td>
+        <td>銘柄名<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">証券コード</div></td>
+        <td><span class="rel">direct</span>企業名<br></td>
+        <td><span class="rel">indirect</span>企業名<br></td>
       </tr>
     </tbody>
   </table>
-</div>
+</section>
 
 テーマごとにこのブロックを繰り返してください。HTMLフラグメントのみ出力してください。
 """
