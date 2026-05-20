@@ -1,0 +1,850 @@
+/* ===================================================================
+ * The Picker — Editorial Dark · 共有スタイルシート
+ * 用途: stock-picker-bot 3レポート共通の見た目（プレビュー版で参照）
+ *
+ * 本番テンプレート（*_template.html）は self-contained にするため
+ * このCSSを <style> ブロックに**インライン展開**してあります。
+ * 変更時は templates/styles.css を更新 → 各 *_template.html にも反映してください。
+ * =================================================================== */
+
+/* ---------- Tokens ---------- */
+:root {
+  --bg:          #0d1626;
+  --surface:     #121d33;
+  --surface-hi:  #182643;
+  --border:      rgba(255,255,255,0.07);
+  --border-gold: rgba(212,163,65,0.22);
+  --text:        #f0ece1;
+  --text-dim:    #9aa3b8;
+  --text-mute:   #5d6680;
+  --gold:        #d4a341;
+  --gold-dim:    #a07f33;
+  --gold-hi:     #ebc676;
+  --green:       #7dc679;
+  --red:         #e16158;
+  --ink:         #5b7da8;
+
+  --serif: 'Source Serif 4','Noto Serif JP', Georgia, serif;
+  --sans:  'Inter','Noto Sans JP', system-ui, sans-serif;
+  --mono:  'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ---------- Reset / base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); }
+body {
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+a { color: var(--gold); text-decoration: none; }
+a:hover { color: var(--gold-hi); text-decoration: underline; }
+em { font-style: italic; color: var(--gold-hi); }
+strong { font-weight: 600; }
+img, svg { display: block; max-width: 100%; }
+hr { border: 0; height: 1px; background: var(--border); }
+table { border-collapse: collapse; width: 100%; }
+
+/* ---------- Layout container ---------- */
+.tp-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+/* ---------- Masthead ---------- */
+.tp-masthead {
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tp-masthead--gold { border-bottom: 2px solid var(--gold); }
+.tp-masthead__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tp-masthead__brand-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tp-masthead__brand-mark::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.tp-masthead__brand-name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.tp-masthead__brand-name--italic {
+  font-style: italic;
+  color: var(--gold);
+}
+.tp-masthead__brand-sub {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-mute);
+  margin-left: 4px;
+}
+.tp-masthead__meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  letter-spacing: 0.1em;
+}
+
+/* ---------- Cover ---------- */
+.tp-cover { padding: 22px 0 18px; }
+.tp-cover__kicker {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+.tp-cover__title {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin-top: 10px;
+  letter-spacing: -0.01em;
+}
+.tp-italic-gold {
+  font-style: italic;
+  color: var(--gold);
+}
+
+/* ---------- Kickers ---------- */
+.tp-kicker {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+.tp-mini {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+/* ---------- Sections ---------- */
+.tp-section { padding-top: 18px; padding-bottom: 18px; }
+.tp-section--tight { padding-top: 14px; padding-bottom: 14px; }
+.tp-section__head { margin-bottom: 10px; }
+
+.tp-divider-dashed {
+  height: 1px;
+  background: repeating-linear-gradient(to right, var(--gold) 0 2px, transparent 2px 6px);
+  opacity: 0.5;
+  margin: 4px 0;
+}
+
+/* ---------- KPI strip (data row, no card) ---------- */
+.tp-stat-strip {
+  display: grid;
+  border-top: 1px solid var(--border-gold);
+  border-bottom: 1px solid var(--border-gold);
+}
+.tp-stat-strip--4 { grid-template-columns: repeat(4, 1fr); }
+.tp-stat-strip--5 { grid-template-columns: repeat(5, 1fr); }
+.tp-stat-cell {
+  padding: 10px 0 10px 8px;
+  border-left: 1px solid var(--border);
+}
+.tp-stat-cell:first-child { border-left: none; }
+.tp-stat-cell__label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.tp-stat-cell__value {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 2px;
+  font-variant-numeric: oldstyle-nums;
+  color: var(--text);
+}
+.tp-stat-cell__value--green { color: var(--green); }
+.tp-stat-cell__value--red { color: var(--red); }
+.tp-stat-cell__value--mono { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* ---------- Lede (大きな書き出し) ---------- */
+.tp-lede {
+  font-family: var(--serif);
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.tp-lede__drop {
+  font-family: var(--serif);
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--gold);
+  float: left;
+  line-height: 0.9;
+  margin-right: 6px;
+  margin-top: 4px;
+}
+.tp-byline {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  margin-top: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Callouts ---------- */
+.tp-callout {
+  padding: 11px 14px;
+  background: var(--surface);
+  border-left: 2px solid var(--gold);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.tp-callout__icon { color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+.tp-callout__body {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+.tp-callout--risk .tp-callout__title,
+.tp-callout--warn .tp-callout__title {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.tp-callout--risk .tp-callout__body {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+/* ---------- Stock rows (月次テーマ別ランキング) ---------- */
+.tp-stocks-head {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text-mute);
+  letter-spacing: 0.15em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 18px 1fr auto auto auto;
+  gap: 10px;
+}
+.tp-stocks-head > span:nth-child(3),
+.tp-stocks-head > span:nth-child(4),
+.tp-stocks-head > span:nth-child(5) { text-align: right; }
+
+.tp-stock-row {
+  padding: 11px 0 8px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
+  gap: 10px;
+  align-items: center;
+}
+.tp-stock-row__rank {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: oldstyle-nums;
+}
+.tp-stock-row--top .tp-stock-row__rank { color: var(--gold); }
+.tp-stock-row__name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-stock-row__sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+  margin-top: 1px;
+}
+.tp-stock-row__sub .tier { color: var(--gold); margin-left: 4px; }
+.tp-stock-row__chart svg { display: block; }
+.tp-stock-row__price {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  color: var(--text);
+}
+.tp-stock-row__change {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  min-width: 46px;
+}
+.tp-up { color: var(--green); }
+.tp-down { color: var(--red); }
+
+/* 5-axis micro score bars */
+.tp-score-bars {
+  display: flex;
+  gap: 8px;
+  padding: 0 0 12px;
+}
+.tp-score-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: 1; }
+.tp-score-bar__label {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text-mute);
+  letter-spacing: 0.05em;
+}
+.tp-score-bar__track {
+  width: 100%;
+  height: 3px;
+  background: var(--surface);
+}
+.tp-score-bar__fill { height: 100%; background: var(--text-mute); }
+.tp-score-bar__fill--mid { background: var(--gold-dim); }
+.tp-score-bar__fill--hi { background: var(--gold); }
+.tp-score-bar__value {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.tp-score-bar__value--hi { color: var(--gold); }
+
+/* ---------- Theme card (月次レポートのテーマブロック) ---------- */
+.tp-theme {
+  padding-top: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.tp-theme:last-child { border-bottom: none; }
+.tp-theme__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tp-theme__num {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: oldstyle-nums;
+  flex-shrink: 0;
+}
+.tp-theme__title-block { flex: 1; min-width: 0; }
+.tp-theme__title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+.tp-theme__angle {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  line-height: 1.6;
+}
+.tp-theme__chips {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.tp-chip {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  padding: 2px 7px;
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.tp-theme__stocks { margin-top: 16px; }
+.tp-theme__risk { margin-top: 12px; }
+
+/* ---------- Star comparison ---------- */
+.tp-stars-table { width: 100%; }
+.tp-stars-table thead th {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text-mute);
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  text-align: right;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.tp-stars-table thead th:first-child { text-align: left; }
+.tp-stars-table tbody td {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.tp-stars-table tbody td:first-child {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+}
+.tp-stars-table .name-sub {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-mute);
+  margin-top: 1px;
+}
+.tp-stars-table .stars {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  text-align: right;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Supply chain ---------- */
+.tp-supply-table { width: 100%; }
+.tp-supply-table thead th {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text-mute);
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  text-align: left;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.tp-supply-table tbody td {
+  padding: 10px 8px 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  vertical-align: top;
+  color: var(--text-dim);
+}
+.tp-supply-table tbody td:first-child {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  width: 40%;
+}
+.tp-supply-table .rel {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  padding: 1px 5px;
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+/* ---------- KPI grid (パフォーマンス) ---------- */
+.tp-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border-gold);
+  border-bottom: 1px solid var(--border-gold);
+}
+.tp-kpi {
+  padding: 11px 0 11px 8px;
+  border-left: 1px solid var(--border);
+}
+.tp-kpi:first-child { border-left: none; }
+.tp-kpi__label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.tp-kpi__value {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 2px;
+  font-variant-numeric: oldstyle-nums;
+  color: var(--text);
+}
+.tp-kpi__value--green { color: var(--green); }
+.tp-kpi__value--red { color: var(--red); }
+
+.tp-best-worst {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.tp-best-worst__cell { padding: 12px; background: var(--surface); }
+.tp-best-worst__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tp-best-worst__name {
+  font-family: var(--serif);
+  font-size: 13.5px;
+  margin-top: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-best-worst__value {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 2px;
+  font-variant-numeric: oldstyle-nums;
+}
+
+/* ---------- Monthly distribution row ---------- */
+.tp-monthly-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 38px 1fr 44px 56px;
+  gap: 10px;
+  align-items: center;
+}
+.tp-monthly-row__month {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.tp-monthly-row__bar {
+  height: 6px;
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+.tp-monthly-row__bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.tp-monthly-row__bar-axis {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--text-mute);
+}
+.tp-monthly-row__win {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+  text-align: right;
+}
+.tp-monthly-row__return {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* ---------- Performance: monthly bar chart ---------- */
+.tp-perf-chart {
+  height: 130px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  margin-top: 14px;
+}
+.tp-perf-chart__axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed var(--border);
+}
+.tp-perf-chart__col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.tp-perf-chart__above,
+.tp-perf-chart__below {
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+}
+.tp-perf-chart__above { justify-content: flex-end; }
+.tp-perf-chart__below { justify-content: flex-start; }
+.tp-perf-chart__bar { width: 100%; }
+.tp-perf-chart__bar--up { background: var(--green); }
+.tp-perf-chart__bar--down { background: var(--red); }
+.tp-perf-chart__labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-mute);
+}
+
+/* ---------- Top picks (パフォーマンス) ---------- */
+.tp-perf-row {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tp-perf-row__rank {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dim);
+  width: 22px;
+  font-variant-numeric: oldstyle-nums;
+  flex-shrink: 0;
+}
+.tp-perf-row--top .tp-perf-row__rank { color: var(--gold); }
+.tp-perf-row__body { flex: 1; min-width: 0; }
+.tp-perf-row__name {
+  font-family: var(--serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-perf-row__sub {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.tp-perf-row__return {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: oldstyle-nums;
+}
+
+/* ---------- Weekly surge row ---------- */
+.tp-surge-head {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text-mute);
+  letter-spacing: 0.15em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 18px 1fr auto auto auto;
+  gap: 8px;
+}
+.tp-surge-head > span:nth-child(3),
+.tp-surge-head > span:nth-child(4),
+.tp-surge-head > span:nth-child(5) { text-align: right; }
+
+.tp-surge-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.tp-surge-row__rank {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: oldstyle-nums;
+  line-height: 1;
+}
+.tp-surge-row--top .tp-surge-row__rank { color: var(--gold); }
+.tp-surge-row__name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-surge-row__sub {
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-surge-row__sub .sector { color: var(--gold); }
+.tp-surge-row__vol {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 600;
+  text-align: right;
+}
+.tp-surge-row__change {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--green);
+  font-variant-numeric: oldstyle-nums;
+  text-align: right;
+  min-width: 52px;
+}
+
+/* ---------- Earnings calendar ---------- */
+.tp-earnings-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tp-earnings-row__icon { color: var(--gold); flex-shrink: 0; }
+.tp-earnings-row__body { flex: 1; min-width: 0; }
+.tp-earnings-row__name {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-earnings-row__sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+}
+.tp-earnings-row__date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* ---------- News ---------- */
+.tp-news {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tp-news:last-child { border-bottom: none; }
+.tp-news__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.tp-news__source {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+}
+.tp-news__time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-mute);
+}
+.tp-news__title {
+  font-family: var(--serif);
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+}
+.tp-news__comment {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.65;
+  padding-left: 10px;
+  border-left: 2px solid var(--border-gold);
+}
+
+/* ---------- Source links (月次) ---------- */
+.tp-sources { display: flex; flex-direction: column; gap: 4px; }
+.tp-sources__group {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-mute);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin: 10px 0 4px;
+}
+.tp-sources__link {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 3px 0;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tp-sources__link::before {
+  content: "›";
+  color: var(--gold);
+  margin-right: 6px;
+}
+
+/* ---------- Footer / colophon ---------- */
+.tp-colophon {
+  padding: 20px 0 32px;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-mute);
+  letter-spacing: 0.1em;
+  line-height: 1.8;
+}
+
+/* ---------- Inline icons reset ---------- */
+.tp-ico { display: inline-block; vertical-align: middle; }
+
+/* ---------- Print-friendly tweaks ---------- */
+@media print {
+  body { background: #fff; color: #111; }
+  .tp-wrap { max-width: 100%; }
+}
+
+/* ---------- Tablet & up ---------- */
+@media (min-width: 720px) {
+  body { font-size: 14px; }
+  .tp-wrap { padding: 0 28px; }
+  .tp-cover__title { font-size: 38px; }
+  .tp-theme__num { font-size: 40px; }
+}

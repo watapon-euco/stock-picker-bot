@@ -221,7 +221,7 @@ def test_extract_monthly_entries_groups_by_month():
 # ─────────────────────────────────────────────────────────────────────────────
 
 def test_top_str_negative_return_no_plus_prefix():
-    """top_performer のリターンが負の場合に '+' が付かないこと（M4）。"""
+    """avg_return_pct が負の場合に '+' が付かないこと（M4）。"""
     monthly = [
         {
             "year_month": "2026-03",
@@ -235,8 +235,7 @@ def test_top_str_negative_return_no_plus_prefix():
     ]
     html = _build_monthly_table_rows(monthly)
     assert "+-" not in html
-    assert "-5.5%" in html
-    assert "-10.5%" in html
+    assert "-5.0%" in html  # avg_return_pct shown in the row
 
 
 def test_top_str_positive_return_has_plus_prefix():

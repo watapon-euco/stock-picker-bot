@@ -12,23 +12,19 @@ def _load_template() -> str:
 
 def test_chat_proxy_url_placeholder_in_template():
     content = _load_template()
-    assert "{{CHAT_PROXY_URL}}" in content, "{{CHAT_PROXY_URL}} placeholder missing from template"
+    assert "{{CHAT_WIDGET_SECTION}}" in content, "{{CHAT_WIDGET_SECTION}} placeholder missing from template"
 
 
 def test_chat_widget_html_present():
+    # Widget HTML is now Python-generated via build_chat_widget_section(); the
+    # template only contains the {{CHAT_WIDGET_SECTION}} placeholder.
     content = _load_template()
-    assert 'id="chat-fab"' in content
-    assert 'id="chat-panel"' in content
-    assert 'id="chat-messages"' in content
-    assert 'id="chat-input"' in content
-    assert 'id="chat-send"' in content
+    assert "{{CHAT_WIDGET_SECTION}}" in content
 
 
 def test_widget_hidden_when_url_empty():
-    content = _load_template()
-    assert 'style.display = "none"' in content, (
-        "Widget should set display:none when PROXY_URL is empty"
-    )
+    from src.step2_report import build_chat_widget_section
+    assert build_chat_widget_section("") == ""
 
 
 def test_step2_replaces_chat_proxy_url_env_set():

@@ -123,17 +123,18 @@ def validate_candidates(candidates: list) -> List[Dict]:
 def build_source_links_html(themes: List[Dict], articles: List[Dict]) -> str:
     """テーマ別の主要ソースリンクHTMLを生成する"""
     if not articles:
-        return '<p style="color:#555577;font-size:13px">ソース記事データがありません。</p>'
+        return ""
 
-    # キーワードフォールバック用に記事タイトルを事前インデックス化（全テーマで共有）
     candidate_articles = articles[:50]
-    title_index: List[str] = [art.get("title", "") for art in candidate_articles]
+    title_index = [art.get("title", "") for art in candidate_articles]
 
-    html_parts = []
+    html_parts = ['<section class="tp-section">',
+                  '  <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>',
+                  '  <div class="tp-sources">']
 
+    found_any = False
     for theme in themes:
         theme_name = theme.get("name", "")
-        icon = theme.get("icon", "💹")
         source_indices = theme.get("source_articles", [])
 
         theme_articles = []
@@ -155,26 +156,16 @@ def build_source_links_html(themes: List[Dict], articles: List[Dict]) -> str:
         if not theme_articles:
             continue
 
-        items = []
+        found_any = True
+        html_parts.append(f'    <div class="tp-sources__group">{_html.escape(theme_name)}</div>')
         for art in theme_articles[:5]:
-            source = art.get("source", "")
-            title = art.get("title", "")
             link = safe_url(art.get("link", ""))
-            source_tag = f'<span class="source-tag">{_html.escape(source)}</span>' if source else ""
-            items.append(
-                f'<li>{source_tag}<a href="{link}" target="_blank" rel="noopener">{_html.escape(title)}</a></li>'
-            )
+            title = _html.escape(art.get("title", ""))
+            html_parts.append(f'    <a class="tp-sources__link" href="{link}" target="_blank" rel="noopener">{title}</a>')
 
-        html_parts.append(
-            f'<div class="source-group">\n'
-            f'  <h4>{icon} {theme_name}</h4>\n'
-            f'  <ul class="source-list">\n'
-            f'    {"".join(items)}\n'
-            f'  </ul>\n'
-            f'</div>'
-        )
+    html_parts.extend(['  </div>', '</section>'])
 
-    if not html_parts:
-        return '<p style="color:#555577;font-size:13px">関連ソース記事が見つかりませんでした。</p>'
+    if not found_any:
+        return ""
 
-    return "\n".join(html_parts)
+    return "\n".join(html_parts) + "\n"

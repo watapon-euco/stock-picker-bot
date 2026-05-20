@@ -32,7 +32,7 @@ def test_excludes_unrelated_articles():
 
 def test_empty_articles_returns_fallback():
     html = build_source_links_html(THEMES, [])
-    assert "ソース記事データがありません" in html
+    assert html == ""
 
 
 def test_xss_url_is_sanitized():

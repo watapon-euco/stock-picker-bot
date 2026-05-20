@@ -4,436 +4,294 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>推奨銘柄成績ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <script
   src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
   integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
   crossorigin="anonymous"></script>
 <style>
-  /* ===== RESET & BASE ===== */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #0d0d1a;
-    color: #e0e0f0;
-    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  a { color: #7eb8ff; text-decoration: none; }
-  a:hover { text-decoration: underline; }
+  .perf-hero { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
+  .perf-hero__num { font-family: var(--serif); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1; letter-spacing: -.02em; font-variant-numeric: oldstyle-nums; }
+  .perf-hero__pct { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--green); }
+  .perf-hero__note { margin-left: 8px; font-size: 11.5px; color: var(--text-dim); }
+  #monthlyReturnChart { width: 100%; height: 220px; display: block; }
 
-  /* ===== LAYOUT ===== */
-  .container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  .perf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .perf-table thead th {
+    font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.15em;
+    color: var(--text-mute); text-align: left; font-weight: 600;
+    padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer; user-select: none;
+  }
+  .perf-table thead th:hover { color: var(--text); }
+  .perf-table tbody td {
+    padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border);
+    color: var(--text-dim); vertical-align: middle;
+  }
+  .perf-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+  .perf-table .col-month { font-family: var(--mono); font-size: 11px; color: var(--text-mute); white-space: nowrap; }
+  .perf-table .col-code { font-family: var(--mono); font-size: 11px; color: var(--gold); }
+  .perf-table .col-name { font-family: var(--serif); font-size: 13px; font-weight: 600; color: var(--text); }
+  .perf-table .col-return { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: right; white-space: nowrap; }
+  .perf-table .col-price { font-family: var(--mono); font-size: 11px; color: var(--text-mute); text-align: right; white-space: nowrap; }
 
-  /* ===== HEADER ===== */
-  header {
-    background: linear-gradient(135deg, #0d0d2a 0%, #1a1a3e 100%);
-    border-bottom: 1px solid #2a2a5a;
-    padding: 32px 0 24px;
-  }
-  header .container { display: flex; flex-direction: column; gap: 8px; }
-  .header-tag {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: #5577cc;
-    text-transform: uppercase;
-  }
-  h1 {
-    font-size: 26px;
-    font-weight: 800;
-    color: #ffffff;
-    line-height: 1.3;
-  }
-  .header-meta {
-    font-size: 13px;
-    color: #8888aa;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: 4px;
-  }
-
-  /* ===== NAV ===== */
-  nav {
-    background: #111124;
-    border-bottom: 1px solid #1e1e40;
-    padding: 10px 0;
-    font-size: 13px;
-  }
-  nav .container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  nav span { color: #555577; }
-
-  /* ===== MAIN ===== */
-  main { padding: 32px 0 64px; }
-
-  /* ===== SECTION ===== */
-  .section { margin-bottom: 48px; }
-  .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #5577cc;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #1e1e40;
-  }
-
-  /* ===== SUMMARY CARDS ===== */
-  .summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 32px;
-  }
-  .summary-card {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-  }
-  .summary-card .card-label {
-    font-size: 11px;
-    color: #6666aa;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-  }
-  .summary-card .card-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: #ffffff;
-    line-height: 1.2;
-  }
-  .summary-card .card-sub {
-    font-size: 12px;
-    color: #8888aa;
-    margin-top: 4px;
-  }
-  .summary-card.positive .card-value { color: #22cc88; }
-  .summary-card.negative .card-value { color: #ff5566; }
-
-  /* ===== TABLES ===== */
-  .table-wrapper { overflow-x: auto; }
-  .perf-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .perf-table th {
-    background: #1a1a36;
-    color: #9999bb;
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-  }
-  .perf-table th:hover { color: #ccccee; }
-  .perf-table th .sort-icon { margin-left: 4px; font-size: 10px; color: #4444aa; }
-  .perf-table td {
-    padding: 9px 12px;
-    border-bottom: 1px solid #1a1a36;
-    color: #ccccee;
-  }
-  .perf-table tr:last-child td { border-bottom: none; }
-  .perf-table tr:hover td { background: #131330; }
-  .change-up   { color: #22cc88; font-weight: 700; }
-  .change-down { color: #ff5566; font-weight: 700; }
-  .change-flat { color: #8888aa; }
-
-  /* ===== FILTER BAR ===== */
-  .filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-  }
-  .filter-bar label { font-size: 12px; color: #8888aa; }
+  .filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 12px; }
+  .filter-bar label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; color: var(--text-mute); text-transform: uppercase; }
   .filter-bar select {
-    background: #1a1a36;
-    color: #ccccee;
-    border: 1px solid #2a2a4a;
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 13px;
-  }
-
-  /* ===== CHART ===== */
-  .chart-wrapper {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    padding: 20px;
-  }
-  .chart-canvas { width: 100%; height: 280px; display: block; }
-
-  /* ===== DISCLAIMER ===== */
-  .disclaimer {
-    background: #0d0d1a;
-    border: 1px solid #1e1e40;
-    border-radius: 8px;
-    padding: 16px 20px;
-    font-size: 12px;
-    color: #555577;
-    line-height: 1.7;
-  }
-  .disclaimer strong { color: #7777aa; }
-
-  /* ===== FOOTER ===== */
-  footer {
-    background: #0a0a15;
-    border-top: 1px solid #1a1a36;
-    padding: 20px 0;
-    font-size: 12px;
-    color: #3a3a5a;
-    text-align: center;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 640px) {
-    h1 { font-size: 20px; }
-    .summary-cards { grid-template-columns: repeat(2, 1fr); }
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border-gold); padding: 5px 10px;
+    font-family: var(--mono); font-size: 11px; border-radius: 0;
   }
 </style>
 </head>
 <body>
+<div class="tp-wrap">
 
-<header>
-  <div class="container">
-    <div class="header-tag">Backtest Performance Dashboard</div>
-    <h1>📊 推奨銘柄成績ダッシュボード</h1>
-    <div class="header-meta">
-      <span>更新日時: {{UPDATED_AT}}</span>
-      <span>集計期間: {{PERIOD_RANGE}}</span>
+  <header class="tp-masthead">
+    <div class="tp-masthead__brand">
+      <span class="tp-masthead__brand-mark"></span>
+      <span class="tp-masthead__brand-name">The Picker</span>
+      <span class="tp-masthead__brand-sub">PERFORMANCE</span>
     </div>
-  </div>
-</header>
+    <span class="tp-masthead__meta">UPD {{UPDATED_AT}}</span>
+  </header>
 
-<nav>
-  <div class="container">
-    <span>ナビゲーション:</span>
-    <a href="index.html">最新レポート</a>
-    <span>|</span>
-    <a href="archive/">アーカイブ</a>
-  </div>
-</nav>
+  <section class="tp-cover">
+    <div class="tp-cover__kicker">BACKTEST DASHBOARD</div>
+    <h1 class="tp-cover__title">推奨銘柄の<br>累計成績</h1>
+    <!-- pythonが {{HERO_RETURN_SECTION}} に <div class="perf-hero">…</div> を出力。
+         未対応なら "" で空文字置換 → サイレントスキップ -->
+    {{HERO_RETURN_SECTION}}
+    <div class="tp-byline">{{PERIOD_RANGE}}</div>
+  </section>
 
-<main>
-  <div class="container">
+  <!-- KPI grid — pythonが {{SUMMARY_CARDS}} に <div class="tp-kpi-grid">…</div> を出力 -->
+  <section class="tp-section--tight">
+    {{SUMMARY_CARDS}}
+  </section>
 
-    <!-- サマリーカード -->
-    <section class="section">
-      <div class="section-title">累計サマリー</div>
-      {{SUMMARY_CARDS}}
-    </section>
+  <!-- Best / Worst — pythonが {{BEST_WORST_SECTION}} に <div class="tp-best-worst">…</div> を出力 -->
+  <section class="tp-section--tight">
+    {{BEST_WORST_SECTION}}
+  </section>
 
-    <!-- 月別パフォーマンスチャート -->
-    <section class="section">
-      <div class="section-title">月別平均リターン推移</div>
-      <div class="chart-wrapper">
-        <canvas id="monthlyReturnChart" class="chart-canvas"></canvas>
-      </div>
-    </section>
+  <div class="tp-divider-dashed"></div>
 
-    <!-- 月別パフォーマンステーブル -->
-    <section class="section">
-      <div class="section-title">月別パフォーマンス</div>
-      <div class="table-wrapper">
-        <table class="perf-table" id="monthly-table">
-          <thead>
-            <tr>
-              <th>月</th>
-              <th>推奨数</th>
-              <th>勝率</th>
-              <th>平均リターン</th>
-              <th>最高</th>
-              <th>最低</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{MONTHLY_TABLE_ROWS}}
-          </tbody>
-        </table>
-      </div>
-    </section>
+  <!-- Monthly chart -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">月別 · 平均リターン</div></div>
+    <canvas id="monthlyReturnChart"></canvas>
+  </section>
 
-    <!-- 個別銘柄テーブル -->
-    <section class="section">
-      <div class="section-title">個別銘柄パフォーマンス</div>
-      <div class="filter-bar">
-        <label for="theme-filter">テーマで絞り込み:</label>
-        <select id="theme-filter">
-          <option value="">すべて</option>
-          {{THEME_FILTER_OPTIONS}}
-        </select>
-        <label for="month-filter">月で絞り込み:</label>
-        <select id="month-filter">
-          <option value="">すべて</option>
-          {{MONTH_FILTER_OPTIONS}}
-        </select>
-      </div>
-      <div class="table-wrapper">
-        <table class="perf-table" id="stocks-table">
-          <thead>
-            <tr>
-              <th data-col="year_month">推奨月<span class="sort-icon">⇅</span></th>
-              <th data-col="code">コード<span class="sort-icon">⇅</span></th>
-              <th data-col="name">銘柄名<span class="sort-icon">⇅</span></th>
-              <th data-col="price_at_pick">推奨時価格<span class="sort-icon">⇅</span></th>
-              <th data-col="current_price">現在価格<span class="sort-icon">⇅</span></th>
-              <th data-col="return_pct">リターン<span class="sort-icon">⇅</span></th>
-              <th data-col="theme">テーマ<span class="sort-icon">⇅</span></th>
-            </tr>
-          </thead>
-          <tbody id="stocks-tbody">
-            {{STOCKS_TABLE_ROWS}}
-          </tbody>
-        </table>
-      </div>
-    </section>
+  <!-- Monthly distribution -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">月別 · 内訳</div></div>
+    <div style="font-family:var(--mono);font-size:8.5px;color:var(--text-mute);letter-spacing:.15em;padding-bottom:6px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:38px 1fr 44px 56px;gap:10px;">
+      <span>月</span><span>分布</span><span style="text-align:right;">勝率</span><span style="text-align:right;">リターン</span>
+    </div>
+    <!-- pythonが <div class="tp-monthly-row">…</div> × N を出力 -->
+    {{MONTHLY_TABLE_ROWS}}
+  </section>
 
-    <!-- 免責事項 -->
-    <section class="section">
-      <div class="section-title">免責事項</div>
-      <div class="disclaimer">
-        <strong>【重要】投資に関するご注意</strong><br>
-        本ダッシュボードはAIが自動生成した過去パフォーマンスの情報提供を目的としたものであり、
-        <strong>投資助言・勧誘を目的とするものではありません。</strong>
-        過去のパフォーマンスは将来の結果を保証するものではありません。
-        株価データはyfinance（Yahoo Finance非公式API）から取得しており、遅延・欠損が含まれる場合があります。
-        投資の最終判断はご自身の責任においてお行いください。
-      </div>
-    </section>
+  <div class="tp-divider-dashed"></div>
 
-  </div>
-</main>
+  <!-- Top picks — pythonが {{TOP_PICKS_SECTION}} に <div class="tp-perf-row">…</div> × N を出力 -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">ベストパフォーマー</div></div>
+    {{TOP_PICKS_SECTION}}
+  </section>
 
-<footer>
-  <div class="container">
-    バックテストダッシュボード | GitHub Pages | データソース: yfinance
-  </div>
-</footer>
+  <!-- Individual stocks (filtered table) -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">個別銘柄パフォーマンス</div></div>
+    <div class="filter-bar">
+      <label for="theme-filter">テーマ:</label>
+      <select id="theme-filter">
+        <option value="">すべて</option>
+        {{THEME_FILTER_OPTIONS}}
+      </select>
+      <label for="month-filter">月:</label>
+      <select id="month-filter">
+        <option value="">すべて</option>
+        {{MONTH_FILTER_OPTIONS}}
+      </select>
+    </div>
+    <table class="perf-table" id="stocks-table">
+      <thead>
+        <tr>
+          <th data-col="year_month">月</th>
+          <th data-col="code">コード</th>
+          <th data-col="name">銘柄</th>
+          <th data-col="price" style="text-align:right;">推奨/現在</th>
+          <th data-col="return_pct" style="text-align:right;">リターン</th>
+        </tr>
+      </thead>
+      <tbody id="stocks-tbody">
+        {{STOCKS_TABLE_ROWS}}
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="tp-colophon">
+    過去の成績は将来を保証しません<br>
+    DATA: yfinance · NOT INVESTMENT ADVICE
+  </footer>
+
+</div>
 
 <script>
-// ===== チャート初期化 =====
 (function() {
-  var labels = {{CHART_LABELS}};
-  var returns = {{CHART_RETURNS}};
-
+  const labels = {{CHART_LABELS}};
+  const returns = {{CHART_RETURNS}};
   if (!labels.length) return;
-
-  var ctx = document.getElementById('monthlyReturnChart').getContext('2d');
+  const ctx = document.getElementById('monthlyReturnChart').getContext('2d');
   new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '月別平均リターン (%)',
-        data: returns,
-        borderColor: '#5577cc',
-        backgroundColor: 'rgba(85,119,204,0.15)',
-        tension: 0.3,
-        fill: true,
-        pointBackgroundColor: returns.map(function(v) {
-          return v === null ? 'transparent' : (v >= 0 ? '#22cc88' : '#ff5566');
-        }),
-        pointRadius: 5,
-        pointHoverRadius: 7,
-      }]
-    },
+    type: 'bar',
+    data: { labels, datasets: [{
+      data: returns,
+      backgroundColor: returns.map(v => v === null ? 'transparent' : (v >= 0 ? 'rgba(125,198,121,0.85)' : 'rgba(225,97,88,0.85)')),
+      borderRadius: 0, borderSkipped: false,
+    }]},
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#9999bb' } },
+        legend: { display: false },
         tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              var v = ctx.parsed.y;
-              return v === null ? 'データなし' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-            }
-          }
+          backgroundColor: '#0d1626', borderColor: '#d4a341', borderWidth: 1,
+          titleFont: { family: 'JetBrains Mono', size: 11 },
+          bodyFont: { family: 'JetBrains Mono', size: 11 },
+          callbacks: { label: ctx => ctx.parsed.y === null ? 'データなし' : (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(1) + '%' }
         }
       },
       scales: {
-        x: { ticks: { color: '#8888aa' }, grid: { color: '#1a1a36' } },
-        y: {
-          ticks: {
-            color: '#8888aa',
-            callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; }
-          },
-          grid: { color: '#1a1a36' }
-        }
+        x: { ticks: { color: '#9aa3b8', font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#9aa3b8', font: { family: 'JetBrains Mono', size: 10 }, callback: v => (v>=0?'+':'')+v+'%' },
+             grid: { color: 'rgba(255,255,255,0.05)' } }
       }
     }
   });
 })();
 
-// ===== テーブルソート =====
+// Filter
 (function() {
-  var tbody = document.getElementById('stocks-tbody');
-  var sortState = { col: null, asc: true };
-
-  document.querySelectorAll('#stocks-table th[data-col]').forEach(function(th) {
-    th.addEventListener('click', function() {
-      var col = this.getAttribute('data-col');
-      if (sortState.col === col) {
-        sortState.asc = !sortState.asc;
-      } else {
-        sortState.col = col;
-        sortState.asc = true;
-      }
-      sortTable(col, sortState.asc);
-    });
-  });
-
-  function sortTable(col, asc) {
-    var rows = Array.from(tbody.querySelectorAll('tr'));
-    rows.sort(function(a, b) {
-      var va = a.getAttribute('data-' + col) || '';
-      var vb = b.getAttribute('data-' + col) || '';
-      var na = parseFloat(va);
-      var nb = parseFloat(vb);
-      if (!isNaN(na) && !isNaN(nb)) {
-        return asc ? na - nb : nb - na;
-      }
-      return asc ? va.localeCompare(vb, 'ja') : vb.localeCompare(va, 'ja');
-    });
-    rows.forEach(function(r) { tbody.appendChild(r); });
-  }
-})();
-
-// ===== フィルタ =====
-(function() {
-  var themeFilter = document.getElementById('theme-filter');
-  var monthFilter = document.getElementById('month-filter');
-
-  function applyFilter() {
-    var theme = themeFilter.value;
-    var month = monthFilter.value;
-    document.querySelectorAll('#stocks-tbody tr').forEach(function(row) {
-      var rowTheme = row.getAttribute('data-theme') || '';
-      var rowMonth = row.getAttribute('data-year_month') || '';
-      var show = true;
-      if (theme && rowTheme !== theme) show = false;
-      if (month && rowMonth !== month) show = false;
+  const themeF = document.getElementById('theme-filter');
+  const monthF = document.getElementById('month-filter');
+  function apply() {
+    const t = themeF.value, m = monthF.value;
+    document.querySelectorAll('#stocks-tbody tr').forEach(row => {
+      const rt = row.getAttribute('data-theme') || '';
+      const rm = row.getAttribute('data-year_month') || '';
+      const show = (!t || rt === t) && (!m || rm === m);
       row.style.display = show ? '' : 'none';
     });
   }
+  themeF.addEventListener('change', apply);
+  monthF.addEventListener('change', apply);
+})();
 
-  themeFilter.addEventListener('change', applyFilter);
-  monthFilter.addEventListener('change', applyFilter);
+// Sort
+(function() {
+  const tbody = document.getElementById('stocks-tbody');
+  const state = { col: null, asc: true };
+  document.querySelectorAll('#stocks-table th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.getAttribute('data-col');
+      if (state.col === c) state.asc = !state.asc; else { state.col = c; state.asc = true; }
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const va = a.getAttribute('data-' + c) || a.querySelector('td.col-' + c)?.textContent || '';
+        const vb = b.getAttribute('data-' + c) || b.querySelector('td.col-' + c)?.textContent || '';
+        const na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return state.asc ? na - nb : nb - na;
+        return state.asc ? va.localeCompare(vb, 'ja') : vb.localeCompare(va, 'ja');
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
 })();
 </script>
+
+<!--
+===============================================================================
+PYTHON 生成HTML 例 (step6_backtest.py で組み立てる雛形)
+===============================================================================
+
+[1] {{HERO_RETURN_SECTION}}
+<div class="perf-hero">
+  <span class="perf-hero__num">{{ '+' if avg>=0 else '' }}{{ avg|round(1) }}</span>
+  <span class="perf-hero__pct">%</span>
+  <span class="perf-hero__note">平均リターン</span>
+</div>
+
+[2] {{SUMMARY_CARDS}}
+<div class="tp-kpi-grid">
+  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div><div class="tp-kpi__value">{{ win_rate }}%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div><div class="tp-kpi__value tp-kpi__value--red">{{ max_dd }}%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div><div class="tp-kpi__value tp-kpi__value--green">{{ win_months }} / {{ total_months }}</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div><div class="tp-kpi__value">{{ total_picks }}</div></div>
+</div>
+
+[3] {{BEST_WORST_SECTION}}
+<div class="tp-best-worst">
+  <div class="tp-best-worst__cell">
+    <div class="tp-best-worst__head">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7dc679" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+      <span class="tp-mini">BEST</span>
+    </div>
+    <div class="tp-best-worst__name">{{ best.name }}</div>
+    <div class="tp-best-worst__value tp-up">+{{ best.return }}%</div>
+  </div>
+  <div class="tp-best-worst__cell">
+    <div class="tp-best-worst__head">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e16158" stroke-width="1.7"><path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/></svg>
+      <span class="tp-mini">WORST</span>
+    </div>
+    <div class="tp-best-worst__name">{{ worst.name }}</div>
+    <div class="tp-best-worst__value tp-down">{{ worst.return }}%</div>
+  </div>
+</div>
+
+[4] {{MONTHLY_TABLE_ROWS}}  ← 月次1行
+<div class="tp-monthly-row">
+  <span class="tp-monthly-row__month">{{ m.year_month }}</span>
+  <div class="tp-monthly-row__bar">
+    <!-- ret>=0: left:50%, width:abs(ret)/maxAbs*50%, bg:var(--green)
+         ret<0:  left:(50% - width), width:abs(ret)/maxAbs*50%, bg:var(--red) -->
+    <div class="tp-monthly-row__bar-fill" style="left:50%;width:25%;background:var(--green);"></div>
+    <div class="tp-monthly-row__bar-axis"></div>
+  </div>
+  <span class="tp-monthly-row__win">{{ m.win }}%</span>
+  <span class="tp-monthly-row__return {{ 'tp-up' if m.avg>=0 else 'tp-down' }}">{{ '+' if m.avg>=0 else '' }}{{ m.avg }}%</span>
+</div>
+
+[5] {{TOP_PICKS_SECTION}}  ← Top pick 1行
+<div class="tp-perf-row{% if loop.first %} tp-perf-row--top{% endif %}">
+  <div class="tp-perf-row__rank">{{ loop.index }}</div>
+  <div class="tp-perf-row__body">
+    <div class="tp-perf-row__name">{{ s.name }}</div>
+    <div class="tp-perf-row__sub">{{ s.code }} · {{ s.theme }} · {{ s.month }}</div>
+  </div>
+  <div class="tp-perf-row__return {{ 'tp-up' if s.return>=0 else 'tp-down' }}">{{ '+' if s.return>=0 else '' }}{{ s.return }}%</div>
+</div>
+
+[6] {{STOCKS_TABLE_ROWS}}  ← 全銘柄テーブル1行
+<tr data-theme="{{ s.theme }}" data-year_month="{{ s.year_month }}" data-return_pct="{{ s.return_pct }}">
+  <td class="col-month">{{ s.year_month }}</td>
+  <td class="col-code">{{ s.code }}</td>
+  <td class="col-name">{{ s.name }}</td>
+  <td class="col-price">{{ s.price_at_pick }} → {{ s.current_price }}</td>
+  <td class="col-return {{ 'tp-up' if s.return_pct>=0 else 'tp-down' }}">{{ '+' if s.return_pct>=0 else '' }}{{ s.return_pct }}%</td>
+</tr>
+
+[7] {{CHART_LABELS}}, {{CHART_RETURNS}}  ← JS配列をそのまま埋める
+  例: ["2025.06","2025.07",…]
+      [2.4,-1.8,…]
+
+===============================================================================
+-->
 
 </body>
 </html>

@@ -16,6 +16,8 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
+DOCS_DIR = Path("docs")
+
 
 def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     """サブプロセスを実行してログ出力する"""
@@ -41,6 +43,15 @@ def run():
     )
     _run(["git", "config", "user.name", git_name])
     _run(["git", "config", "user.email", git_email])
+
+    # CSS公開: styles.css を docs/ 各ディレクトリにコピー
+    import shutil as _shutil
+    css_src = Path("src/templates/styles.css")
+    if css_src.exists():
+        for dest_dir in [DOCS_DIR, DOCS_DIR / "weekly", DOCS_DIR / "archive"]:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            _shutil.copy(css_src, dest_dir / "styles.css")
+        logger.info("styles.css copied to docs/, docs/weekly/, docs/archive/")
 
     # ステージング
     paths_to_add = ["docs/", "data/theme_history.json"]
