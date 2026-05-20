@@ -234,33 +234,22 @@ STOCK_COMPARISON_PROMPT = """
 {stock_data_json}
 
 ## 出力形式
-各テーマについて以下のJSON構造を含むHTMLを生成してください（スクリプトタグ不要、テーブル形式で出力）：
+各テーマについて以下の構造のHTMLを生成してください：
 
-<div class="stock-comparison-section">
-  <div class="stock-comparison-title">📊 銘柄比較表（テーマ名）</div>
-  <div style="overflow-x:auto">
-  <table class="stock-comparison-table">
-    <thead>
-      <tr>
-        <th>銘柄</th>
-        <th>成長性</th>
-        <th>割安度</th>
-        <th>安定性</th>
-        <th>一言コメント</th>
-      </tr>
-    </thead>
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 5（テーマ名）</div></div>
+  <table class="tp-stars-table">
+    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
     <tbody>
       <tr>
-        <td><strong>銘柄名</strong><br><small>証券コード</small></td>
-        <td class="score-cell" data-score="4">★★★★☆</td>
-        <td class="score-cell" data-score="3">★★★☆☆</td>
-        <td class="score-cell" data-score="5">★★★★★</td>
-        <td>一言コメント（20字以内）</td>
+        <td>銘柄名<div class="name-sub">証券コード.JP</div></td>
+        <td class="stars">★★★★☆</td>
+        <td class="stars">★★★☆☆</td>
+        <td class="stars">★★★★☆</td>
       </tr>
     </tbody>
   </table>
-  </div>
-</div>
+</section>
 
 ★の数はスコアと一致させ、残りを☆で埋めてください（例：スコア3なら★★★☆☆）。
 テーマごとにこのブロックを繰り返してください。HTMLフラグメントのみ出力してください。
@@ -273,7 +262,7 @@ RANKING_SECTIONS_PROMPT = """
 
 ## 生成対象
 {{THEME_RANKING_SECTIONS}} 部分に挿入するHTMLフラグメントです。
-section.theme-section 要素群のみを出力してください。
+article.tp-theme 要素群のみを出力してください。
 
 ## 5軸スコアリングの重み付け（各銘柄に適用してランキングを決定）
 - テーマ直結度: 30%（テーマのコア事業か間接的か）
@@ -283,120 +272,99 @@ section.theme-section 要素群のみを出力してください。
 - カタリスト期待: 10%（今後のイベント・ニュースによる上昇余地）
 
 各スコアは 0〜100 の数値で表現し、data-width 属性に設定してください。
+tp-score-bar__fill のクラス: 値>=70 は tp-score-bar__fill--hi, >=50 は tp-score-bar__fill--mid, それ以外はクラスなし。
 
-## ティア分類（対応CSSクラス）
-- tier-honmei（本命）: 総合スコア最上位
-- tier-ogata（大型安定）: 大型株でリスク低め
-- tier-hirisuku（ハイリスク）: 成長性高いが高リスク
-- tier-omowaku（思惑）: 話題性先行
-- tier-okure（出遅れ）: 割安な出遅れ株
+## ティア分類（.tp-stock-row__sub の <span class="tier"> 内に入れるテキスト）
+- 本命: 総合スコア最上位
+- 大型安定: 大型株でリスク低め
+- ハイリスク: 成長性高いが高リスク
+- 思惑: 話題性先行
+- 出遅れ: 割安な出遅れ株
 
 ## テーマデータ
 {themes_json}
 
 ## 銘柄データ
 stock_dataの各テーマには "failed_codes" フィールドがあり、yfinanceでデータ取得できなかった銘柄コードが含まれます。
-これらの銘柄はランキングに含めず、テーマセクションの末尾に以下のような注釈を追加してください:
-<p style="font-size:12px;color:#555577;margin-top:8px">※ データ未取得: 6789, 1234（yfinance取得エラー）</p>
-failed_codesが空の場合は注釈不要です。
+これらの銘柄はランキングに含めず、テーマ末尾に注釈を追加してください（failed_codesが空の場合は不要）。
 
 {stock_data_json}
 
-## 出力フォーマット例
-<section class="theme-section">
-  <div class="theme-header">
-    <div class="theme-icon">🚀</div>
-    <div class="theme-title-block">
-      <h3>防衛・宇宙テック</h3>
-      <div class="stock-count">5銘柄</div>
+## 出力フォーマット例（1テーマ分）
+<article class="tp-theme">
+  <div class="tp-theme__head">
+    <div class="tp-theme__num">01</div>
+    <div class="tp-theme__title-block">
+      <h2 class="tp-theme__title">防衛・宇宙テック</h2>
+      <div class="tp-theme__angle">投資戦略の着眼点（1-2行）</div>
     </div>
   </div>
-  <div class="stock-list">
-    <div class="stock-card rank-1" data-stock-code="7013">
-      <div class="card-header">
-        <div class="rank-badge">1</div>
-        <span class="tier-label tier-honmei">本命</span>
-        <div class="card-info">
-          <div class="stock-name">IHI <span class="market-badge market-badge-jp">JP</span></div>
-          <div class="stock-code">7013 / 航空・宇宙</div>
-        </div>
-        <div class="card-metrics">
-          <div class="metric"><div class="value">¥8,430</div><div class="label">現在値</div></div>
-          <div class="metric"><div class="value change up">+2.3%</div><div class="label">前日比</div></div>
-        </div>
-        <div class="card-expand-icon">▼</div>
+  <div class="tp-theme__chips">
+    <span class="tp-chip">政策: 8</span>
+    <span class="tp-chip">市場: 7</span>
+    <span class="tp-chip">新規: 9</span>
+    <span class="tp-chip">持続: 6</span>
+  </div>
+  <div class="tp-theme__stocks">
+    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
+    <div class="tp-stock-row tp-stock-row--top">
+      <div class="tp-stock-row__rank">1</div>
+      <div>
+        <div class="tp-stock-row__name">IHI</div>
+        <div class="tp-stock-row__sub">7013.JP<span class="tier">本命</span></div>
       </div>
-      <div class="card-detail">
-        <div class="detail-grid">
-          <div class="detail-item"><div class="d-label">PER</div><div class="d-value">15.2x</div></div>
-          <div class="detail-item"><div class="d-label">PBR</div><div class="d-value">2.1x</div></div>
-          <div class="detail-item"><div class="d-label">配当利回り</div><div class="d-value">1.5%</div></div>
-          <div class="detail-item"><div class="d-label">財務健全性</div><div class="d-value health-stars">★★★★☆</div></div>
-        </div>
-        <div class="detail-text">
-          <div class="dt-label">注目ポイント</div>
-          <p>テーマとの関連ポイント（2〜3文）</p>
-          <div class="dt-label" style="margin-top:10px">リスク要因</div>
-          <p>主なリスク（1〜2文）</p>
-        </div>
-        <div class="score-bar-section">
-          <div class="score-bar-label">5軸スコア評価</div>
-          <div class="score-bars">
-            <div class="score-bar-row">
-              <div class="score-bar-name">テーマ直結度</div>
-              <div class="score-bar-track"><div class="score-bar-fill" data-width="85" style="width:0%"></div></div>
-              <div class="score-bar-val">85</div>
-            </div>
-            <div class="score-bar-row">
-              <div class="score-bar-name">業績モメンタム</div>
-              <div class="score-bar-track"><div class="score-bar-fill" data-width="70" style="width:0%"></div></div>
-              <div class="score-bar-val">70</div>
-            </div>
-            <div class="score-bar-row">
-              <div class="score-bar-name">バリュエーション</div>
-              <div class="score-bar-track"><div class="score-bar-fill" data-width="60" style="width:0%"></div></div>
-              <div class="score-bar-val">60</div>
-            </div>
-            <div class="score-bar-row">
-              <div class="score-bar-name">財務健全性</div>
-              <div class="score-bar-track"><div class="score-bar-fill" data-width="80" style="width:0%"></div></div>
-              <div class="score-bar-val">80</div>
-            </div>
-            <div class="score-bar-row">
-              <div class="score-bar-name">カタリスト期待</div>
-              <div class="score-bar-track"><div class="score-bar-fill" data-width="75" style="width:0%"></div></div>
-              <div class="score-bar-val">75</div>
-            </div>
-          </div>
-        </div>
-        <div class="price-chart-wrapper">
-          <div class="price-chart-label">過去6ヶ月の株価推移</div>
-          <canvas class="price-chart-canvas" data-stock-code="7013"></canvas>
-        </div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="M0,9 L42,9" fill="none" stroke="#7dc679" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">¥8,430</div>
+      <div class="tp-stock-row__change tp-up">+2.3%</div>
+    </div>
+    <div class="tp-score-bars">
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">テーマ直結度</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="85" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">85</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">業績モメンタム</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="70" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">70</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">バリュエーション</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="60" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value">60</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">財務健全性</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">カタリスト期待</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="75" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">75</div>
       </div>
     </div>
-    （銘柄数分繰り返す）
+    （銘柄数分繰り返す: 2位以降は tp-stock-row--top なし）
   </div>
-</section>
+  <div class="tp-theme__risk">
+    <div class="tp-callout tp-callout--risk">
+      <div>
+        <div class="tp-callout__title">失速シナリオ</div>
+        <div class="tp-callout__body">3つの失速条件を箇条書きで記述</div>
+      </div>
+    </div>
+  </div>
+</article>
 （テーマ数分繰り返す）
 
 ## 重要な出力ルール
-- 各銘柄の market フィールドに応じて市場バッジを表示してください:
-  - JP 銘柄: `<span class="market-badge market-badge-jp">JP</span>`
-  - US 銘柄: `<span class="market-badge market-badge-us">US</span>`
-  バッジは `.stock-name` の直後に配置してください。
-- 価格表示は市場に合わせて: JP は「¥8,430」、US は「$185.50」（小数2桁）の形式にしてください。
-- 各 `.stock-card` 要素には必ず `data-stock-code="証券コード"` 属性を付与してください（例: `<div class="stock-card rank-1" data-stock-code="7013">`）。
-- 各 `.card-detail` の末尾（閉じタグ直前）に必ず以下のHTMLを含めてください:
-  ```
-  <div class="price-chart-wrapper">
-    <div class="price-chart-label">過去6ヶ月の株価推移</div>
-    <canvas class="price-chart-canvas" data-stock-code="証券コード"></canvas>
-  </div>
-  ```
-  `data-stock-code` は当該銘柄の証券コード（4桁数字または海外ティッカー）を入れてください。
+- 価格表示: JP は「¥8,430」、US は「$185.50」形式
+- 変化率: 上昇は tp-up クラス、下降は tp-down クラス
+- 最初の銘柄行のみ tp-stock-row--top を付与
+- テーマ番号は2桁ゼロパディング（例: 01, 02）
+- failed_codesは最後に <p style="font-size:12px;color:var(--text-mute);margin-top:8px">※ データ未取得: コード（yfinance取得エラー）</p>
 
-HTMLフラグメントのみ出力してください。上位3銘柄にはrank-1/rank-2/rank-3クラスを付与してください。
+HTMLフラグメントのみ出力してください。
 """
 
 
@@ -483,11 +451,161 @@ def build_stock_comparison_prompt(themes: List[Dict], stock_data: List[Dict]) ->
             .replace("{stock_data_json}", json.dumps(trimmed, ensure_ascii=False, indent=2)))
 
 
+def make_spark_svg(values, w=42, h=18, color="#7dc679"):
+    """終値リストからインラインSVGスパークラインを生成する"""
+    if not values or len(values) < 2:
+        return ""
+    mn, mx = min(values), max(values)
+    rng = mx - mn or 1
+    step = w / (len(values) - 1)
+    pts = [(i * step, h - (v - mn) / rng * h) for i, v in enumerate(values)]
+    path = " ".join(f"{'M' if i == 0 else 'L'}{x:.1f},{y:.1f}" for i, (x, y) in enumerate(pts))
+    return f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}"><path d="{path}" fill="none" stroke="{color}" stroke-width="1.2"/></svg>'
+
+
+def build_cover_section(api_key: str, themes: List[Dict], stock_count: int) -> str:
+    """Claude Sonnet 4.6 でカバーヘッドラインを生成して <section class="tp-cover"> を返す"""
+    theme_count = len(themes)
+    theme_names = "、".join(t.get("name", "") for t in themes[:3])
+
+    try:
+        import anthropic
+        import time
+        from src.utils.cost_logger import log_api_call
+        client = anthropic.Anthropic(api_key=api_key)
+        t0 = time.monotonic()
+        msg = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=200,
+            system="あなたは金融メディアのコピーライターです。短く印象的な日本語コピーを生成してください。説明なしでJSONのみ出力してください。",
+            messages=[{
+                "role": "user",
+                "content": f"""今月の株式テーマ「{theme_names}」などを踏まえ、
+月次株式レポートのカバーヘッドラインを3パーツで生成してください。
+形式は以下のJSONのみ出力:
+{{"pre": "前置き（5-8文字）", "focus": "強調語（2-5文字の投資テーマキーワード）", "post": "後置き（5-10文字）"}}
+pre + focus + post で1つの文になるように。絵文字禁止。"""
+            }]
+        )
+        duration = time.monotonic() - t0
+        log_api_call(
+            provider="anthropic", model="claude-sonnet-4-6",
+            operation="cover_headline",
+            input_tokens=msg.usage.input_tokens,
+            output_tokens=msg.usage.output_tokens,
+            duration_sec=duration, success=True,
+        )
+        import json as _json
+        data = _json.loads(msg.content[0].text.strip())
+        pre = html.escape(data.get("pre", "今月の注目"))
+        focus = html.escape(data.get("focus", "テーマ"))
+        post = html.escape(data.get("post", "銘柄を解説"))
+    except Exception as e:
+        logger.warning(f"Cover headline generation failed: {e}. Using fallback.")
+        pre = "今月の注目"
+        focus = "テーマ株"
+        post = "を徹底解説"
+
+    return (
+        f'<section class="tp-cover">\n'
+        f'  <div class="tp-cover__kicker">注目テーマ {theme_count}件 · 銘柄 {stock_count}件</div>\n'
+        f'  <h1 class="tp-cover__title">{pre}と<br>'
+        f'<span class="tp-italic-gold">{focus}</span>の<br>{post}</h1>\n'
+        f'</section>\n'
+    )
+
+
+def build_kpi_strip_section(themes: List[Dict], stock_data: List[Dict], perf_data: List[Dict]) -> str:
+    """5項目KPIストリップHTMLを生成する"""
+    theme_count = len(themes)
+    stock_count = sum(len(t.get("stocks", [])) for t in stock_data)
+
+    if perf_data:
+        changes = [s["change_pct"] for s in perf_data if s.get("change_pct") is not None]
+        avg_ret = round(sum(changes) / len(changes), 1) if changes else 0.0
+        win_rate = round(sum(1 for c in changes if c >= 0) / len(changes) * 100) if changes else 0
+        prev_avg = avg_ret  # use same as prev month comparison placeholder
+    else:
+        avg_ret = 0.0
+        win_rate = 0
+        prev_avg = 0.0
+
+    avg_cls = "tp-stat-cell__value--green" if avg_ret >= 0 else "tp-stat-cell__value--red"
+    avg_sign = "+" if avg_ret >= 0 else ""
+    prev_cls = "tp-stat-cell__value--green" if prev_avg >= 0 else "tp-stat-cell__value--red"
+    prev_sign = "+" if prev_avg >= 0 else ""
+
+    return (
+        f'<section class="tp-section--tight">\n'
+        f'  <div class="tp-stat-strip tp-stat-strip--5">\n'
+        f'    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div>'
+        f'<div class="tp-stat-cell__value">{theme_count}</div></div>\n'
+        f'    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div>'
+        f'<div class="tp-stat-cell__value">{stock_count}</div></div>\n'
+        f'    <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div>'
+        f'<div class="tp-stat-cell__value {avg_cls}">{avg_sign}{avg_ret}%</div></div>\n'
+        f'    <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div>'
+        f'<div class="tp-stat-cell__value">{win_rate}%</div></div>\n'
+        f'    <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div>'
+        f'<div class="tp-stat-cell__value {prev_cls}">{prev_sign}{prev_avg}%</div></div>\n'
+        f'  </div>\n'
+        f'</section>\n'
+    )
+
+
+def build_chat_widget_section(proxy_url: str) -> str:
+    """チャットウィジェット全体HTML（CHAT_PROXY_URL が未設定なら空文字）"""
+    if not proxy_url:
+        return ""
+    safe_proxy = html.escape(proxy_url)
+    return f"""<style>
+#tp-chat-fab{{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1000;box-shadow:0 4px 16px rgba(0,0,0,.4)}}
+#tp-chat-panel{{display:none;position:fixed;bottom:84px;right:24px;width:320px;max-height:480px;background:var(--surface);border:1px solid var(--border-gold);z-index:999;flex-direction:column}}
+#tp-chat-panel.is-open{{display:flex}}
+#tp-chat-msgs{{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}}
+#tp-chat-input-row{{display:flex;border-top:1px solid var(--border);padding:8px}}
+#tp-chat-input{{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:13px;outline:none}}
+#tp-chat-send{{background:var(--gold);border:none;color:#000;padding:4px 12px;cursor:pointer;font-family:var(--mono);font-size:11px}}
+.tp-chat-msg{{font-size:13px;line-height:1.5;padding:8px 10px;border-radius:2px}}
+.tp-chat-msg--user{{background:rgba(212,163,65,.12);align-self:flex-end;max-width:80%}}
+.tp-chat-msg--ai{{background:rgba(255,255,255,.04);align-self:flex-start;max-width:90%}}
+</style>
+<button id="tp-chat-fab" aria-label="チャット">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0d1626" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+</button>
+<div id="tp-chat-panel">
+<div style="padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--serif);font-size:13px;color:var(--gold)">The Picker · AI</div>
+<div id="tp-chat-msgs"></div>
+<div id="tp-chat-input-row">
+<input id="tp-chat-input" type="text" placeholder="レポートについて質問...">
+<button id="tp-chat-send">送信</button>
+</div>
+</div>
+<script>
+(function(){{
+var fab=document.getElementById('tp-chat-fab');
+var panel=document.getElementById('tp-chat-panel');
+var msgs=document.getElementById('tp-chat-msgs');
+var input=document.getElementById('tp-chat-input');
+var send=document.getElementById('tp-chat-send');
+fab.addEventListener('click',function(){{panel.classList.toggle('is-open');}});
+function addMsg(text,role){{var d=document.createElement('div');d.className='tp-chat-msg tp-chat-msg--'+role;d.textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}}
+async function doSend(){{
+var q=input.value.trim();if(!q)return;
+input.value='';addMsg(q,'user');
+try{{
+var r=await fetch('{safe_proxy}',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{reportContext:document.title,message:q}})}});
+var j=await r.json();
+addMsg(j.reply||'エラーが発生しました','ai');
+}}catch(e){{addMsg('接続エラー','ai');}}
+}}
+send.addEventListener('click',doSend);
+input.addEventListener('keydown',function(e){{if(e.key==='Enter')doSend();}});
+}})();
+</script>"""
+
+
 def build_sector_warning_html(themes_data: Dict) -> str:
-    """
-    sector_overlap_warning フラグが true の場合に警告バナーHTMLを生成する。
-    フィールドが存在しない場合は警告なし（フォールバック: false 扱い）として空文字を返す。
-    """
     if not themes_data.get("sector_overlap_warning", False):
         return ""
     dominant = themes_data.get("dominant_sectors", [])
@@ -495,10 +613,16 @@ def build_sector_warning_html(themes_data: Dict) -> str:
         return ""
     sectors_text = "、".join(html.escape(s) for s in dominant)
     return (
-        f'<div class="sector-warning-banner">\n'
-        f'  ⚠️ 今月は <strong>{sectors_text}</strong> セクターが偏重しています。'
-        f'分散投資の観点では、他の業種と組み合わせた検討をお勧めします。\n'
-        f'</div>\n'
+        '<section class="tp-section--tight">\n'
+        '  <div class="tp-callout tp-callout--warn">\n'
+        '    <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">'
+        '<path d="M12 9v4"/><path d="M12 17h.01"/>'
+        '<path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>\n'
+        '    <div class="tp-callout__body">\n'
+        f'      <strong style="color:var(--gold)">セクター分散注意:</strong> {sectors_text} セクターが偏重しています。分散投資の観点から他の業種との組み合わせをお勧めします。\n'
+        '    </div>\n'
+        '  </div>\n'
+        '</section>\n'
     )
 
 
@@ -553,8 +677,8 @@ def build_chart_init_script(stock_data: List[Dict]) -> str:
           labels: data.dates,
           datasets: [{{
             data: data.closes,
-            borderColor: '#5588ff',
-            backgroundColor: 'rgba(85,136,255,0.08)',
+            borderColor: '#7dc679',
+            backgroundColor: 'rgba(125,198,121,0.12)',
             borderWidth: 1.5,
             pointRadius: 0,
             tension: 0.3,
@@ -571,21 +695,21 @@ def build_chart_init_script(stock_data: List[Dict]) -> str:
                 title: function(items) {{ return items[0].label; }},
                 label: function(item) {{ var d = chartData[code]; var sym = d && d.currency === 'USD' ? '$' : '¥'; return sym + item.parsed.y.toLocaleString(); }}
               }},
-              backgroundColor: 'rgba(20,20,40,0.9)',
-              titleColor: '#aaaacc',
+              backgroundColor: '#0d1626',
+              titleColor: '#9aa3b8',
               bodyColor: '#e0e0f0',
-              borderColor: '#2a2a5a',
+              borderColor: '#d4a341',
               borderWidth: 1
             }}
           }},
           scales: {{
             x: {{
-              ticks: {{ color: '#555577', maxTicksLimit: 6, maxRotation: 0 }},
-              grid: {{ color: '#1a1a36' }}
+              ticks: {{ color: '#9aa3b8', maxTicksLimit: 6, maxRotation: 0 }},
+              grid: {{ color: 'rgba(255,255,255,0.05)' }}
             }},
             y: {{
-              ticks: {{ color: '#555577', maxTicksLimit: 5 }},
-              grid: {{ color: '#1a1a36' }}
+              ticks: {{ color: '#9aa3b8', maxTicksLimit: 5 }},
+              grid: {{ color: 'rgba(255,255,255,0.05)' }}
             }}
           }}
         }}
@@ -758,34 +882,31 @@ def build_performance_html(perf_data: List[Dict], prev_year_month: str) -> str:
     if not perf_data:
         return ""
 
-    rows = []
-    for s in perf_data:
-        chg = s["change_pct"]
-        direction = "up" if chg >= 0 else "down"
-        sign = "+" if chg >= 0 else ""
-        currency = get_currency(s.get("market", "JP"))
-        price_at_report_str = format_price(s["price_at_report"], currency)
-        current_price_str = format_price(s["current_price"], currency)
-        rows.append(
-            f'<tr>'
-            f'<td>{html.escape(s["name"])}<br><small style="color:#555577">{html.escape(s["code"])}</small></td>'
-            f'<td>{html.escape(s["theme"])}</td>'
-            f'<td>{price_at_report_str}</td>'
-            f'<td>{current_price_str}</td>'
-            f'<td class="change {direction}">{sign}{chg:.1f}%</td>'
-            f'</tr>'
-        )
+    changes = [s["change_pct"] for s in perf_data if s.get("change_pct") is not None]
+    if not changes:
+        return ""
+    avg = round(sum(changes) / len(changes), 1)
+    win_rate = round(sum(1 for c in changes if c >= 0) / len(changes) * 100)
+    best = round(max(changes), 1)
+    worst = round(min(changes), 1)
+    avg_cls = "var(--green)" if avg >= 0 else "var(--red)"
+    avg_sign = "+" if avg >= 0 else ""
+    best_sign = "+" if best >= 0 else ""
 
     return (
-        f'<section class="section">\n'
-        f'  <div class="section-title">前月（{prev_year_month}）推奨銘柄のパフォーマンス</div>\n'
-        f'  <div style="overflow-x:auto">\n'
-        f'  <table class="perf-table">\n'
-        f'    <thead><tr>'
-        f'<th>銘柄</th><th>テーマ</th><th>推奨時株価</th><th>現在株価</th><th>騰落率</th>'
-        f'</tr></thead>\n'
-        f'    <tbody>{"".join(rows)}</tbody>\n'
-        f'  </table>\n'
+        f'<section class="tp-section">\n'
+        f'  <div class="tp-section__head"><div class="tp-kicker">前月の成績</div></div>\n'
+        f'  <div style="padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">\n'
+        f'    <div style="display:flex;justify-content:space-between;align-items:baseline;">\n'
+        f'      <span style="font-size:11.5px;color:var(--text-dim);">{html.escape(prev_year_month)}号 推奨銘柄 平均</span>\n'
+        f'      <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:{avg_cls};">{avg_sign}{avg}%</span>\n'
+        f'    </div>\n'
+        f'    <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim);">\n'
+        f'      <span>勝率 <span style="color:var(--text);font-weight:600;">{win_rate}%</span></span>\n'
+        f'      <span>最高 <span style="color:var(--green);font-weight:600;">{best_sign}{best}%</span></span>\n'
+        f'      <span>最低 <span style="color:var(--red);font-weight:600;">{worst}%</span></span>\n'
+        f'      <span>{len(perf_data)}銘柄</span>\n'
+        f'    </div>\n'
         f'  </div>\n'
         f'</section>\n'
     )
@@ -997,21 +1118,18 @@ def run():
     now = datetime.now(timezone.utc).astimezone()
     year_month_str = now.strftime("%Y-%m")
 
-    # Claudeへのプロンプトを7件のバッチリクエストとして送信（既存4件 + 新規3件）
+    # Claudeへのプロンプトを5件のバッチリクエストとして送信
+    # summary_cards と risk_scenarios は新テンプレートでは不要（空文字で代替）
     news_strategy_prompt = build_news_strategy_prompt(news_overview, themes)
     changes_prompt = build_changes_prompt(themes, stock_data, previous_summary)
-    summary_prompt = build_summary_cards_prompt(themes)
     ranking_prompt = build_ranking_sections_prompt(themes, stock_data)
-    risk_scenarios_prompt = build_risk_scenarios_prompt(themes)
     supply_chain_prompt = build_supply_chain_prompt(themes, stock_data)
     stock_comparison_prompt = build_stock_comparison_prompt(themes, stock_data)
 
     batch_requests = [
         {"custom_id": "news_strategy", "user_message": news_strategy_prompt},
         {"custom_id": "changes", "user_message": changes_prompt},
-        {"custom_id": "summary_cards", "user_message": summary_prompt},
         {"custom_id": "ranking_sections", "user_message": ranking_prompt},
-        {"custom_id": "risk_scenarios", "user_message": risk_scenarios_prompt},
         {"custom_id": "supply_chain", "user_message": supply_chain_prompt},
         {"custom_id": "stock_comparison", "user_message": stock_comparison_prompt},
     ]
@@ -1037,19 +1155,17 @@ def run():
     # Claude結果を取得・コードフェンス除去
     news_strategy_html = strip_code_fence(results.get("news_strategy", "").strip())
     changes_html = strip_code_fence(results.get("changes", "").strip())
-    summary_cards_html = strip_code_fence(results.get("summary_cards", "").strip())
+    # summary_cards と risk_scenarios は新テンプレートでは空文字（テーマ記事内に埋め込み済み）
+    summary_cards_html = ""
+    risk_scenarios_html = ""
     ranking_sections_html = strip_code_fence(results.get("ranking_sections", "").strip())
-    ranking_sections_html = ensure_chart_canvas_in_ranking_html(ranking_sections_html, stock_data)
-    risk_scenarios_html = strip_code_fence(results.get("risk_scenarios", "").strip())
     supply_chain_html = strip_code_fence(results.get("supply_chain", "").strip())
     stock_comparison_html = strip_code_fence(results.get("stock_comparison", "").strip())
 
     for name, content in [
         ("news_strategy", news_strategy_html),
         ("changes", changes_html),
-        ("summary_cards", summary_cards_html),
         ("ranking_sections", ranking_sections_html),
-        ("risk_scenarios", risk_scenarios_html),
         ("supply_chain", supply_chain_html),
         ("stock_comparison", stock_comparison_html),
     ]:
@@ -1084,13 +1200,18 @@ def run():
     archive_link_html = '<a href="archive/index.html">アーカイブ一覧</a>'
     ai_models_text = f"{GEMINI_MODEL} / {CLAUDE_MODEL}"
 
+    # 新テンプレート用セクションをPythonで生成
+    cover_section = build_cover_section(api_key, themes, total_stocks)
+    kpi_strip_section = build_kpi_strip_section(themes, stock_data, perf_data)
+    chat_widget_section = build_chat_widget_section(os.environ.get("CHAT_PROXY_URL", ""))
+
     replacements = {
         "{{YEAR_MONTH}}": year_month_label,
         "{{GENERATED_DATE}}": generated_date_label,
-        "{{THEME_COUNT}}": str(len(themes)),
-        "{{TOTAL_STOCKS}}": str(total_stocks),
         "{{ARCHIVE_LINKS}}": archive_link_html,
         "{{AI_MODELS_TEXT}}": ai_models_text,
+        "{{COVER_SECTION}}": cover_section,
+        "{{KPI_STRIP_SECTION}}": kpi_strip_section,
         "{{NEWS_STRATEGY_SECTION}}": news_strategy_html,
         "{{THEME_SUMMARY_CARDS}}": summary_cards_html,
         "{{CHANGES_SECTION}}": changes_html,
@@ -1102,7 +1223,7 @@ def run():
         "{{SUPPLY_CHAIN_SECTION}}": supply_chain_html,
         "{{STOCK_COMPARISON_SECTION}}": stock_comparison_html,
         "{{CHART_INIT_SCRIPT}}": chart_init_script,
-        "{{CHAT_PROXY_URL}}": os.environ.get("CHAT_PROXY_URL", ""),
+        "{{CHAT_WIDGET_SECTION}}": chat_widget_section,
     }
     html = template_html
     for placeholder, value in replacements.items():
