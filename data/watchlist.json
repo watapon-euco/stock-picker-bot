@@ -21,6 +21,9 @@
       }
     }
   ],
-  "last_check": null,
-  "last_prices": {}
+  "last_check": "2026-05-20T10:46:38.538337+00:00",
+  "last_prices": {
+    "7203": 2942.0,
+    "AAPL": 298.97
+  }
 }
