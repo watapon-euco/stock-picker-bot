@@ -307,68 +307,212 @@ indexは上記リストの番号（1始まり）です。3件選んでくださ�
 # HTML レポート生成
 # ─────────────────────────────────────────────────────────────────────────────
 
+def make_spark_svg(values, w=44, h=20, color="#7dc679"):
+    """終値リストからインラインSVGスパークラインを生成する"""
+    if not values or len(values) < 2:
+        return f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}"></svg>'
+    mn, mx = min(values), max(values)
+    rng = mx - mn or 1
+    step = w / (len(values) - 1)
+    pts = [(i * step, h - (v - mn) / rng * h) for i, v in enumerate(values)]
+    path = " ".join(f"{'M' if i == 0 else 'L'}{x:.1f},{y:.1f}" for i, (x, y) in enumerate(pts))
+    return (f'<svg width="{w}" height="{h}" viewBox="0 0 {w} {h}">'
+            f'<path d="{path}" fill="none" stroke="{color}" stroke-width="1.3" stroke-linecap="round"/>'
+            f'</svg>')
+
+
+def _fetch_market_indices() -> str:
+    """4市場指標（日経/S&P500/USDJPY/VIX）を取得してtp-stat-strip--4を生成する"""
+    indices = [
+        ("^N225", "日経平均"),
+        ("^GSPC", "S&P 500"),
+        ("JPY=X", "USD/JPY"),
+        ("^VIX", "VIX"),
+    ]
+
+    cells = []
+    any_success = False
+
+    for ticker_sym, label in indices:
+        try:
+            tk = yf.Ticker(ticker_sym)
+            hist = tk.history(period="2d", auto_adjust=True)
+            if hist.empty or len(hist) < 1:
+                raise ValueError("No data")
+
+            current = float(hist["Close"].iloc[-1])
+            if len(hist) >= 2:
+                prev = float(hist["Close"].iloc[-2])
+                chg_pct = (current - prev) / prev * 100 if prev else 0.0
+            else:
+                chg_pct = 0.0
+
+            if ticker_sym == "JPY=X":
+                val_str = f"{current:.2f}"
+            elif ticker_sym == "^VIX":
+                val_str = f"{current:.2f}"
+            elif ticker_sym == "^N225":
+                val_str = f"{current:,.0f}"
+            else:
+                val_str = f"{current:,.2f}"
+
+            chg_str = f"{chg_pct:+.1f}%"
+            chg_cls = "tp-stat-cell__value--green" if chg_pct >= 0 else "tp-stat-cell__value--red"
+            any_success = True
+
+            cells.append(
+                f'<div class="tp-stat-cell">'
+                f'<div class="tp-stat-cell__label">{_html.escape(label)}</div>'
+                f'<div class="tp-stat-cell__value {chg_cls} tp-stat-cell__value--mono">'
+                f'{_html.escape(val_str)} <span style="font-size:9.5px">{_html.escape(chg_str)}</span>'
+                f'</div>'
+                f'</div>'
+            )
+        except Exception as e:
+            logger.warning(f"Failed to fetch {ticker_sym}: {e}")
+            cells.append(
+                f'<div class="tp-stat-cell">'
+                f'<div class="tp-stat-cell__label">{_html.escape(label)}</div>'
+                f'<div class="tp-stat-cell__value" style="color:var(--text-mute)">—</div>'
+                f'</div>'
+            )
+
+    if not any_success:
+        return ""
+
+    cells_html = "\n    ".join(cells)
+    return (
+        f'<section class="tp-section--tight">\n'
+        f'  <div class="tp-stat-strip tp-stat-strip--4">\n'
+        f'    {cells_html}\n'
+        f'  </div>\n'
+        f'</section>\n'
+    )
+
+
+def _build_earnings_calendar_section() -> str:
+    """7日以内の決算予定銘柄を .tp-earnings-row で列挙する"""
+    try:
+        from src.utils.earnings_fetcher import fetch_upcoming_earnings
+    except ImportError:
+        return ""
+
+    stocks_with_names = _collect_stocks_with_names()
+    if not stocks_with_names:
+        return ""
+
+    icon_svg = (
+        '<svg class="tp-earnings-row__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">'
+        '<rect x="3" y="5" width="18" height="16" rx="1"/>'
+        '<line x1="3" y1="10" x2="21" y2="10"/>'
+        '<line x1="8" y1="3" x2="8" y2="7"/>'
+        '<line x1="16" y1="3" x2="16" y2="7"/>'
+        '</svg>'
+    )
+
+    rows_html = []
+    for stock in stocks_with_names[:30]:
+        code = stock["code"]
+        name = stock.get("name", code)
+        try:
+            result = fetch_upcoming_earnings(code, lookahead_days=7)
+            if result and result.get("earnings_date"):
+                earnings_date = result["earnings_date"]
+                market = "T" if not str(code).replace(".", "").isalpha() else "US"
+                rows_html.append(
+                    f'<div class="tp-earnings-row">'
+                    f'{icon_svg}'
+                    f'<div class="tp-earnings-row__body">'
+                    f'<div class="tp-earnings-row__name">{_html.escape(name)}</div>'
+                    f'<div class="tp-earnings-row__sub">{_html.escape(code)}.{_html.escape(market)}</div>'
+                    f'</div>'
+                    f'<div class="tp-earnings-row__date">{_html.escape(earnings_date)}</div>'
+                    f'</div>'
+                )
+        except Exception:
+            pass
+
+    if not rows_html:
+        return ""
+
+    return (
+        '<section class="tp-section">\n'
+        '  <div class="tp-section__head"><div class="tp-kicker">来週の決算予定</div></div>\n'
+        + "\n".join(rows_html) + "\n"
+        '</section>\n'
+    )
+
+
 def _build_surging_stocks_html(stocks: List[Dict]) -> str:
     if not stocks:
-        return '<div class="empty-state">今週の急騰銘柄はありませんでした。</div>'
+        return '<div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>'
 
     rows = []
     for i, s in enumerate(stocks, start=1):
         code = _html.escape(str(s.get("code", "")))
         name = _html.escape(str(s.get("name", code)))
-        price = s.get("current_price")
-        price_str = f"¥{price:,.0f}" if price is not None else "---"
+        market = "T" if not str(s.get("code", "")).replace(".", "").isalpha() else "US"
         pct = s.get("week_change_pct", 0.0) or 0.0
-        pct_class = "change-up" if pct >= 0 else "change-down"
-        pct_str = _html.escape(f"{pct:+.2f}%")
+        pct_color = "#7dc679" if pct >= 0 else "#e16158"
+        pct_str = f"{pct:+.1f}%"
         vol = s.get("vol_ratio")
-        vol_str = _html.escape(f"{vol:.1f}x") if vol is not None else "---"
-        vol_class = "vol-ratio-high" if vol is not None and vol >= SURGE_VOL_RATIO else ""
-        rank_class = f"rank-{i}" if i <= 3 else ""
-        rows.append(
-            f'<tr>'
-            f'<td><span class="rank-badge {rank_class}">{i}</span></td>'
-            f'<td><div class="stock-name">{name}</div>'
-            f'<div class="stock-code">{code}</div></td>'
-            f'<td>{_html.escape(price_str)}</td>'
-            f'<td class="{pct_class}">{pct_str}</td>'
-            f'<td class="{vol_class}">{vol_str}</td>'
-            f'</tr>'
-        )
+        vol_str = f"x{vol:.1f}" if vol is not None else "—"
+        top_cls = " tp-surge-row--top" if i == 1 else ""
 
-    rows_html = "\n".join(rows)
-    return (
-        '<div class="stock-table-wrapper">'
-        '<table class="stock-table">'
-        '<thead><tr>'
-        '<th>#</th><th>銘柄</th><th>現在価格</th><th>1週間変化</th><th>出来高比率</th>'
-        '</tr></thead>'
-        f'<tbody>{rows_html}</tbody>'
-        '</table></div>'
-    )
+        closes = s.get("price_history", [])
+        spark = make_spark_svg(closes, color=pct_color) if closes else make_spark_svg([], color=pct_color)
+
+        rows.append(
+            f'<div class="tp-surge-row{top_cls}">'
+            f'<div class="tp-surge-row__rank">{i}</div>'
+            f'<div>'
+            f'<div class="tp-surge-row__name">{name}</div>'
+            f'<div class="tp-surge-row__sub">{code}.{market} · <span class="sector"></span></div>'
+            f'</div>'
+            f'{spark}'
+            f'<div class="tp-surge-row__vol">{_html.escape(vol_str)}</div>'
+            f'<div class="tp-surge-row__change" style="color:{pct_color}">{_html.escape(pct_str)}</div>'
+            f'</div>'
+        )
+    return "\n".join(rows)
 
 
 def _build_top_news_html(news_items: List[Dict]) -> str:
     if not news_items:
-        return '<div class="empty-state">今週の注目ニュースはありませんでした。</div>'
+        return '<div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の注目ニュースはありませんでした。</div>'
 
-    cards = []
+    articles = []
     for item in news_items:
         title = _html.escape(str(item.get("title", "")))
-        source = _html.escape(str(item.get("source", "")))
+        source = _html.escape(str(item.get("source", "")).upper())
         comment = _html.escape(str(item.get("comment", "")))
         link = safe_url(item.get("link", ""))
-        source_tag = f'<span class="news-source-tag">{source}</span>' if source else ""
+
+        date_str = item.get("published", "") or ""
+        date_display = ""
+        if date_str:
+            try:
+                from dateutil import parser as dateparser
+                dt = dateparser.parse(date_str)
+                date_display = dt.strftime("%m/%d") if dt else ""
+            except Exception:
+                date_display = ""
+
         title_html = f'<a href="{link}" target="_blank" rel="noopener">{title}</a>' if link != "#" else title
-        comment_html = f'<div class="news-comment">{comment}</div>' if comment else ""
-        cards.append(
-            f'<div class="news-card">'
-            f'<div class="news-meta">{source_tag}</div>'
-            f'<div class="news-title">{title_html}</div>'
-            f'{comment_html}'
+        comment_html = f'<div class="tp-news__comment">{comment}</div>' if comment else ""
+
+        articles.append(
+            f'<article class="tp-news">'
+            f'<div class="tp-news__meta">'
+            f'<span class="tp-news__source">{source}</span>'
+            f'<span class="tp-news__time">{_html.escape(date_display)}</span>'
             f'</div>'
+            f'<h3 class="tp-news__title">{title_html}</h3>'
+            f'{comment_html}'
+            f'</article>'
         )
 
-    return '<div class="news-list">' + "\n".join(cards) + "</div>"
+    return "\n".join(articles)
 
 
 def _render_html(
@@ -377,6 +521,8 @@ def _render_html(
     stocks_html: str,
     news_html: str,
     monthly_url: str,
+    market_indices_html: str = "",
+    earnings_calendar_html: str = "",
 ) -> str:
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     now_str = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M JST")
@@ -388,6 +534,8 @@ def _render_html(
         .replace("{{SURGING_STOCKS_SECTION}}", stocks_html)
         .replace("{{TOP_NEWS_SECTION}}", news_html)
         .replace("{{MONTHLY_REPORT_URL}}", safe_url(monthly_url))
+        .replace("{{MARKET_INDICES_SECTION}}", market_indices_html)
+        .replace("{{EARNINGS_CALENDAR_SECTION}}", earnings_calendar_html)
     )
 
 
@@ -638,7 +786,13 @@ def run() -> None:
     monthly_url = os.environ.get("REPORT_URL", "https://github.com")
     stocks_html = _build_surging_stocks_html(top5)
     news_html = _build_top_news_html(top_news)
-    html_content = _render_html(week_label, date_range, stocks_html, news_html, monthly_url)
+    market_indices_html = _fetch_market_indices()
+    earnings_calendar_html = _build_earnings_calendar_section()
+    html_content = _render_html(
+        week_label, date_range, stocks_html, news_html, monthly_url,
+        market_indices_html=market_indices_html,
+        earnings_calendar_html=earnings_calendar_html,
+    )
     out_path = _save_html(html_content, week_label)
 
     # 5. weekly/index.html 更新
