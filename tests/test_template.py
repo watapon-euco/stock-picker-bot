@@ -10,10 +10,10 @@ TEMPLATE_PATH = Path("src/templates/report_template.html")
 EXPECTED_PLACEHOLDERS = {
     "{{YEAR_MONTH}}",
     "{{GENERATED_DATE}}",
-    "{{THEME_COUNT}}",
-    "{{TOTAL_STOCKS}}",
     "{{ARCHIVE_LINKS}}",
     "{{AI_MODELS_TEXT}}",
+    "{{COVER_SECTION}}",
+    "{{KPI_STRIP_SECTION}}",
     "{{NEWS_STRATEGY_SECTION}}",
     "{{THEME_SUMMARY_CARDS}}",
     "{{CHANGES_SECTION}}",
@@ -25,7 +25,7 @@ EXPECTED_PLACEHOLDERS = {
     "{{SUPPLY_CHAIN_SECTION}}",
     "{{STOCK_COMPARISON_SECTION}}",
     "{{CHART_INIT_SCRIPT}}",
-    "{{CHAT_PROXY_URL}}",
+    "{{CHAT_WIDGET_SECTION}}",
 }
 
 
