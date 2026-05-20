@@ -4,1009 +4,284 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>テーマ株レポート {{YEAR_MONTH}}号</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <script
   src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
   integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
   crossorigin="anonymous"></script>
 <style>
-  /* ===== RESET & BASE ===== */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #0d0d1a;
-    color: #e0e0f0;
-    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  a { color: #7eb8ff; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  /* ===== LAYOUT ===== */
-  .container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
-
-  /* ===== HEADER ===== */
-  header {
-    background: linear-gradient(135deg, #0d0d2a 0%, #1a1a3e 100%);
-    border-bottom: 1px solid #2a2a5a;
-    padding: 32px 0 24px;
-  }
-  header .container { display: flex; flex-direction: column; gap: 8px; }
-  .header-tag {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: #5577cc;
-    text-transform: uppercase;
-  }
-  h1 {
-    font-size: 26px;
-    font-weight: 800;
-    color: #ffffff;
-    line-height: 1.3;
-  }
-  .header-meta {
-    font-size: 13px;
-    color: #8888aa;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: 4px;
-  }
-
-  /* ===== NAV (archive) ===== */
-  nav {
-    background: #111124;
-    border-bottom: 1px solid #1e1e40;
-    padding: 10px 0;
-    font-size: 13px;
-  }
-  nav .container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  nav span { color: #555577; }
-
-  /* ===== MAIN ===== */
-  main { padding: 32px 0 64px; }
-
-  /* ===== SECTION ===== */
-  .section { margin-bottom: 48px; }
-  .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #5577cc;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #1e1e40;
-  }
-
-  /* ===== THEME OVERVIEW ===== */
-  .theme-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 12px;
-  }
-  .theme-summary-card {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    padding: 20px;
-  }
-  .theme-summary-card .icon { font-size: 28px; margin-bottom: 8px; }
-  .theme-summary-card h2 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 8px;
-  }
-  .theme-summary-card p { font-size: 13px; color: #9999bb; line-height: 1.7; }
-  .theme-score-row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-  }
-  .score-chip {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    background: #1e1e40;
-    color: #8888cc;
-  }
-
-  /* ===== THEME SECTION ===== */
-  .theme-section { margin-bottom: 48px; }
-  .theme-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .theme-icon { font-size: 32px; }
-  .theme-title-block h3 {
-    font-size: 20px;
-    font-weight: 800;
-    color: #ffffff;
-  }
-  .theme-title-block .stock-count {
-    font-size: 13px;
-    color: #5577cc;
-    margin-top: 2px;
-  }
-
-  /* ===== TIER LABEL ===== */
-  .tier-label {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 3px 10px;
-    border-radius: 20px;
-  }
-  .tier-honmei    { background: #3a1f60; color: #cc88ff; border: 1px solid #5a3080; }
-  .tier-ogata     { background: #1a3a1a; color: #66cc66; border: 1px solid #2a5a2a; }
-  .tier-hirisuku  { background: #3a1a1a; color: #ff6666; border: 1px solid #5a2a2a; }
-  .tier-omowaku   { background: #3a2a1a; color: #ffaa44; border: 1px solid #5a4a2a; }
-  .tier-okure     { background: #1a2a3a; color: #44aaff; border: 1px solid #2a4a5a; }
-
-  /* ===== STOCK CARD ===== */
-  .stock-list { display: flex; flex-direction: column; gap: 12px; }
-  .stock-card {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-  .stock-card:hover { border-color: #4444aa; }
-  .stock-card.rank-1 { border-color: #5a3080; box-shadow: 0 0 12px rgba(120,60,160,0.15); }
-  .stock-card.rank-2 { border-color: #2a5a2a; }
-  .stock-card.rank-3 { border-color: #3a4a1a; }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .rank-badge {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    background: #1e1e40;
-    color: #8888cc;
-  }
-  .rank-1 .rank-badge { background: #3a1f60; color: #cc88ff; }
-  .rank-2 .rank-badge { background: #1a3a1a; color: #66cc66; }
-  .rank-3 .rank-badge { background: #2a2a1a; color: #aaaa44; }
-
-  .card-info { flex: 1; min-width: 0; }
-  .card-info .stock-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .card-info .stock-code { font-size: 12px; color: #5577cc; margin-top: 1px; }
-
-  /* ===== MARKET BADGE ===== */
-  .market-badge {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 1px 6px;
-    border-radius: 4px;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-  .market-badge-jp { background: #1a2a4a; color: #6699dd; border: 1px solid #2a3a6a; }
-  .market-badge-us { background: #1a3a2a; color: #55bb88; border: 1px solid #2a5a3a; }
-
-  .card-metrics {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-  }
-  .metric { text-align: right; }
-  .metric .value {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-  }
-  .metric .label { font-size: 10px; color: #6666aa; margin-top: 1px; }
-  .metric .change.up { color: #44cc88; }
-  .metric .change.down { color: #ff5555; }
-
-  .card-expand-icon {
-    font-size: 18px;
-    color: #4444aa;
-    transition: transform 0.2s;
-    flex-shrink: 0;
-  }
-  .stock-card.open .card-expand-icon { transform: rotate(180deg); }
-
-  /* ===== CARD DETAIL ===== */
-  .card-detail {
-    display: none;
-    padding: 0 18px 18px;
-    border-top: 1px solid #1e1e40;
-  }
-  .stock-card.open .card-detail { display: block; }
-
-  .detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: 1px solid #1a1a36;
-  }
-  .detail-item .d-label { font-size: 10px; color: #6666aa; }
-  .detail-item .d-value { font-size: 14px; font-weight: 600; color: #ccccee; margin-top: 2px; }
-
-  .detail-text { margin-top: 14px; }
-  .detail-text .dt-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #5577cc;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-  }
-  .detail-text p { font-size: 13px; color: #aaaacc; line-height: 1.7; }
-
-  /* ===== SCORE BAR ===== */
-  .score-bar-section { margin-top: 14px; }
-  .score-bar-label { font-size: 10px; color: #6666aa; margin-bottom: 6px; }
-  .score-bars { display: flex; flex-direction: column; gap: 6px; }
-  .score-bar-row { display: flex; align-items: center; gap: 8px; }
-  .score-bar-name { font-size: 11px; color: #8888aa; width: 100px; flex-shrink: 0; }
-  .score-bar-track {
-    flex: 1;
-    height: 6px;
-    background: #1e1e40;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .score-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #3355aa, #7799ff);
-    transition: width 0.4s ease;
-  }
-  .score-bar-val { font-size: 11px; color: #6677aa; width: 24px; text-align: right; flex-shrink: 0; }
-
-  /* ===== HEALTH STARS ===== */
-  .health-stars { color: #ffaa00; font-size: 12px; }
-  .health-stars .empty { color: #333355; }
-
-  /* ===== NEWS OVERVIEW ===== */
-  .news-overview-box {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    padding: 20px 24px;
-    line-height: 1.8;
-    color: #bbbbdd;
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-  .strategy-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 14px;
-  }
-  .strategy-card {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    padding: 16px 20px;
-  }
-  .strategy-card .theme-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 6px;
-  }
-  .strategy-card .angle {
-    font-size: 13px;
-    color: #9999bb;
-    line-height: 1.7;
-  }
-
-  /* ===== CHANGES SECTION ===== */
-  .changes-box {
-    background: #131326;
-    border: 1px solid #2a2a4a;
-    border-radius: 10px;
-    padding: 20px 24px;
-    font-size: 14px;
-    color: #bbbbdd;
-    line-height: 1.8;
-  }
-
-  /* ===== SOURCE LINKS ===== */
-  .source-list {
-    list-style: none;
-  }
-  .source-list li {
-    margin-bottom: 8px;
-    font-size: 13px;
-    line-height: 1.5;
-  }
-  .source-list .source-tag {
-    display: inline-block;
-    font-size: 10px;
-    padding: 1px 7px;
-    border-radius: 4px;
-    background: #1e1e40;
-    color: #6677aa;
-    margin-right: 6px;
-  }
-  .source-group {
-    margin-bottom: 16px;
-  }
-  .source-group h4 {
-    font-size: 14px;
-    font-weight: 700;
-    color: #ccccee;
-    margin-bottom: 8px;
-  }
-
-  /* ===== PERFORMANCE TABLE ===== */
-  .perf-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .perf-table th {
-    background: #1a1a36;
-    color: #9999bb;
-    padding: 8px 12px;
-    text-align: left;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .perf-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #1a1a36;
-    color: #ccccee;
-  }
-  .perf-table tr:last-child td { border-bottom: none; }
-  .perf-table .change.up   { color: #22cc88; font-weight: 700; }
-  .perf-table .change.down { color: #ff5566; font-weight: 700; }
-
-  /* ===== SECTOR WARNING BANNER ===== */
-  .sector-warning-banner {
-    background: #2a1a00;
-    border: 1px solid #aa6600;
-    border-radius: 8px;
-    padding: 14px 20px;
-    font-size: 14px;
-    color: #ffcc66;
-    line-height: 1.6;
-    margin-bottom: 32px;
-  }
-  .sector-warning-banner strong { color: #ffdd88; }
-
-  /* ===== RISK SCENARIOS ===== */
-  .risk-scenarios-section {
-    background: #1a1020;
-    border: 1px solid #3a2040;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-top: 20px;
-  }
-  .risk-scenarios-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #cc6688;
-    margin-bottom: 10px;
-  }
-  .risk-list {
-    padding-left: 18px;
-    font-size: 13px;
-    color: #aaaacc;
-    line-height: 1.8;
-  }
-  .risk-list li { margin-bottom: 6px; }
-  .risk-list strong { color: #ee88aa; }
-
-  /* ===== SUPPLY CHAIN ===== */
-  .supply-chain-section {
-    background: #101a20;
-    border: 1px solid #203040;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    overflow-x: auto;
-  }
-  .supply-chain-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #5599cc;
-    margin-bottom: 10px;
-  }
-  .supply-chain-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .supply-chain-table th {
-    background: #162030;
-    color: #7799bb;
-    padding: 8px 12px;
-    text-align: left;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .supply-chain-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #1a2a36;
-    color: #ccccee;
-    vertical-align: top;
-  }
-  .supply-chain-table tr:last-child td { border-bottom: none; }
-  .supply-chain-table ul { padding-left: 14px; margin: 0; }
-  .supply-chain-table li { margin-bottom: 2px; }
-
-  /* ===== STOCK COMPARISON TABLE ===== */
-  .stock-comparison-section {
-    background: #101820;
-    border: 1px solid #1e2e3e;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-  }
-  .stock-comparison-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #66aacc;
-    margin-bottom: 10px;
-  }
-  .stock-comparison-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .stock-comparison-table th {
-    background: #162030;
-    color: #7799bb;
-    padding: 8px 12px;
-    text-align: left;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .stock-comparison-table td {
-    padding: 8px 12px;
-    border-bottom: 1px solid #1a2a36;
-    color: #ccccee;
-  }
-  .stock-comparison-table tr:last-child td { border-bottom: none; }
-  .score-cell { color: #ffcc44; font-size: 14px; white-space: nowrap; }
-
-  /* ===== PRICE CHART ===== */
-  .price-chart-wrapper {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid #1a1a36;
-  }
-  .price-chart-label {
-    font-size: 10px;
-    color: #6666aa;
-    margin-bottom: 6px;
-  }
-  .price-chart-canvas {
-    display: block;
-    width: 100%;
-    height: 200px;
-  }
-
-  /* ===== CHAT WIDGET ===== */
-  #chat-fab {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3355aa, #5577dd);
-    color: #fff;
-    font-size: 22px;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(50,80,180,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 900;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  #chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(50,80,180,0.6); }
-
-  #chat-panel {
-    position: fixed;
-    bottom: 88px;
-    right: 24px;
-    width: 360px;
-    max-height: 520px;
-    background: #111124;
-    border: 1px solid #2a2a5a;
-    border-radius: 14px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    z-index: 901;
-    overflow: hidden;
-    transform: translateY(16px);
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.22s ease, opacity 0.22s ease;
-  }
-  #chat-panel.open {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
-  #chat-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: #0d0d2a;
-    border-bottom: 1px solid #1e1e40;
-    flex-shrink: 0;
-  }
-  #chat-panel-header span {
-    font-size: 13px;
-    font-weight: 700;
-    color: #aaaacc;
-    letter-spacing: 0.04em;
-  }
-  #chat-close {
-    background: none;
-    border: none;
-    color: #555577;
-    font-size: 18px;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0 2px;
-  }
-  #chat-close:hover { color: #aaaacc; }
-  #chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 14px 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    scrollbar-width: thin;
-    scrollbar-color: #2a2a5a transparent;
-  }
-  .chat-bubble {
-    max-width: 88%;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-    line-height: 1.6;
-    word-break: break-word;
-  }
-  .chat-bubble.user {
-    align-self: flex-end;
-    background: #1e2a5a;
-    color: #ccddff;
-    border-bottom-right-radius: 3px;
-  }
-  .chat-bubble.assistant {
-    align-self: flex-start;
-    background: #1a1a36;
-    color: #ccccee;
-    border: 1px solid #2a2a4a;
-    border-bottom-left-radius: 3px;
-  }
-  .chat-bubble.loading { color: #555577; font-style: italic; }
-  #chat-hints {
-    padding: 0 14px 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .chat-hint-btn {
-    font-size: 11px;
-    padding: 4px 10px;
-    background: #1a1a36;
-    border: 1px solid #2a2a5a;
-    border-radius: 16px;
-    color: #7799cc;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .chat-hint-btn:hover { background: #1e2a4a; color: #aaccff; }
-  #chat-input-row {
-    display: flex;
-    gap: 8px;
-    padding: 10px 12px;
-    border-top: 1px solid #1a1a36;
-    flex-shrink: 0;
-  }
-  #chat-input {
-    flex: 1;
-    background: #0d0d1a;
-    border: 1px solid #2a2a4a;
-    border-radius: 8px;
-    color: #e0e0f0;
-    font-size: 13px;
-    padding: 7px 10px;
-    resize: none;
-    height: 36px;
-    min-height: 36px;
-    max-height: 80px;
-    font-family: inherit;
-    line-height: 1.4;
-    overflow-y: auto;
-  }
-  #chat-input:focus { outline: none; border-color: #3355aa; }
-  #chat-send {
-    background: #2244aa;
-    border: none;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 16px;
-    width: 36px;
-    height: 36px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.15s;
-  }
-  #chat-send:hover { background: #3355cc; }
-  #chat-send:disabled { background: #1a1a36; color: #444466; cursor: not-allowed; }
-
-  @media (max-width: 640px) {
-    #chat-panel {
-      width: calc(100vw - 16px);
-      right: 8px;
-      bottom: 80px;
-      max-height: 70vh;
-    }
-    #chat-fab { bottom: 16px; right: 16px; }
-  }
-
-  /* ===== DISCLAIMER ===== */
-  .disclaimer {
-    background: #0d0d1a;
-    border: 1px solid #1e1e40;
-    border-radius: 8px;
-    padding: 16px 20px;
-    font-size: 12px;
-    color: #555577;
-    line-height: 1.7;
-  }
-  .disclaimer strong { color: #7777aa; }
-
-  /* ===== FOOTER ===== */
-  footer {
-    background: #0a0a15;
-    border-top: 1px solid #1a1a36;
-    padding: 20px 0;
-    font-size: 12px;
-    color: #3a3a5a;
-    text-align: center;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 640px) {
-    h1 { font-size: 20px; }
-    .card-metrics { display: none; }
-    .detail-grid { grid-template-columns: repeat(2, 1fr); }
-    .score-bar-name { width: 72px; font-size: 10px; }
-  }
+  /* archive nav */
+  .tp-archive-nav { padding: 8px 0; font-family: var(--mono); font-size: 10px; color: var(--text-mute); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .tp-archive-nav span { color: var(--text-mute); }
+  .tp-archive-nav a { font-size: 11px; }
+  /* price chart canvas (per-stock) */
+  .price-chart-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .price-chart-label { font-family: var(--mono); font-size: 9px; color: var(--text-mute); letter-spacing: .15em; margin-bottom: 6px; text-transform: uppercase; }
+  .price-chart-canvas { display: block; width: 100%; height: 140px; }
 </style>
 </head>
 <body>
+<div class="tp-wrap">
 
-<header>
-  <div class="container">
-    <div class="header-tag">AI Generated Stock Report</div>
-    <h1>📊 テーマ株レポート {{YEAR_MONTH}}号</h1>
-    <div class="header-meta">
-      <span>生成日: {{GENERATED_DATE}}</span>
-      <span>テーマ数: {{THEME_COUNT}}件</span>
-      <span>対象銘柄: {{TOTAL_STOCKS}}銘柄</span>
+  <header class="tp-masthead">
+    <div class="tp-masthead__brand">
+      <span class="tp-masthead__brand-mark"></span>
+      <span class="tp-masthead__brand-name">The Picker</span>
+      <span class="tp-masthead__brand-sub">MONTHLY</span>
     </div>
-  </div>
-</header>
+    <span class="tp-masthead__meta">{{YEAR_MONTH}}</span>
+  </header>
 
-<nav>
-  <div class="container">
+  <nav class="tp-archive-nav">
     <span>アーカイブ:</span>
     {{ARCHIVE_LINKS}}
-  </div>
-</nav>
+  </nav>
 
-<main>
-  <div class="container">
+  <!-- Cover — pythonが {{COVER_SECTION}} に
+       <section class="tp-cover"><div class="tp-cover__kicker">…</div><h1 class="tp-cover__title">…</h1></section>
+       を出力。冒頭ヘッドラインはGemini/Claudeに生成させる想定 -->
+  {{COVER_SECTION}}
 
-    <!-- セクター分散警告バナー（sector_overlap_warning=true の場合のみ表示） -->
-    {{SECTOR_WARNING_BANNER}}
+  <!-- KPI strip — pythonが {{KPI_STRIP_SECTION}} に
+       <section class="tp-section--tight"><div class="tp-stat-strip tp-stat-strip--5">…</div></section>
+       を出力 -->
+  {{KPI_STRIP_SECTION}}
 
-    <!-- ニュース概況と投資戦略 -->
-    <section class="section">
-      <div class="section-title">先月のニュース概況</div>
-      {{NEWS_STRATEGY_SECTION}}
-    </section>
+  <!-- Lede + market overview — pythonが {{NEWS_STRATEGY_SECTION}} に
+       <section class="tp-section"><div class="tp-lede">…</div>…</section>
+       を出力 -->
+  {{NEWS_STRATEGY_SECTION}}
 
-    <!-- 今月のテーマ一覧 -->
-    <section class="section">
-      <div class="section-title">今月の注目テーマ</div>
-      <div class="theme-summary-grid">
-        {{THEME_SUMMARY_CARDS}}
-      </div>
-    </section>
+  <!-- Sector warning (optional) — pythonが {{SECTOR_WARNING_BANNER}} に
+       <section class="tp-section--tight"><div class="tp-callout tp-callout--warn">…</div></section>
+       を出力。警告無しなら空文字 -->
+  {{SECTOR_WARNING_BANNER}}
 
-    <!-- 前月レポートからの変化 -->
-    {{CHANGES_SECTION}}
+  <!-- Previous month performance — pythonが {{PERFORMANCE_SECTION}} を出力 -->
+  {{PERFORMANCE_SECTION}}
 
-    <!-- 前月推奨銘柄のパフォーマンス -->
-    {{PERFORMANCE_SECTION}}
+  <!-- Theme summary cards (compact list at top, optional) — pythonが
+       {{THEME_SUMMARY_CARDS}} を出力 -->
+  {{THEME_SUMMARY_CARDS}}
 
-    <!-- 各テーマのランキング -->
+  <div class="tp-divider-dashed"></div>
+
+  <!-- Themes — pythonが {{THEME_RANKING_SECTIONS}} に
+       <article class="tp-theme">…</article> × N を出力 -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
     {{THEME_RANKING_SECTIONS}}
+  </section>
 
-    <!-- リスクシナリオ -->
-    <section class="section">
-      <div class="section-title">リスクシナリオ</div>
-      {{RISK_SCENARIOS_SECTION}}
-    </section>
+  <div class="tp-divider-dashed"></div>
 
-    <!-- サプライチェーン分析 -->
-    <section class="section">
-      <div class="section-title">サプライチェーン分析</div>
-      {{SUPPLY_CHAIN_SECTION}}
-    </section>
+  <!-- Stock comparison — pythonが {{STOCK_COMPARISON_SECTION}} を出力 -->
+  {{STOCK_COMPARISON_SECTION}}
 
-    <!-- 銘柄比較表 -->
-    <section class="section">
-      <div class="section-title">銘柄比較表</div>
-      {{STOCK_COMPARISON_SECTION}}
-    </section>
+  <!-- Supply chain — pythonが {{SUPPLY_CHAIN_SECTION}} を出力 -->
+  {{SUPPLY_CHAIN_SECTION}}
 
-    <!-- 主要ソース -->
-    <section class="section">
-      <div class="section-title">主要ソース</div>
-      {{SOURCE_LINKS_SECTION}}
-    </section>
+  <!-- Risk scenarios (already inline per theme; keep this for back-compat) -->
+  {{RISK_SCENARIOS_SECTION}}
 
-    <!-- 免責事項 -->
-    <section class="section">
-      <div class="section-title">免責事項</div>
-      <div class="disclaimer">
-        <strong>【重要】投資に関するご注意</strong><br>
-        本レポートはAI（{{AI_MODELS_TEXT}}）が自動生成した情報提供を目的としたものであり、
-        <strong>投資助言・勧誘を目的とするものではありません。</strong>
-        記載されている情報の正確性・完全性を保証するものではなく、
-        株価・財務データはyfinance（Yahoo Finance非公式API）から取得しており、
-        遅延・欠損が含まれる場合があります。
-        投資の最終判断はご自身の責任においてお行いください。
-        本レポートの情報に基づく投資行動について、当レポートは一切の責任を負いません。
-      </div>
-    </section>
+  <!-- Changes (前月比) — pythonが {{CHANGES_SECTION}} を出力 -->
+  {{CHANGES_SECTION}}
 
-  </div>
-</main>
+  <!-- Source links — pythonが {{SOURCE_LINKS_SECTION}} を出力 -->
+  {{SOURCE_LINKS_SECTION}}
 
-<footer>
-  <div class="container">
-    自動生成レポート | GitHub Pages | データソース: Google News RSS / yfinance
-  </div>
-</footer>
+  <footer class="tp-colophon">
+    THE PICKER · {{YEAR_MONTH}}<br>
+    GENERATED BY {{AI_MODELS_TEXT}}<br>
+    DATA: yfinance · GOOGLE NEWS RSS · {{GENERATED_DATE}}<br>
+    NOT INVESTMENT ADVICE
+  </footer>
 
+</div>
+
+<!-- Per-stock Chart.js price charts (pythonが {{CHART_INIT_SCRIPT}} を出力) -->
+{{CHART_INIT_SCRIPT}}
+
+<!-- Card open/close + score bar animation -->
 <script>
-// カード開閉
-document.querySelectorAll('.card-header').forEach(function(header) {
-  header.addEventListener('click', function() {
-    var card = this.closest('.stock-card');
-    card.classList.toggle('open');
-  });
+document.querySelectorAll('.tp-stock-row').forEach(row => {
+  // Open detail row (next sibling .tp-score-bars + .tp-stock-detail) on click
+  row.addEventListener('click', () => row.classList.toggle('is-open'));
 });
-
-// スコアバーのアニメーション（IntersectionObserver）
-var observer = new IntersectionObserver(function(entries) {
-  entries.forEach(function(entry) {
-    if (entry.isIntersecting) {
-      entry.target.querySelectorAll('.score-bar-fill').forEach(function(bar) {
-        bar.style.width = bar.getAttribute('data-width') + '%';
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.tp-score-bar__fill').forEach(b => {
+        const w = b.getAttribute('data-width');
+        if (w) b.style.width = w + '%';
       });
-      observer.unobserve(entry.target);
+      obs.unobserve(e.target);
     }
   });
 }, { threshold: 0.1 });
-
-document.querySelectorAll('.score-bar-section').forEach(function(el) {
-  el.querySelectorAll('.score-bar-fill').forEach(function(bar) {
-    var w = bar.getAttribute('data-width') || '0';
-    bar.style.width = '0%';
-    setTimeout(function() { bar.style.width = w + '%'; }, 100);
-  });
-  observer.observe(el);
-});
+document.querySelectorAll('.tp-score-bars').forEach(el => obs.observe(el));
 </script>
 
-{{CHART_INIT_SCRIPT}}
+{{CHAT_WIDGET_SECTION}}
 
-<!-- ===== CHAT WIDGET ===== -->
-<button id="chat-fab" aria-label="レポートについて質問">💬</button>
+<!--
+===============================================================================
+PYTHON 生成HTML 例 (step2_report.py で組み立てる雛形)
+===============================================================================
 
-<div id="chat-panel" role="dialog" aria-label="チャット">
-  <div id="chat-panel-header">
-    <span>レポートについて質問</span>
-    <button id="chat-close" aria-label="閉じる">✕</button>
+[1] {{COVER_SECTION}}
+<section class="tp-cover">
+  <div class="tp-cover__kicker">注目テーマ {{ theme_count }}件 · 銘柄 {{ stock_count }}件</div>
+  <h1 class="tp-cover__title">{{ headline_pre }}と<br><span class="tp-italic-gold">{{ headline_focus }}</span>の<br>{{ headline_post }}</h1>
+</section>
+
+[2] {{KPI_STRIP_SECTION}}
+<section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--5">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">{{ themes }}</div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">{{ stocks }}</div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+{{ avg_ret }}%</div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div><div class="tp-stat-cell__value">{{ win_rate }}%</div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+{{ prev_month_ret }}%</div></div>
   </div>
-  <div id="chat-messages"></div>
-  <div id="chat-hints">
-    <button class="chat-hint-btn">テーマの背景を詳しく</button>
-    <button class="chat-hint-btn">このレポートの注意点は？</button>
-    <button class="chat-hint-btn">他に関連する企業は？</button>
+</section>
+
+[3] {{NEWS_STRATEGY_SECTION}}
+<section class="tp-section">
+  <div class="tp-lede">
+    <span class="tp-lede__drop">{{ overview_first_char }}</span>{{ overview_rest }}
   </div>
-  <div id="chat-input-row">
-    <textarea id="chat-input" placeholder="質問を入力..." rows="1"></textarea>
-    <button id="chat-send" aria-label="送信">➤</button>
+  <div class="tp-byline">{{ generated_at }}</div>
+</section>
+
+[4] {{SECTOR_WARNING_BANNER}}  (警告ありの時のみ、無いなら空文字)
+<section class="tp-section--tight">
+  <div class="tp-callout tp-callout--warn">
+    <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>
+    <div class="tp-callout__body">
+      <strong style="color:var(--gold)">セクター分散注意:</strong> {{ warning_message }}
+    </div>
   </div>
-</div>
+</section>
 
-<script>
-(function() {
-  var PROXY_URL = "{{CHAT_PROXY_URL}}";
-  if (!PROXY_URL) {
-    document.getElementById("chat-fab").style.display = "none";
-    return;
-  }
+[5] {{PERFORMANCE_SECTION}}  (前月号銘柄の成績)
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">前月の成績</div></div>
+  <div style="padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <span style="font-size:11.5px;color:var(--text-dim);">{{ prev_month }}号 推奨銘柄 平均</span>
+      <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green);">+{{ avg }}%</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim);">
+      <span>勝率 <span style="color:var(--text);font-weight:600;">{{ win }}%</span></span>
+      <span>最高 <span style="color:var(--green);font-weight:600;">+{{ best }}%</span></span>
+      <span>最低 <span style="color:var(--red);font-weight:600;">{{ worst }}%</span></span>
+      <span>{{ count }}銘柄</span>
+    </div>
+  </div>
+</section>
 
-  var fab = document.getElementById("chat-fab");
-  var panel = document.getElementById("chat-panel");
-  var closeBtn = document.getElementById("chat-close");
-  var messagesEl = document.getElementById("chat-messages");
-  var hintsEl = document.getElementById("chat-hints");
-  var inputEl = document.getElementById("chat-input");
-  var sendBtn = document.getElementById("chat-send");
+[6] {{THEME_RANKING_SECTIONS}}  ← テーマ1件分
+<article class="tp-theme">
+  <div class="tp-theme__head">
+    <div class="tp-theme__num">{{ '%02d' % theme.idx }}</div>
+    <div class="tp-theme__title-block">
+      <h2 class="tp-theme__title">{{ theme.name }}</h2>
+      <div class="tp-theme__angle">{{ theme.angle }}</div>
+    </div>
+  </div>
+  <div class="tp-theme__chips">
+    {% for c in theme.score_chips %}<span class="tp-chip">{{ c }}</span>{% endfor %}
+  </div>
+  <div class="tp-theme__stocks">
+    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
 
-  var messages = [];
-  var hintsShown = true;
+    {% for s in theme.stocks %}
+    <div class="tp-stock-row{% if loop.first %} tp-stock-row--top{% endif %}">
+      <div class="tp-stock-row__rank">{{ s.rank }}</div>
+      <div>
+        <div class="tp-stock-row__name">{{ s.name }}</div>
+        <div class="tp-stock-row__sub">{{ s.code }}.{{ s.market }}<span class="tier">{{ s.tier }}</span></div>
+      </div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="{{ s.spark_path }}" fill="none" stroke="{{ '#7dc679' if s.change>=0 else '#e16158' }}" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">{{ s.currency }}{{ s.price }}</div>
+      <div class="tp-stock-row__change {{ 'tp-up' if s.change>=0 else 'tp-down' }}">{{ '+' if s.change>=0 else '' }}{{ s.change }}%</div>
+    </div>
+    <div class="tp-score-bars">
+      {% for k, v in s.scores.items() %}
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">{{ k }}</div>
+        <div class="tp-score-bar__track">
+          <div class="tp-score-bar__fill {{ 'tp-score-bar__fill--hi' if v>=70 else ('tp-score-bar__fill--mid' if v>=50 else '') }}" data-width="{{ v }}" style="width:0%;"></div>
+        </div>
+        <div class="tp-score-bar__value {{ 'tp-score-bar__value--hi' if v>=70 else '' }}">{{ v }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="tp-theme__risk">
+    <div class="tp-callout tp-callout--risk">
+      <div>
+        <div class="tp-callout__title">失速シナリオ</div>
+        <div class="tp-callout__body">{{ theme.risk }}</div>
+      </div>
+    </div>
+  </div>
+</article>
 
-  fab.addEventListener("click", function() {
-    panel.classList.toggle("open");
-  });
+[7] {{STOCK_COMPARISON_SECTION}}
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 5</div></div>
+  <table class="tp-stars-table">
+    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
+    <tbody>
+      {% for s in top_stocks %}
+      <tr>
+        <td>{{ s.name }}<div class="name-sub">{{ s.code }}.{{ s.market }}</div></td>
+        <td class="stars">{{ s.growth_stars }}</td>
+        <td class="stars">{{ s.stability_stars }}</td>
+        <td class="stars">{{ s.value_stars }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
 
-  closeBtn.addEventListener("click", function() {
-    panel.classList.remove("open");
-  });
+[8] {{SUPPLY_CHAIN_SECTION}}
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析</div></div>
+  <table class="tp-supply-table">
+    <thead><tr><th>銘柄</th><th>上流</th><th>下流</th></tr></thead>
+    <tbody>
+      {% for s in top_3 %}
+      <tr>
+        <td>{{ s.name }}<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">{{ s.code }}</div></td>
+        <td>{% for u in s.upstream %}<span class="rel">{{ u.rel }}</span>{{ u.name }}<br>{% endfor %}</td>
+        <td>{% for d in s.downstream %}<span class="rel">{{ d.rel }}</span>{{ d.name }}<br>{% endfor %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
 
-  document.querySelectorAll(".chat-hint-btn").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      inputEl.value = btn.textContent;
-      if (hintsEl) hintsEl.style.display = "none";
-      hintsShown = false;
-      sendMessage();
-    });
-  });
+[9] {{SOURCE_LINKS_SECTION}}
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>
+  <div class="tp-sources">
+    {% for src in sources %}
+    <div class="tp-sources__group">{{ src.source }}</div>
+    {% for l in src.links %}<a class="tp-sources__link" href="{{ l.url }}">{{ l.title }}</a>{% endfor %}
+    {% endfor %}
+  </div>
+</section>
 
-  sendBtn.addEventListener("click", sendMessage);
-
-  inputEl.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-
-  function appendBubble(role, text) {
-    var bubble = document.createElement("div");
-    bubble.className = "chat-bubble " + role;
-    bubble.textContent = text;
-    messagesEl.appendChild(bubble);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-    return bubble;
-  }
-
-  // W6: cache reportContext so we don't re-traverse the DOM on every send
-  var cachedReportContext = null;
-
-  function getReportContext() {
-    if (cachedReportContext !== null) return cachedReportContext;
-    var main = document.querySelector("main");
-    cachedReportContext = main ? main.innerText.replace(/\s+/g, " ").trim().slice(0, 5000) : "";
-    return cachedReportContext;
-  }
-
-  async function sendMessage() {
-    var text = inputEl.value.trim();
-    if (!text) return;
-
-    if (hintsShown && hintsEl) {
-      hintsEl.style.display = "none";
-      hintsShown = false;
-    }
-
-    inputEl.value = "";
-    sendBtn.disabled = true;
-
-    appendBubble("user", text);
-    messages.push({ role: "user", content: text });
-
-    var loadingBubble = appendBubble("assistant loading", "考え中...");
-
-    // W4: abort fetch after 35 seconds to avoid indefinite hangs
-    var controller = new AbortController();
-    var timer = setTimeout(function() { controller.abort(); }, 35000);
-
-    try {
-      var res = await fetch(PROXY_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: messages.slice(-10),
-          reportContext: getReportContext(),
-        }),
-        signal: controller.signal,
-      });
-
-      messagesEl.removeChild(loadingBubble);
-
-      if (!res.ok) {
-        var errData = {};
-        try { errData = await res.json(); } catch (_) {}
-        appendBubble("assistant", "エラー: " + (errData.error || res.statusText));
-        messages.pop();
-        return;
-      }
-
-      var data = await res.json();
-      var reply = data.reply || "";
-      appendBubble("assistant", reply);
-      messages.push({ role: "assistant", content: reply });
-
-      if (messages.length > 20) {
-        messages = messages.slice(-20);
-      }
-    } catch (e) {
-      messagesEl.removeChild(loadingBubble);
-      if (e.name === "AbortError") {
-        appendBubble("assistant", "⏱️ 応答がタイムアウトしました。再度お試しください。");
-      } else {
-        appendBubble("assistant", "⚠️ ネットワークエラー: " + e.message);
-      }
-      messages.pop();
-    } finally {
-      clearTimeout(timer);
-      sendBtn.disabled = false;
-      inputEl.focus();
-    }
-  }
-})();
-</script>
+[10] {{CHAT_WIDGET_SECTION}}  (CHAT_PROXY_URL が設定されてれば、既存のチャットウィジェットJSをここに)
+===============================================================================
+-->
 
 </body>
 </html>
