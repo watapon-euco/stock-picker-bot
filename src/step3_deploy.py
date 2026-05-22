@@ -90,8 +90,10 @@ def run():
     if not _re.match(r'^[a-zA-Z0-9/_.\-]+$', branch):
         raise ValueError(f"Unexpected branch name format: {branch!r}")
 
-    logger.info(f"Pushing to origin/{branch}...")
+    logger.info(f"Rebasing on origin/{branch} before push...")
+    _run(["git", "pull", "--rebase", "origin", branch])
 
+    logger.info(f"Pushing to origin/{branch}...")
     _run(["git", "push", "-u", "origin", branch])
     logger.info("Step 3 complete: pushed to GitHub Pages.")
 
