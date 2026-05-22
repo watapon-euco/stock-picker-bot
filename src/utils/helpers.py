@@ -68,7 +68,6 @@ def validate_themes(themes: list) -> List[Dict]:
         t.setdefault("icon", "💹")
         t.setdefault("source_articles", [])
         t.setdefault("investment_angle", "")
-        t.setdefault("market", "JP")
         if not isinstance(t["source_articles"], list):
             t["source_articles"] = []
         t["source_articles"] = [x for x in t["source_articles"] if isinstance(x, int)]

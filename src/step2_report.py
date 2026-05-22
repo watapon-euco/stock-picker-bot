@@ -45,7 +45,7 @@ REPORT_SUMMARY_FILE = DATA_DIR / "report_summary.json"
 # ─────────────────────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """
-あなたは日本株式市場の専門アナリストです。
+あなたは日本・米国の株式市場に精通した専門アナリストです。
 指定されたHTMLフラグメントのみを生成してください。
 <!DOCTYPE html>、<html>、<head>、<body>タグは含めないでください。
 説明文や前置きは不要です。HTMLコードのみを出力してください。
@@ -191,7 +191,7 @@ SUPPLY_CHAIN_PROMPT = """
 ## テーマデータ
 {themes_json}
 
-## 銘柄データ（Top3を対象）
+## 銘柄データ（日本株3社・米国株3社を対象）
 {stock_data_json}
 
 ## 出力形式
@@ -230,14 +230,14 @@ STOCK_COMPARISON_PROMPT = """
 ## テーマデータ
 {themes_json}
 
-## 銘柄データ（上位5銘柄を対象）
+## 銘柄データ（日本株3社・米国株3社の計6銘柄を対象）
 {stock_data_json}
 
 ## 出力形式
 各テーマについて以下の構造のHTMLを生成してください：
 
 <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 5（テーマ名）</div></div>
+  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · 日米各3銘柄（テーマ名）</div></div>
   <table class="tp-stars-table">
     <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
     <tbody>
@@ -285,6 +285,7 @@ tp-score-bar__fill のクラス: 値>=70 は tp-score-bar__fill--hi, >=50 は tp
 {themes_json}
 
 ## 銘柄データ
+各テーマには日本株3社（market: "JP"）と米国株3社（market: "US"）の計6銘柄が含まれます。
 stock_dataの各テーマには "failed_codes" フィールドがあり、yfinanceでデータ取得できなかった銘柄コードが含まれます。
 これらの銘柄はランキングに含めず、テーマ末尾に注釈を追加してください（failed_codesが空の場合は不要）。
 
@@ -305,6 +306,8 @@ stock_dataの各テーマには "failed_codes" フィールドがあり、yfinan
     <span class="tp-chip">新規: 9</span>
     <span class="tp-chip">持続: 6</span>
   </div>
+
+  <div class="tp-market-label">🇯🇵 日本株</div>
   <div class="tp-theme__stocks">
     <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
     <div class="tp-stock-row tp-stock-row--top">
@@ -344,8 +347,28 @@ stock_dataの各テーマには "failed_codes" フィールドがあり、yfinan
         <div class="tp-score-bar__value tp-score-bar__value--hi">75</div>
       </div>
     </div>
-    （銘柄数分繰り返す: 2位以降は tp-stock-row--top なし）
+    （日本株2・3位も同様に繰り返す: 2位以降は tp-stock-row--top なし）
   </div>
+
+  <div class="tp-market-label">🇺🇸 米国株</div>
+  <div class="tp-theme__stocks">
+    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
+    <div class="tp-stock-row tp-stock-row--top">
+      <div class="tp-stock-row__rank">1</div>
+      <div>
+        <div class="tp-stock-row__name">RTX</div>
+        <div class="tp-stock-row__sub">RTX.US<span class="tier">本命</span></div>
+      </div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="M0,9 L42,9" fill="none" stroke="#7dc679" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">$116.40</div>
+      <div class="tp-stock-row__change tp-up">+1.8%</div>
+    </div>
+    <div class="tp-score-bars">
+      （スコアバーは日本株と同様の構造）
+    </div>
+    （米国株2・3位も同様に繰り返す）
+  </div>
+
   <div class="tp-theme__risk">
     <div class="tp-callout tp-callout--risk">
       <div>
@@ -358,9 +381,10 @@ stock_dataの各テーマには "failed_codes" フィールドがあり、yfinan
 （テーマ数分繰り返す）
 
 ## 重要な出力ルール
+- 各テーマは「🇯🇵 日本株」セクション（3銘柄）と「🇺🇸 米国株」セクション（3銘柄）に分けて表示
+- 各セクション最初の銘柄行のみ tp-stock-row--top を付与（JP1位・US1位）
 - 価格表示: JP は「¥8,430」、US は「$185.50」形式
 - 変化率: 上昇は tp-up クラス、下降は tp-down クラス
-- 最初の銘柄行のみ tp-stock-row--top を付与
 - テーマ番号は2桁ゼロパディング（例: 01, 02）
 - failed_codesは最後に <p style="font-size:12px;color:var(--text-mute);margin-top:8px">※ データ未取得: コード（yfinance取得エラー）</p>
 
@@ -425,12 +449,11 @@ def build_risk_scenarios_prompt(themes: List[Dict]) -> str:
 
 def build_supply_chain_prompt(themes: List[Dict], stock_data: List[Dict]) -> str:
     """サプライチェーン分析セクション用プロンプトを構築する"""
-    # Top3銘柄のみ渡してトークン節約
     trimmed = []
     for td in stock_data:
         trimmed.append({
             "theme_name": td.get("theme_name", ""),
-            "stocks": td.get("stocks", [])[:3],
+            "stocks": td.get("stocks", [])[:6],
         })
     return (SUPPLY_CHAIN_PROMPT
             .replace("{themes_json}", json.dumps(themes, ensure_ascii=False, indent=2))
@@ -439,12 +462,11 @@ def build_supply_chain_prompt(themes: List[Dict], stock_data: List[Dict]) -> str
 
 def build_stock_comparison_prompt(themes: List[Dict], stock_data: List[Dict]) -> str:
     """銘柄比較表セクション用プロンプトを構築する"""
-    # Top5銘柄のみ渡してトークン節約
     trimmed = []
     for td in stock_data:
         trimmed.append({
             "theme_name": td.get("theme_name", ""),
-            "stocks": td.get("stocks", [])[:5],
+            "stocks": td.get("stocks", [])[:6],
         })
     return (STOCK_COMPARISON_PROMPT
             .replace("{themes_json}", json.dumps(themes, ensure_ascii=False, indent=2))
@@ -931,7 +953,7 @@ def save_report_summary(
     top_stocks = []
     for td in stock_data:
         stocks = td.get("stocks", [])
-        for s in stocks[:3]:  # 各テーマ上位3銘柄
+        for s in stocks[:6]:  # 各テーマ日本株3+米国株3
             top_stocks.append({
                 "theme": td.get("theme_name", ""),
                 "code": s.get("code", ""),

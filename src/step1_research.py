@@ -127,8 +127,8 @@ PHASE_A_PROMPT = """
    - novelty: 新規性・話題性
    - sustainability: 持続性（一過性でないか）
 3. 過去テーマと被らない上位1〜3テーマを選定
-   - 3つのテーマのうち、最低1つは日本株市場（market: "JP"）、最低1つは米国株市場（market: "US"）のテーマにしてください
-   - 例: 「日本AI関連」「米国EV関連」「日本防衛」など
+   - 各テーマは日米両市場に関連するグローバルテーマとしてください
+   - 例: 「AI・半導体」「防衛・宇宙テック」「再生可能エネルギー」「医療DX」など
 4. 各テーマの背景を3〜5行で要約
 
 以下のJSON形式で出力してください:
@@ -136,7 +136,6 @@ PHASE_A_PROMPT = """
   "themes": [
     {{
       "name": "テーマ名（簡潔に）",
-      "market": "JP",
       "summary": "テーマ背景の要約（3〜5行）",
       "keywords": ["キーワード1", "キーワード2", ...],
       "scores": {{
@@ -154,8 +153,6 @@ PHASE_A_PROMPT = """
   "news_overview": "先月の株式・経済ニュース全体の概況まとめ（5〜8行）",
   "candidates_count": 10
 }}
-
-market フィールドは必ず "JP" または "US" のどちらかを指定してください。
 """
 
 
@@ -228,23 +225,25 @@ def phase_a_extract_themes(gemini: GeminiClient) -> List[Dict]:
 
 PHASE_B_PROMPT = """
 あなたは日本・米国の株式市場の専門アナリストです。
-以下のテーマ（市場: {theme_market}）に関連する上場銘柄をリストアップしてください。
+以下のテーマに関連する上場銘柄を、東証（日本株）と米国市場（米国株）から
+それぞれ3社ずつ選定してください。
 
 # テーマ
 名前: {theme_name}
-市場: {theme_market}
 背景: {theme_summary}
 キーワード: {keywords}
 
 # 指示
-1. このテーマに関連する上場銘柄を15〜20社挙げる（証券コードと銘柄名を必ず含める）
-   - 市場が "JP" の場合: 東証上場銘柄（4桁証券コード）
-   - 市場が "US" の場合: 米国上場銘柄（ティッカーシンボル、例: AAPL, TSLA, BRK.B）
-2. 各銘柄のテーマとの関連度を分類する:
+1. 東証上場銘柄（日本株）を10〜12社候補に挙げ、上位3社に絞り込む
+   - 証券コードは4桁数字（例: 6758）
+   - market フィールドは "JP"
+2. 米国上場銘柄（米国株）を10〜12社候補に挙げ、上位3社に絞り込む
+   - ティッカーシンボル（例: AAPL, TSLA, BRK.B）
+   - market フィールドは "US"
+3. 各銘柄のテーマとの関連度を分類する:
    - "direct": テーマのコア事業が主力
    - "indirect": テーマ関連事業が一部
    - "peripheral": 間接的に恩恵を受ける
-3. 関連度・期待度が高い銘柄を5〜8社に絞り込む
 
 以下のJSON形式で出力してください:
 {{
@@ -252,15 +251,22 @@ PHASE_B_PROMPT = """
   "candidates": [
     {{
       "code": "6758",
-      "market": "{theme_market}",
+      "market": "JP",
       "name": "ソニーグループ",
+      "relation": "indirect",
+      "reason": "選定理由（1〜2文）"
+    }},
+    {{
+      "code": "AAPL",
+      "market": "US",
+      "name": "Apple",
       "relation": "indirect",
       "reason": "選定理由（1〜2文）"
     }}
   ]
 }}
 
-各銘柄に market フィールド（"{theme_market}"）を必ず含めてください。
+candidatesには必ず日本株3社（market: "JP"）と米国株3社（market: "US"）を含め、合計6社としてください。
 """
 
 
@@ -269,10 +275,8 @@ def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Di
 
     def _fetch_one(theme: Dict) -> Optional[Dict]:
         logger.info(f"[Phase B] Listing candidates for theme: {theme['name']}")
-        theme_market = theme.get("market", "JP")
         prompt = PHASE_B_PROMPT.format(
             theme_name=theme["name"],
-            theme_market=theme_market,
             theme_summary=theme["summary"],
             keywords="、".join(theme.get("keywords", [])),
         )
@@ -283,8 +287,12 @@ def phase_b_list_candidates(gemini: GeminiClient, themes: List[Dict]) -> List[Di
             logger.warning(f"No valid candidates found for theme: {theme['name']}")
             return None
 
-        candidates = candidates[:8]
-        logger.info(f"[Phase B] Theme '{theme['name']}': {len(candidates)} candidates selected")
+        jp = [c for c in candidates if c.get("market") == "JP"][:3]
+        us = [c for c in candidates if c.get("market") == "US"][:3]
+        candidates = jp + us
+        logger.info(
+            f"[Phase B] Theme '{theme['name']}': {len(jp)} JP + {len(us)} US candidates selected"
+        )
         return {"theme_name": theme["name"], "candidates": candidates}
 
     all_candidates = []
