@@ -825,9 +825,10 @@ def run() -> None:
     _update_weekly_index(week_label)
 
     # 6. LINE Flex 通知
+    skip_line = os.environ.get("SKIP_LINE", "").lower() in ("1", "true", "yes")
     channel_token = os.environ.get("LINE_CHANNEL_TOKEN")
     group_id = os.environ.get("LINE_GROUP_ID")
-    if channel_token and group_id:
+    if channel_token and group_id and not skip_line:
         # WEEKLY_REPORT_BASE_URL がなければ REPORT_URL から派生。
         # 末尾が .htm/.html のファイル名で終わる場合はそれを除去してからパスを追加する。
         base_url = os.environ.get("WEEKLY_REPORT_BASE_URL", "") or monthly_url

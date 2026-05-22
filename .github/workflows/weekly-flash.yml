@@ -34,10 +34,11 @@ jobs:
       - name: Generate Weekly Flash Report
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          LINE_CHANNEL_TOKEN: ${{ inputs.skip_line && '' || secrets.LINE_CHANNEL_TOKEN }}
-          LINE_GROUP_ID: ${{ inputs.skip_line && '' || secrets.LINE_GROUP_ID }}
+          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
+          LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
           REPORT_URL: ${{ secrets.REPORT_URL }}
           WEEKLY_REPORT_BASE_URL: ${{ secrets.REPORT_URL }}
+          SKIP_LINE: ${{ inputs.skip_line }}
         run: python -m src.step_weekly_flash
 
       - name: Commit and push weekly report
@@ -50,5 +51,6 @@ jobs:
           else
             WEEK=$(python -c "from datetime import datetime,timezone; print(datetime.now(timezone.utc).astimezone().strftime('%G-W%V'))")
             git commit -m "⚡ Auto-generate weekly flash report ${WEEK}"
+            git pull --rebase origin main
             git push
           fi
