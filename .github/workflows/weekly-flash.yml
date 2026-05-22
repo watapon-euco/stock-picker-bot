@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 8 * * 5'   # 毎週金曜 17:00 JST (UTC 08:00)
   workflow_dispatch:
+    inputs:
+      skip_line:
+        description: 'LINE通知をスキップ（テスト用）'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # docs/weekly/ を commit するため
@@ -29,8 +34,8 @@ jobs:
       - name: Generate Weekly Flash Report
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
-          LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
+          LINE_CHANNEL_TOKEN: ${{ inputs.skip_line && '' || secrets.LINE_CHANNEL_TOKEN }}
+          LINE_GROUP_ID: ${{ inputs.skip_line && '' || secrets.LINE_GROUP_ID }}
           REPORT_URL: ${{ secrets.REPORT_URL }}
           WEEKLY_REPORT_BASE_URL: ${{ secrets.REPORT_URL }}
         run: python -m src.step_weekly_flash
