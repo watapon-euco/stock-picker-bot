@@ -544,6 +544,13 @@ def _save_html(html_content: str, week_label: str) -> Path:
     out_path = DOCS_WEEKLY_DIR / f"{week_label}.html"
     out_path.write_text(html_content, encoding="utf-8")
     logger.info(f"Weekly HTML saved: {out_path}")
+
+    # styles.css を docs/weekly/ に配置（HTMLから相対パスで参照）
+    import shutil as _shutil
+    css_src = Path("src/templates/styles.css")
+    if css_src.exists():
+        _shutil.copy(css_src, DOCS_WEEKLY_DIR / "styles.css")
+
     return out_path
 
 
