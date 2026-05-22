@@ -40,37 +40,37 @@
     {{ARCHIVE_LINKS}}
   </nav>
 
-  <!-- Cover — pythonが {{COVER_SECTION}} に
+  <!-- Cover — pythonが COVER_SECTION に
        <section class="tp-cover"><div class="tp-cover__kicker">…</div><h1 class="tp-cover__title">…</h1></section>
        を出力。冒頭ヘッドラインはGemini/Claudeに生成させる想定 -->
   {{COVER_SECTION}}
 
-  <!-- KPI strip — pythonが {{KPI_STRIP_SECTION}} に
+  <!-- KPI strip — pythonが KPI_STRIP_SECTION に
        <section class="tp-section--tight"><div class="tp-stat-strip tp-stat-strip--5">…</div></section>
        を出力 -->
   {{KPI_STRIP_SECTION}}
 
-  <!-- Lede + market overview — pythonが {{NEWS_STRATEGY_SECTION}} に
+  <!-- Lede + market overview — pythonが NEWS_STRATEGY_SECTION に
        <section class="tp-section"><div class="tp-lede">…</div>…</section>
        を出力 -->
   {{NEWS_STRATEGY_SECTION}}
 
-  <!-- Sector warning (optional) — pythonが {{SECTOR_WARNING_BANNER}} に
+  <!-- Sector warning (optional) — pythonが SECTOR_WARNING_BANNER に
        <section class="tp-section--tight"><div class="tp-callout tp-callout--warn">…</div></section>
        を出力。警告無しなら空文字 -->
   {{SECTOR_WARNING_BANNER}}
 
-  <!-- Previous month performance — pythonが {{PERFORMANCE_SECTION}} を出力 -->
+  <!-- Previous month performance — pythonが PERFORMANCE_SECTION を出力 -->
   {{PERFORMANCE_SECTION}}
 
   <!-- Theme summary cards (compact list at top, optional) — pythonが
-       {{THEME_SUMMARY_CARDS}} を出力 -->
+       THEME_SUMMARY_CARDS を出力 -->
   {{THEME_SUMMARY_CARDS}}
 
   <div class="tp-divider-dashed"></div>
 
-  <!-- Themes — pythonが {{THEME_RANKING_SECTIONS}} に
-       <article class="tp-theme">…</article> × N を出力 -->
+  <!-- Themes — pythonが THEME_RANKING_SECTIONS に
+       article.tp-theme × N を出力 -->
   <section class="tp-section">
     <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
     {{THEME_RANKING_SECTIONS}}
@@ -78,19 +78,19 @@
 
   <div class="tp-divider-dashed"></div>
 
-  <!-- Stock comparison — pythonが {{STOCK_COMPARISON_SECTION}} を出力 -->
+  <!-- Stock comparison — pythonが STOCK_COMPARISON_SECTION を出力 -->
   {{STOCK_COMPARISON_SECTION}}
 
-  <!-- Supply chain — pythonが {{SUPPLY_CHAIN_SECTION}} を出力 -->
+  <!-- Supply chain — pythonが SUPPLY_CHAIN_SECTION を出力 -->
   {{SUPPLY_CHAIN_SECTION}}
 
   <!-- Risk scenarios (already inline per theme; keep this for back-compat) -->
   {{RISK_SCENARIOS_SECTION}}
 
-  <!-- Changes (前月比) — pythonが {{CHANGES_SECTION}} を出力 -->
+  <!-- Changes (前月比) — pythonが CHANGES_SECTION を出力 -->
   {{CHANGES_SECTION}}
 
-  <!-- Source links — pythonが {{SOURCE_LINKS_SECTION}} を出力 -->
+  <!-- Source links — pythonが SOURCE_LINKS_SECTION を出力 -->
   {{SOURCE_LINKS_SECTION}}
 
   <footer class="tp-colophon">
@@ -102,7 +102,7 @@
 
 </div>
 
-<!-- Per-stock Chart.js price charts (pythonが {{CHART_INIT_SCRIPT}} を出力) -->
+<!-- Per-stock Chart.js price charts (pythonが CHART_INIT_SCRIPT を出力) -->
 {{CHART_INIT_SCRIPT}}
 
 <!-- Card open/close + score bar animation -->
