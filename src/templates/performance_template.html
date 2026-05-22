@@ -258,8 +258,8 @@ PYTHON 生成HTML 例 (step6_backtest.py で組み立てる雛形)
 <div class="tp-monthly-row">
   <span class="tp-monthly-row__month">{{ m.year_month }}</span>
   <div class="tp-monthly-row__bar">
-    <!-- ret>=0: left:50%, width:abs(ret)/maxAbs*50%, bg:var(--green)
-         ret<0:  left:(50% - width), width:abs(ret)/maxAbs*50%, bg:var(--red) -->
+    (bar: ret>=0 → left:50%, width:abs(ret)/maxAbs*50%, bg:var(--green))
+    (bar: ret<0  → left:(50% - width), width:abs(ret)/maxAbs*50%, bg:var(--red))
     <div class="tp-monthly-row__bar-fill" style="left:50%;width:25%;background:var(--green);"></div>
     <div class="tp-monthly-row__bar-axis"></div>
   </div>
