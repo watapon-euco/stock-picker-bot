@@ -101,6 +101,12 @@ class TestBuildSurgingStocksHtml:
         out = _build_surging_stocks_html(stocks)
         assert "#e16158" in out  # editorial-dark red for negative change
 
+    def test_fallback_shows_note(self):
+        stocks = [{"code": "1234", "name": "サンプル", "current_price": 1000.0,
+                   "week_change_pct": 2.0, "vol_ratio": None, "is_fallback": True}]
+        out = _build_surging_stocks_html(stocks)
+        assert "上昇率トップ" in out
+
     def test_xss_escaped_in_name(self):
         stocks = [{"code": "1234", "name": '<script>alert(1)</script>',
                    "current_price": 100.0, "week_change_pct": 6.0, "vol_ratio": None}]
@@ -294,12 +300,13 @@ class TestBuildTop5:
             result = _build_top5(["6758", "7203"])
         assert result == []
 
-    def test_non_surging_filtered_out(self):
+    def test_no_surge_returns_fallback(self):
         non_surging = {"code": "1234", "name": "X", "current_price": 100.0,
                        "week_change_pct": 1.0, "vol_ratio": 1.0, "avg_volume_30d": 5_000}
         with patch("src.step_weekly_flash._fetch_weekly_changes_batch", return_value=[non_surging]):
             result = _build_top5(["1234"])
-        assert result == []
+        assert len(result) == 1
+        assert result[0]["is_fallback"] is True
 
     def test_surging_included(self):
         surging = {"code": "6758", "name": "ソニー", "current_price": 12000.0,

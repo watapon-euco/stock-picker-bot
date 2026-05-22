@@ -207,7 +207,9 @@ def is_surging(price_change_pct, vol_ratio, avg_volume_30d) -> bool:
 
 
 def _build_top5(codes: List[str], name_map: Optional[Dict[str, str]] = None) -> List[Dict]:
-    """銘柄コードから急騰銘柄を抽出してスコア順に上位5件を返す。"""
+    """銘柄コードから急騰銘柄を抽出してスコア順に上位5件を返す。
+    急騰銘柄が0件のときは週間上昇率トップ5にフォールバックし is_fallback=True を付ける。
+    """
     if name_map is None:
         name_map = {}
     all_data = _fetch_weekly_changes_batch(codes, name_map)
@@ -224,7 +226,15 @@ def _build_top5(codes: List[str], name_map: Optional[Dict[str, str]] = None) -> 
         ),
         reverse=True,
     )
-    return results[:5]
+    if results:
+        return results[:5]
+
+    # 急騰銘柄なし → 週間上昇率トップ5にフォールバック
+    fallback = [d for d in all_data if d.get("week_change_pct") is not None]
+    fallback.sort(key=lambda x: x.get("week_change_pct", 0.0), reverse=True)
+    for d in fallback:
+        d["is_fallback"] = True
+    return fallback[:5]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -448,6 +458,12 @@ def _build_surging_stocks_html(stocks: List[Dict]) -> str:
         return '<div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>'
 
     rows = []
+    if stocks[0].get("is_fallback"):
+        rows.append(
+            '<div style="color:var(--text-mute);font-size:11px;padding:4px 0 10px;letter-spacing:0.02em">'
+            '今週の急騰銘柄はなし — 上昇率トップ銘柄を表示しています</div>'
+        )
+
     for i, s in enumerate(stocks, start=1):
         code = _html.escape(str(s.get("code", "")))
         name = _html.escape(str(s.get("name", code)))
@@ -651,11 +667,14 @@ def _build_flex_contents(
             "margin": "sm",
         })
 
+    is_fallback = bool(stocks) and bool(stocks[0].get("is_fallback"))
+    stocks_label = "📈 上昇率トップ5" if is_fallback else "🚀 急騰銘柄TOP5"
+
     body_contents = []
     if stock_rows:
         body_contents.append({
             "type": "text",
-            "text": "🚀 急騰銘柄TOP5",
+            "text": stocks_label,
             "size": "sm",
             "weight": "bold",
             "color": "#ffbb33",
@@ -816,7 +835,9 @@ def run() -> None:
         weekly_report_url = safe_url(base_url + f"/weekly/{week_label}.html")
         flex_contents = _build_flex_contents(week_label, top5, top_news, weekly_report_url)
         line_client = LineClient(channel_token)
-        alt_text = f"⚡ 週次速報 {week_label} — 急騰銘柄{len(top5)}件"
+        _top5_is_fallback = bool(top5) and bool(top5[0].get("is_fallback"))
+        _stocks_word = "上昇率トップ" if _top5_is_fallback else "急騰銘柄"
+        alt_text = f"⚡ 週次速報 {week_label} — {_stocks_word}{len(top5)}件"
         success = line_client.send_flex(to=group_id, alt_text=alt_text, flex_contents=flex_contents)
         if success:
             logger.info("LINE Flex notification sent.")
