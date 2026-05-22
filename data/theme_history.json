@@ -99,6 +99,105 @@
       "name": "冷感ビジネス・気候変動適応",
       "year_month": "2026-05",
       "icon": "❄️"
+    },
+    {
+      "name": "衛星ビジネス・宇宙インフラ",
+      "year_month": "2026-05",
+      "icon": "🚀",
+      "stocks": [
+        {
+          "code": "RKLB",
+          "market": "JP",
+          "name": "Rocket Lab Corporation",
+          "rank": 1,
+          "price_at_pick": 137.5336
+        },
+        {
+          "code": "ASTS",
+          "market": "JP",
+          "name": "AST SpaceMobile, Inc.",
+          "rank": 2,
+          "price_at_pick": 107.08
+        },
+        {
+          "code": "PL",
+          "market": "JP",
+          "name": "Planet Labs PBC",
+          "rank": 3,
+          "price_at_pick": 44.945
+        }
+      ]
+    },
+    {
+      "name": "化合物半導体・次世代パワーデバイス",
+      "year_month": "2026-05",
+      "icon": "⚡",
+      "stocks": [
+        {
+          "code": "4063",
+          "market": "JP",
+          "name": "Shin-Etsu Chemical Co., Ltd.",
+          "rank": 1,
+          "price_at_pick": 7034.0
+        },
+        {
+          "code": "6501",
+          "market": "JP",
+          "name": "Hitachi, Ltd.",
+          "rank": 2,
+          "price_at_pick": 5002.0
+        },
+        {
+          "code": "6976",
+          "market": "JP",
+          "name": "Taiyo Yuden Co., Ltd.",
+          "rank": 3,
+          "price_at_pick": 9102.0
+        }
+      ]
+    },
+    {
+      "name": "米国連続増配株",
+      "year_month": "2026-05",
+      "icon": "💰",
+      "stocks": [
+        {
+          "code": "KO",
+          "market": "JP",
+          "name": "The Coca-Cola Company",
+          "rank": 1,
+          "price_at_pick": 81.085
+        },
+        {
+          "code": "JNJ",
+          "market": "JP",
+          "name": "Johnson & Johnson",
+          "rank": 2,
+          "price_at_pick": 234.26
+        },
+        {
+          "code": "PG",
+          "market": "JP",
+          "name": "The Procter & Gamble Company",
+          "rank": 3,
+          "price_at_pick": 143.94
+        }
+      ]
+    },
+    {
+      "name": "衛星ビジネス・宇宙インフラ",
+      "year_month": "2026-05",
+      "icon": "🚀"
+    },
+    {
+      "name": "化合物半導体・次世代パワーデバイス",
+      "year_month": "2026-05",
+      "icon": "⚡"
+    },
+    {
+      "name": "米国連続増配株",
+      "year_month": "2026-05",
+      "icon": "💰"
     }
   ]
 }
