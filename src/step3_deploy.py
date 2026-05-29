@@ -90,8 +90,11 @@ def run():
     if not _re.match(r'^[a-zA-Z0-9/_.\-]+$', branch):
         raise ValueError(f"Unexpected branch name format: {branch!r}")
 
+    # --autostash: ステージしていない変更（コストログや watchlist 等、
+    # 本ステップで commit しないファイル）があっても rebase を実行できるよう
+    # 一時退避し、rebase 後に自動で復元する。
     logger.info(f"Rebasing on origin/{branch} before push...")
-    _run(["git", "pull", "--rebase", "origin", branch])
+    _run(["git", "pull", "--rebase", "--autostash", "origin", branch])
 
     logger.info(f"Pushing to origin/{branch}...")
     _run(["git", "push", "-u", "origin", branch])
