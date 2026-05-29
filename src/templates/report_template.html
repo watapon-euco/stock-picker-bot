@@ -3,297 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>テーマ株レポート {{YEAR_MONTH}}号</title>
+<title>The Picker — {{YEAR_MONTH}}号</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<script
-  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
-  crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  /* archive nav */
-  .tp-archive-nav { padding: 8px 0; font-family: var(--mono); font-size: 10px; color: var(--text-mute); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
-  .tp-archive-nav span { color: var(--text-mute); }
-  .tp-archive-nav a { font-size: 11px; }
-  /* price chart canvas (per-stock) */
-  .price-chart-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
-  .price-chart-label { font-family: var(--mono); font-size: 9px; color: var(--text-mute); letter-spacing: .15em; margin-bottom: 6px; text-transform: uppercase; }
-  .price-chart-canvas { display: block; width: 100%; height: 140px; }
-  /* JP / US market section label within a theme */
-  .tp-market-label { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .12em; color: var(--text-mute); text-transform: uppercase; padding: 10px 0 4px; border-top: 1px solid var(--border); margin-top: 14px; }
+  /* Toggle button - monthly/weekly switch */
+  .tp-view-toggle {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 16px 0 0;
+  }
+  .tp-view-toggle a {
+    font-family: var(--mono, monospace);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid var(--border, #2a2a3a);
+    border-radius: 2px;
+    color: var(--text-dim, #9aa3b8);
+  }
+  .tp-view-toggle a.active {
+    background: var(--gold, #d4a341);
+    color: #0d0d1a;
+  }
+  .tp-view-toggle a:not(.active):hover {
+    color: var(--gold, #d4a341);
+  }
 </style>
 </head>
 <body>
-<div class="tp-wrap">
 
-  <header class="tp-masthead">
-    <div class="tp-masthead__brand">
-      <span class="tp-masthead__brand-mark"></span>
-      <span class="tp-masthead__brand-name">The Picker</span>
-      <span class="tp-masthead__brand-sub">MONTHLY</span>
-    </div>
-    <span class="tp-masthead__meta">{{YEAR_MONTH}}</span>
-  </header>
+<main class="tp-mag">
 
-  <nav class="tp-archive-nav">
-    <div class="tp-mode-toggle">
-      <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">📊 月次</span>
-      <a class="tp-mode-toggle__btn" id="js-weekly-link" href="weekly/index.html">⚡ 週次</a>
-    </div>
-    <span>アーカイブ:</span>
-    {{ARCHIVE_LINKS}}
-  </nav>
-  <script>
-  (function(){
-    var a = document.getElementById('js-weekly-link');
-    if (location.pathname.indexOf('/archive/') > -1) a.href = '../weekly/index.html';
-  })();
-  </script>
+  <!-- Monthly / weekly switch -->
+  <div class="tp-view-toggle">
+    <a href="index.html" class="active">月次レポート</a>
+    <a href="weekly/index.html">週次フラッシュ</a>
+  </div>
 
-  <!-- Cover — pythonが COVER_SECTION に
-       <section class="tp-cover"><div class="tp-cover__kicker">…</div><h1 class="tp-cover__title">…</h1></section>
-       を出力。冒頭ヘッドラインはGemini/Claudeに生成させる想定 -->
+  <!-- Cover headline -->
   {{COVER_SECTION}}
 
-  <!-- KPI strip — pythonが KPI_STRIP_SECTION に
-       <section class="tp-section--tight"><div class="tp-stat-strip tp-stat-strip--5">…</div></section>
-       を出力 -->
+  <!-- KPI strip -->
   {{KPI_STRIP_SECTION}}
 
-  <!-- Lede + market overview — pythonが NEWS_STRATEGY_SECTION に
-       <section class="tp-section"><div class="tp-lede">…</div>…</section>
-       を出力 -->
-  {{NEWS_STRATEGY_SECTION}}
-
-  <!-- Sector warning (optional) — pythonが SECTOR_WARNING_BANNER に
-       <section class="tp-section--tight"><div class="tp-callout tp-callout--warn">…</div></section>
-       を出力。警告無しなら空文字 -->
+  <!-- Sector overlap warning (empty if no warning) -->
   {{SECTOR_WARNING_BANNER}}
 
-  <!-- Previous month performance — pythonが PERFORMANCE_SECTION を出力 -->
-  {{PERFORMANCE_SECTION}}
+  <!-- Market overview / strategy lede -->
+  {{NEWS_STRATEGY_SECTION}}
 
-  <!-- Theme summary cards (compact list at top, optional) — pythonが
-       THEME_SUMMARY_CARDS を出力 -->
-  {{THEME_SUMMARY_CARDS}}
-
-  <div class="tp-divider-dashed"></div>
-
-  <!-- Themes — pythonが THEME_RANKING_SECTIONS に
-       article.tp-theme × N を出力（各テーマに日本株3+米国株3） -->
-  <section class="tp-section">
-    <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
-    {{THEME_RANKING_SECTIONS}}
-  </section>
-
-  <div class="tp-divider-dashed"></div>
-
-  <!-- Stock comparison — pythonが STOCK_COMPARISON_SECTION を出力 -->
-  {{STOCK_COMPARISON_SECTION}}
-
-  <!-- Supply chain — pythonが SUPPLY_CHAIN_SECTION を出力 -->
-  {{SUPPLY_CHAIN_SECTION}}
-
-  <!-- Risk scenarios (already inline per theme; keep this for back-compat) -->
-  {{RISK_SCENARIOS_SECTION}}
-
-  <!-- Changes (前月比) — pythonが CHANGES_SECTION を出力 -->
+  <!-- Changes from previous month -->
   {{CHANGES_SECTION}}
 
-  <!-- Source links — pythonが SOURCE_LINKS_SECTION を出力 -->
+  <!-- Previous month performance -->
+  {{PERFORMANCE_SECTION}}
+
+  <!-- Ranking heading -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
+  </section>
+
+  <!-- Theme summary cards (empty in current template) -->
+  {{THEME_SUMMARY_CARDS}}
+
+  <!-- Theme ranking sections (日本株3 + 米国株3 per theme) -->
+  {{THEME_RANKING_SECTIONS}}
+
+  <!-- Stock comparison table -->
+  {{STOCK_COMPARISON_SECTION}}
+
+  <!-- Supply chain analysis -->
+  {{SUPPLY_CHAIN_SECTION}}
+
+  <!-- Risk scenarios (empty in current template) -->
+  {{RISK_SCENARIOS_SECTION}}
+
+  <!-- Source links -->
   {{SOURCE_LINKS_SECTION}}
 
-  <footer class="tp-colophon">
-    THE PICKER · {{YEAR_MONTH}}<br>
-    GENERATED BY {{AI_MODELS_TEXT}}<br>
-    DATA: yfinance · GOOGLE NEWS RSS · {{GENERATED_DATE}}<br>
-    NOT INVESTMENT ADVICE
+  <!-- Footer -->
+  <footer class="tp-footer">
+    The Picker · 月刊テーマ株レポート<br>
+    Generated on {{GENERATED_DATE}} · Powered by {{AI_MODELS_TEXT}}<br>
+    {{ARCHIVE_LINKS}}
   </footer>
 
-</div>
+</main>
 
-<!-- Per-stock Chart.js price charts (pythonが CHART_INIT_SCRIPT を出力) -->
-{{CHART_INIT_SCRIPT}}
-
-<!-- Card open/close + score bar animation -->
-<script>
-document.querySelectorAll('.tp-stock-row').forEach(row => {
-  // Open detail row (next sibling .tp-score-bars + .tp-stock-detail) on click
-  row.addEventListener('click', () => row.classList.toggle('is-open'));
-});
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.querySelectorAll('.tp-score-bar__fill').forEach(b => {
-        const w = b.getAttribute('data-width');
-        if (w) b.style.width = w + '%';
-      });
-      obs.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.1 });
-document.querySelectorAll('.tp-score-bars').forEach(el => obs.observe(el));
-</script>
-
+<!-- Floating chat widget (empty if CHAT_PROXY_URL unset) -->
 {{CHAT_WIDGET_SECTION}}
 
-<!--
-===============================================================================
-PYTHON 生成HTML 例 (step2_report.py で組み立てる雛形)
-===============================================================================
-
-[1] {{COVER_SECTION}}
-<section class="tp-cover">
-  <div class="tp-cover__kicker">注目テーマ {{ theme_count }}件 · 銘柄 {{ stock_count }}件</div>
-  <h1 class="tp-cover__title">{{ headline_pre }}と<br><span class="tp-italic-gold">{{ headline_focus }}</span>の<br>{{ headline_post }}</h1>
-</section>
-
-[2] {{KPI_STRIP_SECTION}}
-<section class="tp-section--tight">
-  <div class="tp-stat-strip tp-stat-strip--5">
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">{{ themes }}</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">{{ stocks }}</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+{{ avg_ret }}%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div><div class="tp-stat-cell__value">{{ win_rate }}%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+{{ prev_month_ret }}%</div></div>
-  </div>
-</section>
-
-[3] {{NEWS_STRATEGY_SECTION}}
-<section class="tp-section">
-  <div class="tp-lede">
-    <span class="tp-lede__drop">{{ overview_first_char }}</span>{{ overview_rest }}
-  </div>
-  <div class="tp-byline">{{ generated_at }}</div>
-</section>
-
-[4] {{SECTOR_WARNING_BANNER}}  (警告ありの時のみ、無いなら空文字)
-<section class="tp-section--tight">
-  <div class="tp-callout tp-callout--warn">
-    <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>
-    <div class="tp-callout__body">
-      <strong style="color:var(--gold)">セクター分散注意:</strong> {{ warning_message }}
-    </div>
-  </div>
-</section>
-
-[5] {{PERFORMANCE_SECTION}}  (前月号銘柄の成績)
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">前月の成績</div></div>
-  <div style="padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;">
-      <span style="font-size:11.5px;color:var(--text-dim);">{{ prev_month }}号 推奨銘柄 平均</span>
-      <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green);">+{{ avg }}%</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim);">
-      <span>勝率 <span style="color:var(--text);font-weight:600;">{{ win }}%</span></span>
-      <span>最高 <span style="color:var(--green);font-weight:600;">+{{ best }}%</span></span>
-      <span>最低 <span style="color:var(--red);font-weight:600;">{{ worst }}%</span></span>
-      <span>{{ count }}銘柄</span>
-    </div>
-  </div>
-</section>
-
-[6] {{THEME_RANKING_SECTIONS}}  ← テーマ1件分
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">{{ '%02d' % theme.idx }}</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">{{ theme.name }}</h2>
-      <div class="tp-theme__angle">{{ theme.angle }}</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    {% for c in theme.score_chips %}<span class="tp-chip">{{ c }}</span>{% endfor %}
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    {% for s in theme.stocks %}
-    <div class="tp-stock-row{% if loop.first %} tp-stock-row--top{% endif %}">
-      <div class="tp-stock-row__rank">{{ s.rank }}</div>
-      <div>
-        <div class="tp-stock-row__name">{{ s.name }}</div>
-        <div class="tp-stock-row__sub">{{ s.code }}.{{ s.market }}<span class="tier">{{ s.tier }}</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><path d="{{ s.spark_path }}" fill="none" stroke="{{ '#7dc679' if s.change>=0 else '#e16158' }}" stroke-width="1.2"/></svg>
-      <div class="tp-stock-row__price">{{ s.currency }}{{ s.price }}</div>
-      <div class="tp-stock-row__change {{ 'tp-up' if s.change>=0 else 'tp-down' }}">{{ '+' if s.change>=0 else '' }}{{ s.change }}%</div>
-    </div>
-    <div class="tp-score-bars">
-      {% for k, v in s.scores.items() %}
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">{{ k }}</div>
-        <div class="tp-score-bar__track">
-          <div class="tp-score-bar__fill {{ 'tp-score-bar__fill--hi' if v>=70 else ('tp-score-bar__fill--mid' if v>=50 else '') }}" data-width="{{ v }}" style="width:0%;"></div>
-        </div>
-        <div class="tp-score-bar__value {{ 'tp-score-bar__value--hi' if v>=70 else '' }}">{{ v }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endfor %}
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">{{ theme.risk }}</div>
-      </div>
-    </div>
-  </div>
-</article>
-
-[7] {{STOCK_COMPARISON_SECTION}}
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 5</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      {% for s in top_stocks %}
-      <tr>
-        <td>{{ s.name }}<div class="name-sub">{{ s.code }}.{{ s.market }}</div></td>
-        <td class="stars">{{ s.growth_stars }}</td>
-        <td class="stars">{{ s.stability_stars }}</td>
-        <td class="stars">{{ s.value_stars }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-[8] {{SUPPLY_CHAIN_SECTION}}
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流</th><th>下流</th></tr></thead>
-    <tbody>
-      {% for s in top_3 %}
-      <tr>
-        <td>{{ s.name }}<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">{{ s.code }}</div></td>
-        <td>{% for u in s.upstream %}<span class="rel">{{ u.rel }}</span>{{ u.name }}<br>{% endfor %}</td>
-        <td>{% for d in s.downstream %}<span class="rel">{{ d.rel }}</span>{{ d.name }}<br>{% endfor %}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-[9] {{SOURCE_LINKS_SECTION}}
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>
-  <div class="tp-sources">
-    {% for src in sources %}
-    <div class="tp-sources__group">{{ src.source }}</div>
-    {% for l in src.links %}<a class="tp-sources__link" href="{{ l.url }}">{{ l.title }}</a>{% endfor %}
-    {% endfor %}
-  </div>
-</section>
-
-[10] {{CHAT_WIDGET_SECTION}}  (CHAT_PROXY_URL が設定されてれば、既存のチャットウィジェットJSをここに)
-===============================================================================
--->
+<!-- Chart.js init -->
+{{CHART_INIT_SCRIPT}}
 
 </body>
 </html>
