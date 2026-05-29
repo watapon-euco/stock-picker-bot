@@ -404,6 +404,10 @@
     .detail-grid { grid-template-columns: repeat(2, 1fr); }
     .score-bar-name { width: 72px; font-size: 10px; }
   }
+  .tp-mode-toggle { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 2px; flex-shrink: 0; }
+  .tp-mode-toggle__btn { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .04em; padding: 3px 10px; border-radius: 3px; color: var(--text-mute); text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
+  .tp-mode-toggle__btn:hover { color: var(--text); }
+  .tp-mode-toggle__btn--active { background: var(--border); color: var(--text); cursor: default; }
 </style>
 </head>
 <body>

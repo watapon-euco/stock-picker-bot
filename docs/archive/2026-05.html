@@ -21,6 +21,10 @@
   .price-chart-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .price-chart-label { font-family: var(--mono); font-size: 9px; color: var(--text-mute); letter-spacing: .15em; margin-bottom: 6px; text-transform: uppercase; }
   .price-chart-canvas { display: block; width: 100%; height: 140px; }
+  .tp-mode-toggle { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 2px; flex-shrink: 0; }
+  .tp-mode-toggle__btn { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .04em; padding: 3px 10px; border-radius: 3px; color: var(--text-mute); text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
+  .tp-mode-toggle__btn:hover { color: var(--text); }
+  .tp-mode-toggle__btn--active { background: var(--border); color: var(--text); cursor: default; }
 </style>
 </head>
 <body>
@@ -36,6 +40,10 @@
   </header>
 
   <nav class="tp-archive-nav">
+    <div class="tp-mode-toggle">
+      <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">📊 月次</span>
+      <a class="tp-mode-toggle__btn" id="js-weekly-link" href="../weekly/index.html">⚡ 週次</a>
+    </div>
     <span>アーカイブ:</span>
     <a href="archive/index.html">アーカイブ一覧</a>
   </nav>

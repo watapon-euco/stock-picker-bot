@@ -38,9 +38,19 @@
   </header>
 
   <nav class="tp-archive-nav">
+    <div class="tp-mode-toggle">
+      <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">📊 月次</span>
+      <a class="tp-mode-toggle__btn" id="js-weekly-link" href="weekly/index.html">⚡ 週次</a>
+    </div>
     <span>アーカイブ:</span>
     {{ARCHIVE_LINKS}}
   </nav>
+  <script>
+  (function(){
+    var a = document.getElementById('js-weekly-link');
+    if (location.pathname.indexOf('/archive/') > -1) a.href = '../weekly/index.html';
+  })();
+  </script>
 
   <!-- Cover — pythonが COVER_SECTION に
        <section class="tp-cover"><div class="tp-cover__kicker">…</div><h1 class="tp-cover__title">…</h1></section>
