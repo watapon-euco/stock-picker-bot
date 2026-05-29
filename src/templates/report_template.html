@@ -3,103 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Picker — {{YEAR_MONTH}}号</title>
+<title>テーマ株レポート {{YEAR_MONTH}}号</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+  crossorigin="anonymous"></script>
 <style>
-  /* Toggle button - monthly/weekly switch */
-  .tp-view-toggle {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    padding: 16px 0 0;
-  }
-  .tp-view-toggle a {
-    font-family: var(--mono, monospace);
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-decoration: none;
-    padding: 6px 14px;
-    border: 1px solid var(--border, #2a2a3a);
-    border-radius: 2px;
-    color: var(--text-dim, #9aa3b8);
-  }
-  .tp-view-toggle a.active {
-    background: var(--gold, #d4a341);
-    color: #0d0d1a;
-  }
-  .tp-view-toggle a:not(.active):hover {
-    color: var(--gold, #d4a341);
-  }
+  /* archive nav */
+  .tp-archive-nav { padding: 8px 0; font-family: var(--mono); font-size: 10px; color: var(--text-mute); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .tp-archive-nav span { color: var(--text-mute); }
+  .tp-archive-nav a { font-size: 11px; }
+  /* price chart canvas (per-stock) */
+  .price-chart-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .price-chart-label { font-family: var(--mono); font-size: 9px; color: var(--text-mute); letter-spacing: .15em; margin-bottom: 6px; text-transform: uppercase; }
+  .price-chart-canvas { display: block; width: 100%; height: 140px; }
+  /* JP / US market section label within a theme */
+  .tp-market-label { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .12em; color: var(--text-mute); text-transform: uppercase; padding: 10px 0 4px; border-top: 1px solid var(--border); margin-top: 14px; }
 </style>
 </head>
 <body>
+<div class="tp-wrap">
 
-<main class="tp-mag">
+  <header class="tp-masthead">
+    <div class="tp-masthead__brand">
+      <span class="tp-masthead__brand-mark"></span>
+      <span class="tp-masthead__brand-name">The Picker</span>
+      <span class="tp-masthead__brand-sub">MONTHLY</span>
+    </div>
+    <span class="tp-masthead__meta">{{YEAR_MONTH}}</span>
+  </header>
 
-  <!-- Monthly / weekly switch -->
-  <div class="tp-view-toggle">
-    <a href="index.html" class="active">月次レポート</a>
-    <a href="weekly/index.html">週次フラッシュ</a>
-  </div>
+  <nav class="tp-archive-nav">
+    <div class="tp-mode-toggle">
+      <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">📊 月次</span>
+      <a class="tp-mode-toggle__btn" id="js-weekly-link" href="weekly/index.html">⚡ 週次</a>
+    </div>
+    <span>アーカイブ:</span>
+    {{ARCHIVE_LINKS}}
+  </nav>
+  <script>
+  (function(){
+    var a = document.getElementById('js-weekly-link');
+    if (location.pathname.indexOf('/archive/') > -1) a.href = '../weekly/index.html';
+  })();
+  </script>
 
-  <!-- Cover headline -->
+  <!-- Cover -->
   {{COVER_SECTION}}
 
   <!-- KPI strip -->
   {{KPI_STRIP_SECTION}}
 
-  <!-- Sector overlap warning (empty if no warning) -->
-  {{SECTOR_WARNING_BANNER}}
-
-  <!-- Market overview / strategy lede -->
+  <!-- Lede + market overview -->
   {{NEWS_STRATEGY_SECTION}}
 
-  <!-- Changes from previous month -->
-  {{CHANGES_SECTION}}
+  <!-- Sector warning (optional) -->
+  {{SECTOR_WARNING_BANNER}}
 
   <!-- Previous month performance -->
   {{PERFORMANCE_SECTION}}
 
-  <!-- Ranking heading -->
-  <section class="tp-section">
-    <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
-  </section>
-
-  <!-- Theme summary cards (empty in current template) -->
+  <!-- Theme summary cards (optional) -->
   {{THEME_SUMMARY_CARDS}}
 
-  <!-- Theme ranking sections (日本株3 + 米国株3 per theme) -->
-  {{THEME_RANKING_SECTIONS}}
+  <div class="tp-divider-dashed"></div>
 
-  <!-- Stock comparison table -->
+  <!-- Themes (日本株3+米国株3 per theme) -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
+    {{THEME_RANKING_SECTIONS}}
+  </section>
+
+  <div class="tp-divider-dashed"></div>
+
+  <!-- Stock comparison -->
   {{STOCK_COMPARISON_SECTION}}
 
-  <!-- Supply chain analysis -->
+  <!-- Supply chain -->
   {{SUPPLY_CHAIN_SECTION}}
 
-  <!-- Risk scenarios (empty in current template) -->
+  <!-- Risk scenarios (already inline per theme; keep this for back-compat) -->
   {{RISK_SCENARIOS_SECTION}}
+
+  <!-- Changes (前月比) -->
+  {{CHANGES_SECTION}}
 
   <!-- Source links -->
   {{SOURCE_LINKS_SECTION}}
 
-  <!-- Footer -->
-  <footer class="tp-footer">
-    The Picker · 月刊テーマ株レポート<br>
-    Generated on {{GENERATED_DATE}} · Powered by {{AI_MODELS_TEXT}}<br>
-    {{ARCHIVE_LINKS}}
+  <footer class="tp-colophon">
+    THE PICKER · {{YEAR_MONTH}}<br>
+    GENERATED BY {{AI_MODELS_TEXT}}<br>
+    DATA: yfinance · GOOGLE NEWS RSS · {{GENERATED_DATE}}<br>
+    NOT INVESTMENT ADVICE
   </footer>
 
-</main>
+</div>
 
-<!-- Floating chat widget (empty if CHAT_PROXY_URL unset) -->
-{{CHAT_WIDGET_SECTION}}
-
-<!-- Chart.js init -->
+<!-- Per-stock Chart.js price charts -->
 {{CHART_INIT_SCRIPT}}
+
+<!-- Card open/close + score bar animation -->
+<script>
+document.querySelectorAll('.tp-stock-row').forEach(row => {
+  // Open detail row (next sibling .tp-score-bars + .tp-stock-detail) on click
+  row.addEventListener('click', () => row.classList.toggle('is-open'));
+});
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.tp-score-bar__fill').forEach(b => {
+        const w = b.getAttribute('data-width');
+        if (w) b.style.width = w + '%';
+      });
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.tp-score-bars').forEach(el => obs.observe(el));
+</script>
+
+{{CHAT_WIDGET_SECTION}}
 
 </body>
 </html>
