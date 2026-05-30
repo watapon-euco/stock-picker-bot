@@ -198,6 +198,58 @@
       "name": "米国連続増配株",
       "year_month": "2026-05",
       "icon": "💰"
+    },
+    {
+      "name": "電力インフラ・データセンター最適化",
+      "year_month": "2026-05",
+      "icon": "⚡",
+      "stocks": [
+        {
+          "code": "6501",
+          "market": "JP",
+          "name": "Hitachi, Ltd.",
+          "rank": 1,
+          "price_at_pick": 5166.0
+        },
+        {
+          "code": "6503",
+          "market": "JP",
+          "name": "Mitsubishi Electric Corporation",
+          "rank": 2,
+          "price_at_pick": 6558.0
+        }
+      ]
+    },
+    {
+      "name": "株主還元強化・資本効率改善",
+      "year_month": "2026-05",
+      "icon": "💰",
+      "stocks": [
+        {
+          "code": "8306",
+          "market": "JP",
+          "name": "Mitsubishi UFJ Financial Group, Inc.",
+          "rank": 1,
+          "price_at_pick": 2999.0
+        },
+        {
+          "code": "7203",
+          "market": "JP",
+          "name": "Toyota Motor Corporation",
+          "rank": 2,
+          "price_at_pick": 3042.0
+        }
+      ]
+    },
+    {
+      "name": "電力インフラ・データセンター最適化",
+      "year_month": "2026-05",
+      "icon": "⚡"
+    },
+    {
+      "name": "株主還元強化・資本効率改善",
+      "year_month": "2026-05",
+      "icon": "💰"
     }
   ]
 }

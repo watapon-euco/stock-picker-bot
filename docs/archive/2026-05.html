@@ -21,10 +21,8 @@
   .price-chart-wrapper { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .price-chart-label { font-family: var(--mono); font-size: 9px; color: var(--text-mute); letter-spacing: .15em; margin-bottom: 6px; text-transform: uppercase; }
   .price-chart-canvas { display: block; width: 100%; height: 140px; }
-  .tp-mode-toggle { display: inline-flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 2px; flex-shrink: 0; }
-  .tp-mode-toggle__btn { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .04em; padding: 3px 10px; border-radius: 3px; color: var(--text-mute); text-decoration: none; white-space: nowrap; transition: background .15s, color .15s; }
-  .tp-mode-toggle__btn:hover { color: var(--text); }
-  .tp-mode-toggle__btn--active { background: var(--border); color: var(--text); cursor: default; }
+  /* JP / US market section label within a theme */
+  .tp-market-label { font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .12em; color: var(--text-mute); text-transform: uppercase; padding: 10px 0 4px; border-top: 1px solid var(--border); margin-top: 14px; }
 </style>
 </head>
 <body>
@@ -42,41 +40,30 @@
   <nav class="tp-archive-nav">
     <div class="tp-mode-toggle">
       <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">📊 月次</span>
-      <a class="tp-mode-toggle__btn" id="js-weekly-link" href="../weekly/index.html">⚡ 週次</a>
+      <a class="tp-mode-toggle__btn" id="js-weekly-link" href="weekly/index.html">⚡ 週次</a>
     </div>
     <span>アーカイブ:</span>
     <a href="archive/index.html">アーカイブ一覧</a>
   </nav>
+  <script>
+  (function(){
+    var a = document.getElementById('js-weekly-link');
+    if (location.pathname.indexOf('/archive/') > -1) a.href = '../weekly/index.html';
+  })();
+  </script>
 
-  <!-- Cover — pythonが <section class="tp-cover">
-  <div class="tp-cover__kicker">注目テーマ 3件 · 銘柄 9件</div>
-  <h1 class="tp-cover__title">今月の注目と<br><span class="tp-italic-gold">テーマ株</span>の<br>を徹底解説</h1>
-</section>
- に
-       <section class="tp-cover"><div class="tp-cover__kicker">…</div><h1 class="tp-cover__title">…</h1></section>
-       を出力。冒頭ヘッドラインはGemini/Claudeに生成させる想定 -->
+  <!-- Cover -->
   <section class="tp-cover">
-  <div class="tp-cover__kicker">注目テーマ 3件 · 銘柄 9件</div>
+  <div class="tp-cover__kicker">注目テーマ 2件 · 銘柄 4件</div>
   <h1 class="tp-cover__title">今月の注目と<br><span class="tp-italic-gold">テーマ株</span>の<br>を徹底解説</h1>
 </section>
 
 
-  <!-- KPI strip — pythonが <section class="tp-section--tight">
-  <div class="tp-stat-strip tp-stat-strip--5">
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">3</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">9</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+0.0%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div><div class="tp-stat-cell__value">0%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+0.0%</div></div>
-  </div>
-</section>
- に
-       <section class="tp-section--tight"><div class="tp-stat-strip tp-stat-strip--5">…</div></section>
-       を出力 -->
+  <!-- KPI strip -->
   <section class="tp-section--tight">
   <div class="tp-stat-strip tp-stat-strip--5">
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">3</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">9</div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">2</div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">4</div></div>
     <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+0.0%</div></div>
     <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div><div class="tp-stat-cell__value">0%</div></div>
     <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+0.0%</div></div>
@@ -84,459 +71,65 @@
 </section>
 
 
-  <!-- Lede + market overview — pythonが <section class="tp-section">
-  <div class="tp-lede">
-    <span class="tp-lede__drop">先</span>月の株式・経済市場は、AI・半導体ブームの継続と地政学リスクやインフレ懸念が交錯する中、「成長株の選別」と「安定資産への回帰」という二極化が鮮明に進みました。日本市場では、国策として指定された17分野の産業政策への期待が高まり、SiC・GaNといった化合物半導体や次世代パワーデバイスを手掛ける企業を中心に好業績銘柄への資金集中が顕著となりました。脱炭素化やAIデータセンター需要の拡大を背景に、電力効率化技術で高い競争力を持つ日本メーカーへの注目が一段と強まっています。米国市場ではスペースXのナスダック上場観測が浮上し、衛星通信・宇宙インフラビジネスが商業化の新局面へ移行しつつあるとして、巨大な資本流入への期待が市場を活気づけました。一方、AI関連銘柄のボラティリティ上昇を受け、安定したキャッシュフローと株主還元を誇る連続増配株への再評価も進み、ポートフォリオの安定化を志向する投資家層から注目を集めています。全体として市場は、バブル的な上昇と実体経済の成長のバランスを模索しながら、テーマ投資と安定資産の両立という新たな局面に差し掛かっています。
-  </div>
-  <div class="tp-byline">市場概況</div>
-</section> に
-       <section class="tp-section"><div class="tp-lede">…</div>…</section>
-       を出力 -->
+  <!-- Lede + market overview -->
   <section class="tp-section">
   <div class="tp-lede">
-    <span class="tp-lede__drop">先</span>月の株式・経済市場は、AI・半導体ブームの継続と地政学リスクやインフレ懸念が交錯する中、「成長株の選別」と「安定資産への回帰」という二極化が鮮明に進みました。日本市場では、国策として指定された17分野の産業政策への期待が高まり、SiC・GaNといった化合物半導体や次世代パワーデバイスを手掛ける企業を中心に好業績銘柄への資金集中が顕著となりました。脱炭素化やAIデータセンター需要の拡大を背景に、電力効率化技術で高い競争力を持つ日本メーカーへの注目が一段と強まっています。米国市場ではスペースXのナスダック上場観測が浮上し、衛星通信・宇宙インフラビジネスが商業化の新局面へ移行しつつあるとして、巨大な資本流入への期待が市場を活気づけました。一方、AI関連銘柄のボラティリティ上昇を受け、安定したキャッシュフローと株主還元を誇る連続増配株への再評価も進み、ポートフォリオの安定化を志向する投資家層から注目を集めています。全体として市場は、バブル的な上昇と実体経済の成長のバランスを模索しながら、テーマ投資と安定資産の両立という新たな局面に差し掛かっています。
+    <span class="tp-lede__drop">先</span>月の日本株式市場は、AI・半導体相場の継続的な盛り上がりを背景に、その恩恵が電力インフラや電子部品セクターへと広く波及する展開となりました。データセンターの電力消費急増を受けた送電網の刷新や高効率電力管理システムへの需要が「AI相場の第二幕」として投資家の注目を集め、重電メーカーや電力インフラ関連銘柄が堅調な値動きを見せました。一方、日銀の利上げ観測と円安の行方が引き続き相場のテーマとなり、金融政策の動向を巡る思惑が市場のボラティリティを高める場面もありました。東証によるPBR改善要請を背景に、大手金融機関を中心とした株主優待の新設・拡充や自社株買い・増配の発表が相次ぎ、日本企業の資本効率に対する意識の変化が市場の底堅さを支える構図となっています。地政学リスクを背景とした防衛・宇宙関連への根強い需要や、次世代太陽電池などの国策テーマへの関心も衰えず、成長性と安定性を兼ね備えた銘柄選定の重要性が一層高まっています。投資家はAI関連の成長ドライバーを取り込みながら、株主還元強化による下値サポートを意識したポートフォリオ構築を模索する動きが活発化した一ヶ月でした。
   </div>
   <div class="tp-byline">市場概況</div>
 </section>
 
-  <!-- Sector warning (optional) — pythonが <section class="tp-section--tight">
-  <div class="tp-callout tp-callout--warn">
-    <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>
-    <div class="tp-callout__body">
-      <strong style="color:var(--gold)">セクター分散注意:</strong> Technology、Industrials セクターが偏重しています。分散投資の観点から他の業種との組み合わせをお勧めします。
-    </div>
-  </div>
-</section>
- に
-       <section class="tp-section--tight"><div class="tp-callout tp-callout--warn">…</div></section>
-       を出力。警告無しなら空文字 -->
+  <!-- Sector warning (optional) -->
   <section class="tp-section--tight">
   <div class="tp-callout tp-callout--warn">
     <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>
     <div class="tp-callout__body">
-      <strong style="color:var(--gold)">セクター分散注意:</strong> Technology、Industrials セクターが偏重しています。分散投資の観点から他の業種との組み合わせをお勧めします。
+      <strong style="color:var(--gold)">セクター分散注意:</strong> Consumer Cyclical セクターが偏重しています。分散投資の観点から他の業種との組み合わせをお勧めします。
     </div>
   </div>
 </section>
 
 
-  <!-- Previous month performance — pythonが  を出力 -->
+  <!-- Previous month performance -->
   
 
-  <!-- Theme summary cards (compact list at top, optional) — pythonが
-        を出力 -->
+  <!-- Theme summary cards (optional) -->
   
 
   <div class="tp-divider-dashed"></div>
 
-  <!-- Themes — pythonが <article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">01</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">🚀 衛星ビジネス・宇宙インフラ</h2>
-      <div class="tp-theme__angle">スペースXのIPO観測を契機に、衛星通信・地球観測など宇宙インフラのサプライチェーン全体へ先行投資。防衛・民間需要の二極成長を狙う。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 8</span>
-    <span class="tp-chip">市場: 9</span>
-    <span class="tp-chip">新規: 9</span>
-    <span class="tp-chip">持続: 9</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: RKLB (テーマ直結度90, 業績モメンタム38, バリュエーション20, 財務健全性20, カタリスト90) 総合≈52 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">Rocket Lab</div>
-        <div class="tp-stock-row__sub">RKLB<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,14 10,11 21,8 32,5 42,2" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$137.53</div>
-      <div class="tp-stock-row__change tp-up">+9.63%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="90" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">90</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="38" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">38</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="20" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">20</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-    </div>
-
-    <!-- 2位: ASTS (テーマ直結度88, 業績モメンタム25, バリュエーション22, 財務健全性20, カタリスト85) 総合≈49 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">AST SpaceMobile</div>
-        <div class="tp-stock-row__sub">ASTS<span class="tier">ハイリスク</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,15 10,12 21,9 32,6 42,3" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$107.08</div>
-      <div class="tp-stock-row__change tp-up">+11.28%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="22" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">22</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="85" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">85</div>
-      </div>
-    </div>
-
-    <!-- 3位: PL (テーマ直結度82, 業績モメンタム30, バリュエーション18, 財務健全性20, カタリスト72) 総合≈46 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">3</div>
-      <div>
-        <div class="tp-stock-row__name">Planet Labs</div>
-        <div class="tp-stock-row__sub">PL<span class="tier">思惑</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,13 10,10 21,8 32,6 42,4" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$44.95</div>
-      <div class="tp-stock-row__change tp-up">+5.80%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="82" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">82</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="30" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">30</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="18" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">18</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
-      </div>
-    </div>
-
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">
-          ・スペースX IPO観測の後退または無期延期により、セクター全体のセンチメントが急冷する<br>
-          ・打ち上げ失敗・衛星コンステレーション展開の遅延により、資金調達環境が悪化し希薄化リスクが顕在化する<br>
-          ・米国の宇宙関連輸出規制強化や地政学リスクの拡大により、国際商業契約が停止・縮小される
-        </div>
-      </div>
-    </div>
-  </div>
-  <p style="font-size:12px;color:var(--text-mute);margin-top:8px">※ データ未取得: MAXR（yfinance取得エラー）</p>
-</article>
-
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">02</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">⚡ 化合物半導体・次世代パワーデバイス</h2>
-      <div class="tp-theme__angle">SiC／GaN材料・装置で世界シェアを握る日本企業への集中投資。EV・AIデータセンターの電力効率化需要を長期で取り込む。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 9</span>
-    <span class="tp-chip">市場: 8</span>
-    <span class="tp-chip">新規: 7</span>
-    <span class="tp-chip">持続: 9</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: 信越化学 (テーマ直結度92, 業績モメンタム62, バリュエーション65, 財務健全性100, カタリスト78) 総合≈79 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">信越化学工業</div>
-        <div class="tp-stock-row__sub">4063.JP<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,10 10,8 21,9 32,7 42,6" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥7,034</div>
-      <div class="tp-stock-row__change tp-up">+2.58%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="92" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">92</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="65" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">65</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="100" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">100</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
-      </div>
-    </div>
-
-    <!-- 2位: 日立製作所 (テーマ直結度80, 業績モメンタム58, バリュエーション58, 財務健全性80, カタリスト70) 総合≈70 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">日立製作所</div>
-        <div class="tp-stock-row__sub">6501.JP<span class="tier">大型安定</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,8 10,10 21,11 32,12 42,13" fill="none" stroke="#e07070" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥5,002</div>
-      <div class="tp-stock-row__change tp-down">-2.36%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="58" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">58</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="58" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">58</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="70" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">70</div>
-      </div>
-    </div>
-
-    <!-- 3位: 太陽誘電 (テーマ直結度50, 業績モメンタム45, バリュエーション32, 財務健全性60, カタリスト62) 総合≈49 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">3</div>
-      <div>
-        <div class="tp-stock-row__name">太陽誘電</div>
-        <div class="tp-stock-row__sub">6976.JP<span class="tier">出遅れ</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,14 10,11 21,9 32,7 42,4" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥9,102</div>
-      <div class="tp-stock-row__change tp-up">+11.75%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="50" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">50</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="45" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">45</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="32" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">32</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="60" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">60</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-    </div>
-
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">
-          ・半導体市況の急激な下振れにより、SiCウェハーや関連部品の価格が大幅下落し各社の収益性が悪化する<br>
-          ・中国・欧州メーカーの大規模増産により競合が激化し、日本企業の価格優位性・シェアが侵食される<br>
-          ・EV市場の成長鈍化やAIデータセンター投資の一時停滞により、パワーデバイス需要の拡大ペースが想定を下回る
-        </div>
-      </div>
-    </div>
-  </div>
-</article>
-
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">03</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">💰 米国連続増配株</h2>
-      <div class="tp-theme__angle">AI・成長株の高ボラティリティへのヘッジとして、60年超の連続増配実績を持つ優良銘柄をコア資産に配置。複利と安定配当で長期資産形成を支える。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 5</span>
-    <span class="tp-chip">市場: 8</span>
-    <span class="tp-chip">新規: 6</span>
-    <span class="tp-chip">持続: 10</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: JNJ (テーマ直結度90, 業績モメンタム78, バリュエーション62, 財務健全性100, カタリスト68) 総合≈81 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">Johnson &amp; Johnson</div>
-        <div class="tp-stock-row__sub">JNJ<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,12 10,11 21,9 32,8 42,7" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$234.26</div>
-      <div class="tp-stock-row__change tp-up">+1.09%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="90" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">90</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="100" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">100</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="68" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">68</div>
-      </div>
-    </div>
-
-    <!-- 2位: KO (テーマ直結度88, 業績モメンタム72, バリュエーション60, 財務健全性100, カタリスト58) 総合≈78 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">Coca-Cola</div>
-        <div class="tp-stock-row__sub">KO<span class="tier">大型安定</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,9 10,9 21,10 32,10 42,10" fill="none" stroke="#e07070" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$81.09</div>
-      <div class="tp-stock-row__change tp-down">-0.10%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
-      </div>
-      <div class="tp-score-bar"> に
-       <article class="tp-theme">…</article> × N を出力 -->
+  <!-- Themes (日本株3+米国株3 per theme) -->
   <section class="tp-section">
     <div class="tp-section__head"><div class="tp-kicker">今月のテーマ</div></div>
     <article class="tp-theme">
   <div class="tp-theme__head">
     <div class="tp-theme__num">01</div>
     <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">🚀 衛星ビジネス・宇宙インフラ</h2>
-      <div class="tp-theme__angle">スペースXのIPO観測を契機に、衛星通信・地球観測など宇宙インフラのサプライチェーン全体へ先行投資。防衛・民間需要の二極成長を狙う。</div>
+      <h2 class="tp-theme__title">⚡ 電力インフラ・データセンター最適化</h2>
+      <div class="tp-theme__angle">電力インフラの更新を担う重電メーカーや、データセンターの冷却・電力管理システムを提供する企業への投資が有効です。AIの成長を支える「裏方」としてのインフラ銘柄を中長期で選定します。</div>
     </div>
   </div>
   <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 8</span>
+    <span class="tp-chip">政策: 9</span>
     <span class="tp-chip">市場: 9</span>
-    <span class="tp-chip">新規: 9</span>
+    <span class="tp-chip">新規: 8</span>
     <span class="tp-chip">持続: 9</span>
   </div>
+
+  <div class="tp-market-label">🇯🇵 日本株</div>
   <div class="tp-theme__stocks">
     <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
 
-    <!-- 1位: RKLB (テーマ直結度90, 業績モメンタム38, バリュエーション20, 財務健全性20, カタリスト90) 総合≈52 -->
+    <!-- 日本株1位: Hitachi -->
     <div class="tp-stock-row tp-stock-row--top">
       <div class="tp-stock-row__rank">1</div>
       <div>
-        <div class="tp-stock-row__name">Rocket Lab</div>
-        <div class="tp-stock-row__sub">RKLB<span class="tier">本命</span></div>
+        <div class="tp-stock-row__name">日立製作所</div>
+        <div class="tp-stock-row__sub">6501.JP<span class="tier">本命</span></div>
       </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,14 10,11 21,8 32,5 42,2" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$137.53</div>
-      <div class="tp-stock-row__change tp-up">+9.63%</div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="M0,12 C8,10 16,7 22,9 C28,11 34,8 42,6" fill="none" stroke="#e05c5c" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">¥5,166</div>
+      <div class="tp-stock-row__change tp-down">-0.15%</div>
     </div>
     <div class="tp-score-bars">
       <div class="tp-score-bar">
@@ -546,36 +139,119 @@
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="38" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">38</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="20" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">20</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="55" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value">55</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="82" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">82</div>
       </div>
     </div>
 
-    <!-- 2位: ASTS (テーマ直結度88, 業績モメンタム25, バリュエーション22, 財務健全性20, カタリスト85) 総合≈49 -->
+    <!-- 日本株2位: Mitsubishi Electric -->
     <div class="tp-stock-row">
       <div class="tp-stock-row__rank">2</div>
       <div>
-        <div class="tp-stock-row__name">AST SpaceMobile</div>
-        <div class="tp-stock-row__sub">ASTS<span class="tier">ハイリスク</span></div>
+        <div class="tp-stock-row__name">三菱電機</div>
+        <div class="tp-stock-row__sub">6503.JP<span class="tier">大型安定</span></div>
       </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,15 10,12 21,9 32,6 42,3" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$107.08</div>
-      <div class="tp-stock-row__change tp-up">+11.28%</div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="M0,10 C8,9 16,8 22,7 C28,6 34,7 42,6" fill="none" stroke="#7dc679" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">¥6,558</div>
+      <div class="tp-stock-row__change tp-up">+0.02%</div>
+    </div>
+    <div class="tp-score-bars">
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">テーマ直結度</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="85" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">85</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">業績モメンタム</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="68" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">68</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">バリュエーション</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="52" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value">52</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">財務健全性</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="68" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--mid">68</div>
+      </div>
+      <div class="tp-score-bar">
+        <div class="tp-score-bar__label">カタリスト期待</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="74" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">74</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tp-market-label">🇺🇸 米国株</div>
+  <div class="tp-theme__stocks">
+    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
+    <p style="font-size:13px;color:var(--text-mute);padding:8px 4px;">※ 米国株データは今回取得できませんでした。</p>
+  </div>
+
+  <div class="tp-theme__risk">
+    <div class="tp-callout tp-callout--risk">
+      <div>
+        <div class="tp-callout__title">失速シナリオ</div>
+        <div class="tp-callout__body">
+          <ul>
+            <li>AIブームの鈍化によりデータセンター新設・拡張計画が縮小し、電力設備投資需要が急減する</li>
+            <li>原材料・エネルギーコストの高騰が続き、重電メーカーの利益率が大幅に圧迫される</li>
+            <li>地政学リスクの高まりや規制強化によって、グローバルなインフラプロジェクトの受注が停滞する</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:12px;color:var(--text-mute);margin-top:8px">※ データ未取得: VERT（yfinance取得エラー）</p>
+</article>
+
+<article class="tp-theme">
+  <div class="tp-theme__head">
+    <div class="tp-theme__num">02</div>
+    <div class="tp-theme__title-block">
+      <h2 class="tp-theme__title">💰 株主還元強化・資本効率改善</h2>
+      <div class="tp-theme__angle">配当利回りの高さだけでなく、自社株買いの積極性や資本効率改善のロードマップを提示している企業をスクリーニングします。特に優待新設や増配を発表した中小型株の初動を狙う戦略が有効です。</div>
+    </div>
+  </div>
+  <div class="tp-theme__chips">
+    <span class="tp-chip">政策: 8</span>
+    <span class="tp-chip">市場: 7</span>
+    <span class="tp-chip">新規: 7</span>
+    <span class="tp-chip">持続: 8</span>
+  </div>
+
+  <div class="tp-market-label">🇯🇵 日本株</div>
+  <div class="tp-theme__stocks">
+    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
+
+    <!-- 日本株1位: MUFG -->
+    <div class="tp-stock-row tp-stock-row--top">
+      <div class="tp-stock-row__rank">1</div>
+      <div>
+        <div class="tp-stock-row__name">三菱UFJフィナンシャル・グループ</div>
+        <div class="tp-stock-row__sub">8306.JP<span class="tier">本命</span></div>
+      </div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="M0,13 C8,11 16,9 22,7 C28,5 34,5 42,4" fill="none" stroke="#7dc679" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">¥2,999</div>
+      <div class="tp-stock-row__change tp-up">+0.57%</div>
     </div>
     <div class="tp-score-bars">
       <div class="tp-score-bar">
@@ -585,36 +261,36 @@
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="22" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">22</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="84" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">84</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="85" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">85</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="76" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">76</div>
       </div>
     </div>
 
-    <!-- 3位: PL (テーマ直結度82, 業績モメンタム30, バリュエーション18, 財務健全性20, カタリスト72) 総合≈46 -->
+    <!-- 日本株2位: Toyota -->
     <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">3</div>
+      <div class="tp-stock-row__rank">2</div>
       <div>
-        <div class="tp-stock-row__name">Planet Labs</div>
-        <div class="tp-stock-row__sub">PL<span class="tier">思惑</span></div>
+        <div class="tp-stock-row__name">トヨタ自動車</div>
+        <div class="tp-stock-row__sub">7203.JP<span class="tier">大型安定</span></div>
       </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,13 10,10 21,8 32,6 42,4" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$44.95</div>
-      <div class="tp-stock-row__change tp-up">+5.80%</div>
+      <svg width="42" height="18" viewBox="0 0 42 18"><path d="M0,11 C8,10 16,9 22,8 C28,7 34,8 42,7" fill="none" stroke="#7dc679" stroke-width="1.2"/></svg>
+      <div class="tp-stock-row__price">¥3,042</div>
+      <div class="tp-stock-row__change tp-up">+0.40%</div>
     </div>
     <div class="tp-score-bars">
       <div class="tp-score-bar">
@@ -624,129 +300,18 @@
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="30" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">30</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="75" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">75</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="18" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">18</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="85" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">85</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
-      </div>
-    </div>
-
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">
-          ・スペースX IPO観測の後退または無期延期により、セクター全体のセンチメントが急冷する<br>
-          ・打ち上げ失敗・衛星コンステレーション展開の遅延により、資金調達環境が悪化し希薄化リスクが顕在化する<br>
-          ・米国の宇宙関連輸出規制強化や地政学リスクの拡大により、国際商業契約が停止・縮小される
-        </div>
-      </div>
-    </div>
-  </div>
-  <p style="font-size:12px;color:var(--text-mute);margin-top:8px">※ データ未取得: MAXR（yfinance取得エラー）</p>
-</article>
-
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">02</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">⚡ 化合物半導体・次世代パワーデバイス</h2>
-      <div class="tp-theme__angle">SiC／GaN材料・装置で世界シェアを握る日本企業への集中投資。EV・AIデータセンターの電力効率化需要を長期で取り込む。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 9</span>
-    <span class="tp-chip">市場: 8</span>
-    <span class="tp-chip">新規: 7</span>
-    <span class="tp-chip">持続: 9</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: 信越化学 (テーマ直結度92, 業績モメンタム62, バリュエーション65, 財務健全性100, カタリスト78) 総合≈79 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">信越化学工業</div>
-        <div class="tp-stock-row__sub">4063.JP<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,10 10,8 21,9 32,7 42,6" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥7,034</div>
-      <div class="tp-stock-row__change tp-up">+2.58%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="92" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">92</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="65" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">65</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="100" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">100</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
-      </div>
-    </div>
-
-    <!-- 2位: 日立製作所 (テーマ直結度80, 業績モメンタム58, バリュエーション58, 財務健全性80, カタリスト70) 総合≈70 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">日立製作所</div>
-        <div class="tp-stock-row__sub">6501.JP<span class="tier">大型安定</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,8 10,10 21,11 32,12 42,13" fill="none" stroke="#e07070" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥5,002</div>
-      <div class="tp-stock-row__change tp-down">-2.36%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="58" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">58</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="58" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">58</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
+        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="84" style="width:0%;"></div></div>
+        <div class="tp-score-bar__value tp-score-bar__value--hi">84</div>
       </div>
       <div class="tp-score-bar">
         <div class="tp-score-bar__label">カタリスト期待</div>
@@ -754,466 +319,112 @@
         <div class="tp-score-bar__value tp-score-bar__value--hi">70</div>
       </div>
     </div>
-
-    <!-- 3位: 太陽誘電 (テーマ直結度50, 業績モメンタム45, バリュエーション32, 財務健全性60, カタリスト62) 総合≈49 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">3</div>
-      <div>
-        <div class="tp-stock-row__name">太陽誘電</div>
-        <div class="tp-stock-row__sub">6976.JP<span class="tier">出遅れ</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,14 10,11 21,9 32,7 42,4" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥9,102</div>
-      <div class="tp-stock-row__change tp-up">+11.75%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="50" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">50</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="45" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">45</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="32" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">32</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="60" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">60</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-    </div>
-
   </div>
+
+  <div class="tp-market-label">🇺🇸 米国株</div>
+  <div class="tp-theme__stocks">
+    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
+    <p style="font-size:13px;color:var(--text-mute);padding:8px 4px;">※ 米国株データは今回取得できませんでした。</p>
+  </div>
+
   <div class="tp-theme__risk">
     <div class="tp-callout tp-callout--risk">
       <div>
         <div class="tp-callout__title">失速シナリオ</div>
         <div class="tp-callout__body">
-          ・半導体市況の急激な下振れにより、SiCウェハーや関連部品の価格が大幅下落し各社の収益性が悪化する<br>
-          ・中国・欧州メーカーの大規模増産により競合が激化し、日本企業の価格優位性・シェアが侵食される<br>
-          ・EV市場の成長鈍化やAIデータセンター投資の一時停滞により、パワーデバイス需要の拡大ペースが想定を下回る
+          <ul>
+            <li>金利上昇局面の終焉や景気後退により、金融機関の利ざや縮小と与信コスト増大が同時に進行し、増配・自社株買い余力が低下する</li>
+            <li>東証によるPBR改善要請への対応が形式的なものにとどまり、実質的な資本効率改善が進まず市場の失望を招く</li>
+            <li>円高進行やグローバル景気の急速な冷え込みにより、企業収益が大幅に悪化し還元施策の縮小・撤回が相次ぐ</li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
 </article>
-
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">03</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">💰 米国連続増配株</h2>
-      <div class="tp-theme__angle">AI・成長株の高ボラティリティへのヘッジとして、60年超の連続増配実績を持つ優良銘柄をコア資産に配置。複利と安定配当で長期資産形成を支える。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 5</span>
-    <span class="tp-chip">市場: 8</span>
-    <span class="tp-chip">新規: 6</span>
-    <span class="tp-chip">持続: 10</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: JNJ (テーマ直結度90, 業績モメンタム78, バリュエーション62, 財務健全性100, カタリスト68) 総合≈81 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">Johnson &amp; Johnson</div>
-        <div class="tp-stock-row__sub">JNJ<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,12 10,11 21,9 32,8 42,7" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$234.26</div>
-      <div class="tp-stock-row__change tp-up">+1.09%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="90" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">90</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="100" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">100</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="68" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">68</div>
-      </div>
-    </div>
-
-    <!-- 2位: KO (テーマ直結度88, 業績モメンタム72, バリュエーション60, 財務健全性100, カタリスト58) 総合≈78 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">Coca-Cola</div>
-        <div class="tp-stock-row__sub">KO<span class="tier">大型安定</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,9 10,9 21,10 32,10 42,10" fill="none" stroke="#e07070" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$81.09</div>
-      <div class="tp-stock-row__change tp-down">-0.10%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
-      </div>
-      <div class="tp-score-bar">
   </section>
 
   <div class="tp-divider-dashed"></div>
 
-  <!-- Stock comparison — pythonが <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（衛星ビジネス・宇宙インフラ）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Rocket Lab Corporation<div class="name-sub">RKLB.US</div></td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-      <tr>
-        <td>AST SpaceMobile, Inc.<div class="name-sub">ASTS.US</div></td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-      <tr>
-        <td>Planet Labs PBC<div class="name-sub">PL.US</div></td>
-        <td class="stars">★★★★☆</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（化合物半導体・次世代パワーデバイス）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>信越化学工業<div class="name-sub">4063.JP</div></td>
-        <td class="stars">★★★★☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>日立製作所<div class="name-sub">6501.JP</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★★☆</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>太陽誘電<div class="name-sub">6976.JP</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★☆☆☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（米国連続増配株）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>The Coca-Cola Company<div class="name-sub">KO.US</div></td>
-        <td class="stars">★★☆☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>Johnson &amp; Johnson<div class="name-sub">JNJ.US</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>The Procter &amp; Gamble Company<div class="name-sub">PG.US</div></td>
-        <td class="stars">★★☆☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★★☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section> を出力 -->
+  <!-- Stock comparison -->
   <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（衛星ビジネス・宇宙インフラ）</div></div>
+  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · 日米各3銘柄（電力インフラ・データセンター最適化）</div></div>
   <table class="tp-stars-table">
     <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
     <tbody>
       <tr>
-        <td>Rocket Lab Corporation<div class="name-sub">RKLB.US</div></td>
+        <td>Hitachi, Ltd.<div class="name-sub">6501.JP</div></td>
         <td class="stars">★★★★★</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
+        <td class="stars">★★★★★</td>
+        <td class="stars">★★★☆☆</td>
       </tr>
       <tr>
-        <td>AST SpaceMobile, Inc.<div class="name-sub">ASTS.US</div></td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-      <tr>
-        <td>Planet Labs PBC<div class="name-sub">PL.US</div></td>
+        <td>Mitsubishi Electric Corporation<div class="name-sub">6503.JP</div></td>
         <td class="stars">★★★★☆</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
+        <td class="stars">★★★★☆</td>
+        <td class="stars">★★★☆☆</td>
       </tr>
     </tbody>
   </table>
 </section>
 
 <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（化合物半導体・次世代パワーデバイス）</div></div>
+  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · 日米各3銘柄（株主還元強化・資本効率改善）</div></div>
   <table class="tp-stars-table">
     <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
     <tbody>
       <tr>
-        <td>信越化学工業<div class="name-sub">4063.JP</div></td>
-        <td class="stars">★★★★☆</td>
+        <td>Mitsubishi UFJ Financial Group, Inc.<div class="name-sub">8306.JP</div></td>
+        <td class="stars">★★★☆☆</td>
         <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>日立製作所<div class="name-sub">6501.JP</div></td>
-        <td class="stars">★★★☆☆</td>
         <td class="stars">★★★★☆</td>
-        <td class="stars">★★★☆☆</td>
       </tr>
       <tr>
-        <td>太陽誘電<div class="name-sub">6976.JP</div></td>
+        <td>Toyota Motor Corporation<div class="name-sub">7203.JP</div></td>
         <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★☆☆☆</td>
+        <td class="stars">★★★★★</td>
+        <td class="stars">★★★★★</td>
       </tr>
     </tbody>
   </table>
 </section>
 
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（米国連続増配株）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>The Coca-Cola Company<div class="name-sub">KO.US</div></td>
-        <td class="stars">★★☆☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>Johnson &amp; Johnson<div class="name-sub">JNJ.US</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>The Procter &amp; Gamble Company<div class="name-sub">PG.US</div></td>
-        <td class="stars">★★☆☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★★☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-  <!-- Supply chain — pythonが <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜衛星ビジネス・宇宙インフラ</div></div>
+  <!-- Supply chain -->
+  <section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜電力インフラ・データセンター最適化</div></div>
   <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
+    <thead>
+      <tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr>
+    </thead>
     <tbody>
-      <tr>
-        <td>Rocket Lab<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">RKLB</div></td>
-        <td>
-          <span class="rel">上流①</span>Aerojet Rocketdyne（AJRD）― エンジン部品・推進系部材の供給元<br>
-          <span class="rel">上流②</span>Hexcel Corporation（HXL）― 炭素繊維複合材料（機体構造材）の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>NASA ― 科学ミッション衛星の打ち上げ契約顧客<br>
-          <span class="rel">下流②</span>DARPA / 米国防総省 ― 国防・偵察衛星の打ち上げ・衛星システム契約顧客
-        </td>
-      </tr>
-      <tr>
-        <td>AST SpaceMobile<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">ASTS</div></td>
-        <td>
-          <span class="rel">上流①</span>Rocket Lab（RKLB）― 衛星バス・コンポーネントおよび打ち上げサービスの提供元<br>
-          <span class="rel">上流②</span>Thales Alenia Space（非上場）― 大型衛星アンテナパネルの製造・部品供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>AT&T（T）― 商用衛星通信サービスの提携通信キャリア顧客<br>
-          <span class="rel">下流②</span>Vodafone Group（VOD）― 欧州・新興国向け衛星通信サービスの提携キャリア顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Planet Labs<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">PL</div></td>
-        <td>
-          <span class="rel">上流①</span>SpaceX（非上場）― 衛星コンステレーションの打ち上げサービス提供元<br>
-          <span class="rel">上流②</span>SSTL（Surrey Satellite Technology、Airbus子会社）― 小型衛星バス・センサー技術の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>米国政府機関（NGA / USGS）― 防衛・地理情報向け地球観測データの主要購入顧客<br>
-          <span class="rel">下流②</span>Esri（非上場）― GISプラットフォームへの衛星画像データ連携・再販顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜化合物半導体・次世代パワーデバイス</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>信越化学工業<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">4063</div></td>
-        <td>
-          <span class="rel">上流①</span>太平洋セメント（5233）― SiCウェハー製造に使用する高純度炭化ケイ素原料の供給元<br>
-          <span class="rel">上流②</span>昭和電工マテリアルズ（旧日立化成、非上場）― 研磨材・スラリー等ウェハー加工補助材の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>STMicroelectronics（STM）― SiCウェハーを使ったパワーデバイス製造の主要顧客<br>
-          <span class="rel">下流②</span>ローム（6963）― 国内SiCパワーデバイスメーカーとしての主要ウェハー購入顧客
-        </td>
-      </tr>
       <tr>
         <td>日立製作所<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6501</div></td>
         <td>
-          <span class="rel">上流①</span>信越化学工業（4063）― SiCウェハー・シリコン材料の主要調達先<br>
-          <span class="rel">上流②</span>富士電機（6504）― パワーモジュール製造向けリードフレーム・封止材等の部品供給元
+          <span class="rel">上流①</span>三菱マテリアル（5711）<br>
+          <small style="color:var(--text-mute);">高圧変圧器・電力機器向け銅材・金属素材を供給</small><br><br>
+          <span class="rel">上流②</span>富士電機（6504）<br>
+          <small style="color:var(--text-mute);">半導体パワーデバイス・インバータ部品を供給</small>
         </td>
         <td>
-          <span class="rel">下流①</span>East Japan Railway（JR東日本、9020）― 鉄道車両向けSiCインバーターシステムの採用顧客<br>
-          <span class="rel">下流②</span>日立エナジー（Hitachi Energy、非上場子会社経由）― 電力インフラ向けパワーコンバージョン製品の顧客
-        </td>
-      </tr>
-      <tr>
-        <td>太陽誘電<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6976</div></td>
-        <td>
-          <span class="rel">上流①</span>住友金属鉱山（5713）― 積層セラミックコンデンサ（MLCC）用ニッケル粉末・貴金属材料の供給元<br>
-          <span class="rel">上流②</span>堺化学工業（4078）― 誘電体セラミック原料（チタン酸バリウム等）の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>Toyota Motor（7203）― 車載向けMLCC・インダクタ等受動部品の大口購入顧客<br>
-          <span class="rel">下流②</span>Apple Inc.（AAPL）― スマートフォン・ウェアラブル向けMLCCの主要採用顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜米国連続増配株</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Coca-Cola<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">KO</div></td>
-        <td>
-          <span class="rel">上流①</span>Archer-Daniels-Midland（ADM）― 甘味料（コーンシロップ・砂糖）および農産物原料の主要サプライヤー<br>
-          <span class="rel">上流②</span>Berry Global Group（BERY）― PETボトル・包装容器の主要部材供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>McDonald's Corporation（MCD）― 世界最大規模のフードサービス飲料提供パートナー兼顧客<br>
-          <span class="rel">下流②</span>Walmart Inc.（WMT）― 最大規模の小売流通チャネル顧客
+          <span class="rel">下流①</span>東京電力ホールディングス（9501）<br>
+          <small style="color:var(--text-mute);">送変電設備・電力網デジタル化システムの主要発注先</small><br><br>
+          <span class="rel">下流②</span>Amazon（AMZN）<br>
+          <small style="color:var(--text-mute);">AWS向けデータセンター電力管理・Lumadaソリューション導入先</small>
         </td>
       </tr>
       <tr>
-        <td>Johnson &amp; Johnson<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">JNJ</div></td>
+        <td>三菱電機<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6503</div></td>
         <td>
-          <span class="rel">上流①</span>Lonza Group（LONN）― 医薬品原薬（API）・バイオ医薬品CMO（受託製造）としての主要供給元<br>
-          <span class="rel">上流②</span>Becton Dickinson（BDX）― 医療機器製造向けデバイス部品・無菌包材の供給元
+          <span class="rel">上流①</span>住友電気工業（5802）<br>
+          <small style="color:var(--text-mute);">電線・ケーブル・配電機器向け導体素材を供給</small><br><br>
+          <span class="rel">上流②</span>ダイキン工業（6367）<br>
+          <small style="color:var(--text-mute);">空調・冷媒コンプレッサーなどコア部品を協調調達・技術連携</small>
         </td>
         <td>
-          <span class="rel">下流①</span>McKesson Corporation（MCK）― 医薬品・医療機器の大手卸売・流通顧客<br>
-          <span class="rel">下流②</span>CVS Health（CVS）― 処方薬・市販薬・医療消耗品の大手小売・薬局チェーン顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Procter &amp; Gamble<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">PG</div></td>
-        <td>
-          <span class="rel">上流①</span>International Flavors &amp; Fragrances（IFF）― 洗剤・シャンプー等向け香料・界面活性剤原料の供給元<br>
-          <span class="rel">上流②</span>Celanese Corporation（CE）― 包装材・容器向け樹脂・化学原料の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>Walmart Inc.（WMT）― 日用消費財の世界最大の小売流通チャネル顧客<br>
-          <span class="rel">下流②</span>Amazon.com（AMZN）― EC経由の日用品販売における主要オンライン流通顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section> を出力 -->
-  <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜衛星ビジネス・宇宙インフラ</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Rocket Lab<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">RKLB</div></td>
-        <td>
-          <span class="rel">上流①</span>Aerojet Rocketdyne（AJRD）― エンジン部品・推進系部材の供給元<br>
-          <span class="rel">上流②</span>Hexcel Corporation（HXL）― 炭素繊維複合材料（機体構造材）の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>NASA ― 科学ミッション衛星の打ち上げ契約顧客<br>
-          <span class="rel">下流②</span>DARPA / 米国防総省 ― 国防・偵察衛星の打ち上げ・衛星システム契約顧客
-        </td>
-      </tr>
-      <tr>
-        <td>AST SpaceMobile<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">ASTS</div></td>
-        <td>
-          <span class="rel">上流①</span>Rocket Lab（RKLB）― 衛星バス・コンポーネントおよび打ち上げサービスの提供元<br>
-          <span class="rel">上流②</span>Thales Alenia Space（非上場）― 大型衛星アンテナパネルの製造・部品供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>AT&T（T）― 商用衛星通信サービスの提携通信キャリア顧客<br>
-          <span class="rel">下流②</span>Vodafone Group（VOD）― 欧州・新興国向け衛星通信サービスの提携キャリア顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Planet Labs<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">PL</div></td>
-        <td>
-          <span class="rel">上流①</span>SpaceX（非上場）― 衛星コンステレーションの打ち上げサービス提供元<br>
-          <span class="rel">上流②</span>SSTL（Surrey Satellite Technology、Airbus子会社）― 小型衛星バス・センサー技術の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>米国政府機関（NGA / USGS）― 防衛・地理情報向け地球観測データの主要購入顧客<br>
-          <span class="rel">下流②</span>Esri（非上場）― GISプラットフォームへの衛星画像データ連携・再販顧客
+          <span class="rel">下流①</span>NTTコミュニケーションズ（NTT / 9432傘下）<br>
+          <small style="color:var(--text-mute);">国内大型データセンター向け空調・受配電システムの納入先</small><br><br>
+          <span class="rel">下流②</span>Microsoft（MSFT）<br>
+          <small style="color:var(--text-mute);">グローバルAzureデータセンター向け冷却・電力機器の供給先</small>
         </td>
       </tr>
     </tbody>
@@ -1221,83 +432,40 @@
 </section>
 
 <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜化合物半導体・次世代パワーデバイス</div></div>
+  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜株主還元強化・資本効率改善</div></div>
   <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
+    <thead>
+      <tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr>
+    </thead>
     <tbody>
       <tr>
-        <td>信越化学工業<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">4063</div></td>
+        <td>三菱UFJフィナンシャル・グループ<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">8306</div></td>
         <td>
-          <span class="rel">上流①</span>太平洋セメント（5233）― SiCウェハー製造に使用する高純度炭化ケイ素原料の供給元<br>
-          <span class="rel">上流②</span>昭和電工マテリアルズ（旧日立化成、非上場）― 研磨材・スラリー等ウェハー加工補助材の供給元
+          <span class="rel">上流①</span>日本IBM（非上場）<br>
+          <small style="color:var(--text-mute);">勘定系・リスク管理システムなど基幹ITインフラを提供</small><br><br>
+          <span class="rel">上流②</span>野村総合研究所（4307）<br>
+          <small style="color:var(--text-mute);">金融系システム開発・DXコンサルティングを提供</small>
         </td>
         <td>
-          <span class="rel">下流①</span>STMicroelectronics（STM）― SiCウェハーを使ったパワーデバイス製造の主要顧客<br>
-          <span class="rel">下流②</span>ローム（6963）― 国内SiCパワーデバイスメーカーとしての主要ウェハー購入顧客
-        </td>
-      </tr>
-      <tr>
-        <td>日立製作所<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6501</div></td>
-        <td>
-          <span class="rel">上流①</span>信越化学工業（4063）― SiCウェハー・シリコン材料の主要調達先<br>
-          <span class="rel">上流②</span>富士電機（6504）― パワーモジュール製造向けリードフレーム・封止材等の部品供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>East Japan Railway（JR東日本、9020）― 鉄道車両向けSiCインバーターシステムの採用顧客<br>
-          <span class="rel">下流②</span>日立エナジー（Hitachi Energy、非上場子会社経由）― 電力インフラ向けパワーコンバージョン製品の顧客
+          <span class="rel">下流①</span>トヨタ自動車（7203）<br>
+          <small style="color:var(--text-mute);">大口融資・財務サービス・事業債引受の主要法人顧客</small><br><br>
+          <span class="rel">下流②</span>個人投資家・機関投資家（一般）<br>
+          <small style="color:var(--text-mute);">自社株買い・増配により直接的に還元を受ける最終受益者</small>
         </td>
       </tr>
       <tr>
-        <td>太陽誘電<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6976</div></td>
+        <td>トヨタ自動車<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">7203</div></td>
         <td>
-          <span class="rel">上流①</span>住友金属鉱山（5713）― 積層セラミックコンデンサ（MLCC）用ニッケル粉末・貴金属材料の供給元<br>
-          <span class="rel">上流②</span>堺化学工業（4078）― 誘電体セラミック原料（チタン酸バリウム等）の供給元
+          <span class="rel">上流①</span>デンソー（6902）<br>
+          <small style="color:var(--text-mute);">エンジン制御・電動化部品・センサー類をグループ内供給</small><br><br>
+          <span class="rel">上流②</span>住友ゴム工業（5110）<br>
+          <small style="color:var(--text-mute);">純正タイヤ・防振ゴム部品を継続的に供給</small>
         </td>
         <td>
-          <span class="rel">下流①</span>Toyota Motor（7203）― 車載向けMLCC・インダクタ等受動部品の大口購入顧客<br>
-          <span class="rel">下流②</span>Apple Inc.（AAPL）― スマートフォン・ウェアラブル向けMLCCの主要採用顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜米国連続増配株</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Coca-Cola<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">KO</div></td>
-        <td>
-          <span class="rel">上流①</span>Archer-Daniels-Midland（ADM）― 甘味料（コーンシロップ・砂糖）および農産物原料の主要サプライヤー<br>
-          <span class="rel">上流②</span>Berry Global Group（BERY）― PETボトル・包装容器の主要部材供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>McDonald's Corporation（MCD）― 世界最大規模のフードサービス飲料提供パートナー兼顧客<br>
-          <span class="rel">下流②</span>Walmart Inc.（WMT）― 最大規模の小売流通チャネル顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Johnson &amp; Johnson<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">JNJ</div></td>
-        <td>
-          <span class="rel">上流①</span>Lonza Group（LONN）― 医薬品原薬（API）・バイオ医薬品CMO（受託製造）としての主要供給元<br>
-          <span class="rel">上流②</span>Becton Dickinson（BDX）― 医療機器製造向けデバイス部品・無菌包材の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>McKesson Corporation（MCK）― 医薬品・医療機器の大手卸売・流通顧客<br>
-          <span class="rel">下流②</span>CVS Health（CVS）― 処方薬・市販薬・医療消耗品の大手小売・薬局チェーン顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Procter &amp; Gamble<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">PG</div></td>
-        <td>
-          <span class="rel">上流①</span>International Flavors &amp; Fragrances（IFF）― 洗剤・シャンプー等向け香料・界面活性剤原料の供給元<br>
-          <span class="rel">上流②</span>Celanese Corporation（CE）― 包装材・容器向け樹脂・化学原料の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>Walmart Inc.（WMT）― 日用消費財の世界最大の小売流通チャネル顧客<br>
-          <span class="rel">下流②</span>Amazon.com（AMZN）― EC経由の日用品販売における主要オンライン流通顧客
+          <span class="rel">下流①</span>トヨタモビリティ東京（非上場）<br>
+          <small style="color:var(--text-mute);">国内最大級の販売ディーラー網として完成車を販売</small><br><br>
+          <span class="rel">下流②</span>豊田通商（8015）<br>
+          <small style="color:var(--text-mute);">海外向け完成車輸出・流通・販売金融サービスを担う</small>
         </td>
       </tr>
     </tbody>
@@ -1307,38 +475,20 @@
   <!-- Risk scenarios (already inline per theme; keep this for back-compat) -->
   
 
-  <!-- Changes (前月比) — pythonが (empty response) を出力 -->
-  (empty response)
+  <!-- Changes (前月比) -->
+  
 
-  <!-- Source links — pythonが <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>
-  <div class="tp-sources">
-    <div class="tp-sources__group">衛星ビジネス・宇宙インフラ</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTE5OUmtYUnoyMk4wQlA0cjYtX3VxSzNaWHVYLWM1cExRQzdvT2Vza0tiT194bkt2ZjNreWw3UlV4S0FhZU9HQko1VHlLR09fVzVHQ3F3?oc=5" target="_blank" rel="noopener">｢衛星ビジネス｣関連銘柄を紹介！ 史上最大のIPO｢スペースX｣のナスダック上場を6月12日に控え、関連テーマで資金流入が見込める｢衛星ビジネス｣関連株を解説 - ダイヤモンド・オンライン</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTFA2VzJOQkZLdUxNZ0VrZV82Ym9pa3M2TFIyOC1rMjRfTDRVdXZOMkRGdWMxeHQtSmFveHRzWThBVjFaZUZtSGdTX3hzQk1kal92TWpn?oc=5" target="_blank" rel="noopener">【NISA】“1年で株価2倍”が狙える｢テーマ株｣2銘柄！ フィジカルAI関連で業績を伸ばす｢ダイフク｣、意外な防衛関連銘柄として注目される｢スカパーJSAT｣を紹介 - ダイヤモンド・オンライン</a>
-    <div class="tp-sources__group">化合物半導体・次世代パワーデバイス</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMingFBVV95cUxQTDJ2U19jTmhndGNKeDhmS0tyUVBXal9GNERNb2h6dXpibXcydUFORTI5NjNGYlRyNmV0Mkd4UklweHhVQndmS0ZVZ05salpwRGRpS0JmUllDUEVqVGNRRk0yLWdObHJUWHJFTS03R2gxR2g2S0hKcVNOaXZJQnBLQUYteE1HSVNwYm5pdHMxaFNyejVNcXBHSmFfVjdHdw?oc=5" target="_blank" rel="noopener">日本の化合物半導体材料市場調査レポート、規模とシェア、予測2035年 - researchnester.jp</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiT0FVX3lxTE1nUGtGeFNWUGw0aS1zdWUtdkUxM2I5c0twUkxtOThnc0N3M1Q4cURERzJ4Tm5iazVoYlJWekt3V1lySUR3S0NGLXVtY0V3bG8?oc=5" target="_blank" rel="noopener">GaNパワーデバイス市場は2035年までに69億8100万米ドル規模へ急拡大 高効率電力変換需要を背景にCAGR 28.28％で成長予測 - アットプレス</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiiwJBVV95cUxOR01VcEQ5OG1qQ2ZkeWVFV1YtUWxrS0ktMmc4b0JjamVCTjFiakNRbGl6VHJNdDlMWEFtOU43aWJXM1lGWXlWTTFNZDM2dC13WExiX1NZbkhURkNqOXRlVEQ2bndHM0FPMERITF9rYngxckZwa1VfN0lVdkpDTmF4S0VIZjVRaVZuVTZCbGROX0dvaUxGT3BOOHlWalVfSHNuaF9jdkVLdGh4RkYzemtjOHpzMUVjWko1TERralVVLTN5ZzNkSnBlWVJ6X3JrRHkzNkczS2h6ZGhXeEFSVDIwRmJXNHhXWjJzalRrQjhBS0p0OVJoVTR0SnFDc29yd3Z2bGNVb0otYW1CeTg?oc=5" target="_blank" rel="noopener">炭化ケイ素 (SiC) デバイスの市場規模、シェア |トレンド [2034] - Fortune Business Insights</a>
-    <div class="tp-sources__group">米国連続増配株</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiX0FVX3lxTE5KVjdZTVFNNlo1dnBXR3ZoaVVpd0FreFRGYjY5dTJGZkFaZFk2VDdrTG5wRnh0VmZrZXFySnRBdUVJclVDY2g4M2p1RkVxRklvdHc5Mk1GblVzNjIwOUZB?oc=5" target="_blank" rel="noopener">米国連続増配株とは？ AI以外の分散投資先として注目 野村證券・村山誠 - nomura.co.jp</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMia0FVX3lxTFA2b0V0aFBDek1nbHdOekhKNlljSVlpZXptcEVjWkt3c2pGMUJSbWFIandPVGRSbkE4emdHZ1VrWi03Rm5FVzBSbUdLcEdMWU5YNDVMVHRicDRPaTVJU2NTZmxURDV6dVNjSnJn?oc=5" target="_blank" rel="noopener">1分でチェック！今週の米国株式 - SBI証券</a>
-  </div>
-</section>
- を出力 -->
+  <!-- Source links -->
   <section class="tp-section">
   <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>
   <div class="tp-sources">
-    <div class="tp-sources__group">衛星ビジネス・宇宙インフラ</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTE5OUmtYUnoyMk4wQlA0cjYtX3VxSzNaWHVYLWM1cExRQzdvT2Vza0tiT194bkt2ZjNreWw3UlV4S0FhZU9HQko1VHlLR09fVzVHQ3F3?oc=5" target="_blank" rel="noopener">｢衛星ビジネス｣関連銘柄を紹介！ 史上最大のIPO｢スペースX｣のナスダック上場を6月12日に控え、関連テーマで資金流入が見込める｢衛星ビジネス｣関連株を解説 - ダイヤモンド・オンライン</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTFA2VzJOQkZLdUxNZ0VrZV82Ym9pa3M2TFIyOC1rMjRfTDRVdXZOMkRGdWMxeHQtSmFveHRzWThBVjFaZUZtSGdTX3hzQk1kal92TWpn?oc=5" target="_blank" rel="noopener">【NISA】“1年で株価2倍”が狙える｢テーマ株｣2銘柄！ フィジカルAI関連で業績を伸ばす｢ダイフク｣、意外な防衛関連銘柄として注目される｢スカパーJSAT｣を紹介 - ダイヤモンド・オンライン</a>
-    <div class="tp-sources__group">化合物半導体・次世代パワーデバイス</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMingFBVV95cUxQTDJ2U19jTmhndGNKeDhmS0tyUVBXal9GNERNb2h6dXpibXcydUFORTI5NjNGYlRyNmV0Mkd4UklweHhVQndmS0ZVZ05salpwRGRpS0JmUllDUEVqVGNRRk0yLWdObHJUWHJFTS03R2gxR2g2S0hKcVNOaXZJQnBLQUYteE1HSVNwYm5pdHMxaFNyejVNcXBHSmFfVjdHdw?oc=5" target="_blank" rel="noopener">日本の化合物半導体材料市場調査レポート、規模とシェア、予測2035年 - researchnester.jp</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiT0FVX3lxTE1nUGtGeFNWUGw0aS1zdWUtdkUxM2I5c0twUkxtOThnc0N3M1Q4cURERzJ4Tm5iazVoYlJWekt3V1lySUR3S0NGLXVtY0V3bG8?oc=5" target="_blank" rel="noopener">GaNパワーデバイス市場は2035年までに69億8100万米ドル規模へ急拡大 高効率電力変換需要を背景にCAGR 28.28％で成長予測 - アットプレス</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiiwJBVV95cUxOR01VcEQ5OG1qQ2ZkeWVFV1YtUWxrS0ktMmc4b0JjamVCTjFiakNRbGl6VHJNdDlMWEFtOU43aWJXM1lGWXlWTTFNZDM2dC13WExiX1NZbkhURkNqOXRlVEQ2bndHM0FPMERITF9rYngxckZwa1VfN0lVdkpDTmF4S0VIZjVRaVZuVTZCbGROX0dvaUxGT3BOOHlWalVfSHNuaF9jdkVLdGh4RkYzemtjOHpzMUVjWko1TERralVVLTN5ZzNkSnBlWVJ6X3JrRHkzNkczS2h6ZGhXeEFSVDIwRmJXNHhXWjJzalRrQjhBS0p0OVJoVTR0SnFDc29yd3Z2bGNVb0otYW1CeTg?oc=5" target="_blank" rel="noopener">炭化ケイ素 (SiC) デバイスの市場規模、シェア |トレンド [2034] - Fortune Business Insights</a>
-    <div class="tp-sources__group">米国連続増配株</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiX0FVX3lxTE5KVjdZTVFNNlo1dnBXR3ZoaVVpd0FreFRGYjY5dTJGZkFaZFk2VDdrTG5wRnh0VmZrZXFySnRBdUVJclVDY2g4M2p1RkVxRklvdHc5Mk1GblVzNjIwOUZB?oc=5" target="_blank" rel="noopener">米国連続増配株とは？ AI以外の分散投資先として注目 野村證券・村山誠 - nomura.co.jp</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMia0FVX3lxTFA2b0V0aFBDek1nbHdOekhKNlljSVlpZXptcEVjWkt3c2pGMUJSbWFIandPVGRSbkE4emdHZ1VrWi03Rm5FVzBSbUdLcEdMWU5YNDVMVHRicDRPaTVJU2NTZmxURDV6dVNjSnJn?oc=5" target="_blank" rel="noopener">1分でチェック！今週の米国株式 - SBI証券</a>
+    <div class="tp-sources__group">電力インフラ・データセンター最適化</div>
+    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiV0FVX3lxTFBRa1pWUEZfZmRDOWVIeDg3akc3c1NWdkUxQXlkY09veXQ4bjBMdWgzZEJZTnJKWEpOeTBqVlZFb0xFTV9QMjZYYUY2Q3MxbTBnM3FPazdRcw?oc=5" target="_blank" rel="noopener">AI相場の第二幕？kenmo氏が注目する｢電力インフラ｣3銘柄 - 会社四季報オンライン</a>
+    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiY0FVX3lxTE5qR1VpR1REMDdUOWhnajlOcmRGc1JoRWhHUGkzQ1hyTmYyVHJNTVBTdXoxLXR4dS1MXzlVSVhWdzlsR05sR0tfb28xeV8wbGJ6QWdCd2g2amk0R2EzQWNFYXRmOA?oc=5" target="_blank" rel="noopener">パワー半導体業界 AIデータセンターや人型ロボット、EVがけん引 - 日経BP</a>
+    <div class="tp-sources__group">株主還元強化・資本効率改善</div>
+    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiWEFVX3lxTFBDY0QyM0g4T1c1MkszOUQ0Q1BCNkZodGZzRXNFTUZZc25ZRy1EUWZlMk8xTEtjM1g0VVVYNTZVcWxqYVZpVWZ2Rm92amwxMU1ySXMzbmhBdFA?oc=5" target="_blank" rel="noopener">三井住友が株主優待新設！ F＆LC・日本ハム株式分割後100株で/日経平均最高値【今日の注目株＆日本株市場見通し】「デイリーZAi」5月29日号 - ダイヤモンド・オンライン</a>
+    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiYEFVX3lxTE5SNUszUXZLRzBLaXljcHdXYnBtcXR6OTA5djZFVnlSb1NkcXl5bEhjVEdqZVgwaUhfTlFNWnFmZjBFeUtLSzFQY0pLdUVSazVDZXhUZHBicFhIMGNlaTJ5Zg?oc=5" target="_blank" rel="noopener">本日注目の【自社株買い】銘柄 (28日大引け後 発表分) | 注目株 - 株探ニュース - 株探（かぶたん）</a>
+    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTE5HRmZBQ3lQMWt5d0gta0M1cnpMal9kQ1RnMi1EYVc3LWVEQy1uZUI4THd0RllXcFlFWUFSUFEtbW5JRm01SHN2S1NGeWJGOUZNRzlr?oc=5" target="_blank" rel="noopener">決算で「増益率アップ」村田製作所、「上方修正」F＆LCに注目！/日経平均続落【今日の注目株＆日本株市場見通し】「デイリーZAi」5月20日号 - ダイヤモンド・オンライン</a>
   </div>
 </section>
 
@@ -1346,13 +496,13 @@
   <footer class="tp-colophon">
     THE PICKER · 2026年5月<br>
     GENERATED BY gemini-3.1-flash-lite-preview / claude-sonnet-4-6<br>
-    DATA: yfinance · GOOGLE NEWS RSS · 2026年05月22日<br>
+    DATA: yfinance · GOOGLE NEWS RSS · 2026年05月30日<br>
     NOT INVESTMENT ADVICE
   </footer>
 
 </div>
 
-<!-- Per-stock Chart.js price charts (pythonが  を出力) -->
+<!-- Per-stock Chart.js price charts -->
 
 
 <!-- Card open/close + score bar animation -->
@@ -1376,783 +526,6 @@ document.querySelectorAll('.tp-score-bars').forEach(el => obs.observe(el));
 </script>
 
 
-
-<!--
-===============================================================================
-PYTHON 生成HTML 例 (step2_report.py で組み立てる雛形)
-===============================================================================
-
-[1] <section class="tp-cover">
-  <div class="tp-cover__kicker">注目テーマ 3件 · 銘柄 9件</div>
-  <h1 class="tp-cover__title">今月の注目と<br><span class="tp-italic-gold">テーマ株</span>の<br>を徹底解説</h1>
-</section>
-
-<section class="tp-cover">
-  <div class="tp-cover__kicker">注目テーマ {{ theme_count }}件 · 銘柄 {{ stock_count }}件</div>
-  <h1 class="tp-cover__title">{{ headline_pre }}と<br><span class="tp-italic-gold">{{ headline_focus }}</span>の<br>{{ headline_post }}</h1>
-</section>
-
-[2] <section class="tp-section--tight">
-  <div class="tp-stat-strip tp-stat-strip--5">
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">3</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">9</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+0.0%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div><div class="tp-stat-cell__value">0%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+0.0%</div></div>
-  </div>
-</section>
-
-<section class="tp-section--tight">
-  <div class="tp-stat-strip tp-stat-strip--5">
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">テーマ</div><div class="tp-stat-cell__value">{{ themes }}</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">銘柄</div><div class="tp-stat-cell__value">{{ stocks }}</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">1M Avg</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+{{ avg_ret }}%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">勝率</div><div class="tp-stat-cell__value">{{ win_rate }}%</div></div>
-    <div class="tp-stat-cell"><div class="tp-stat-cell__label">前月比</div><div class="tp-stat-cell__value tp-stat-cell__value--green">+{{ prev_month_ret }}%</div></div>
-  </div>
-</section>
-
-[3] <section class="tp-section">
-  <div class="tp-lede">
-    <span class="tp-lede__drop">先</span>月の株式・経済市場は、AI・半導体ブームの継続と地政学リスクやインフレ懸念が交錯する中、「成長株の選別」と「安定資産への回帰」という二極化が鮮明に進みました。日本市場では、国策として指定された17分野の産業政策への期待が高まり、SiC・GaNといった化合物半導体や次世代パワーデバイスを手掛ける企業を中心に好業績銘柄への資金集中が顕著となりました。脱炭素化やAIデータセンター需要の拡大を背景に、電力効率化技術で高い競争力を持つ日本メーカーへの注目が一段と強まっています。米国市場ではスペースXのナスダック上場観測が浮上し、衛星通信・宇宙インフラビジネスが商業化の新局面へ移行しつつあるとして、巨大な資本流入への期待が市場を活気づけました。一方、AI関連銘柄のボラティリティ上昇を受け、安定したキャッシュフローと株主還元を誇る連続増配株への再評価も進み、ポートフォリオの安定化を志向する投資家層から注目を集めています。全体として市場は、バブル的な上昇と実体経済の成長のバランスを模索しながら、テーマ投資と安定資産の両立という新たな局面に差し掛かっています。
-  </div>
-  <div class="tp-byline">市場概況</div>
-</section>
-<section class="tp-section">
-  <div class="tp-lede">
-    <span class="tp-lede__drop">{{ overview_first_char }}</span>{{ overview_rest }}
-  </div>
-  <div class="tp-byline">{{ generated_at }}</div>
-</section>
-
-[4] <section class="tp-section--tight">
-  <div class="tp-callout tp-callout--warn">
-    <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>
-    <div class="tp-callout__body">
-      <strong style="color:var(--gold)">セクター分散注意:</strong> Technology、Industrials セクターが偏重しています。分散投資の観点から他の業種との組み合わせをお勧めします。
-    </div>
-  </div>
-</section>
-  (警告ありの時のみ、無いなら空文字)
-<section class="tp-section--tight">
-  <div class="tp-callout tp-callout--warn">
-    <svg class="tp-callout__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.8L2.8 18a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg>
-    <div class="tp-callout__body">
-      <strong style="color:var(--gold)">セクター分散注意:</strong> {{ warning_message }}
-    </div>
-  </div>
-</section>
-
-[5]   (前月号銘柄の成績)
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">前月の成績</div></div>
-  <div style="padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;">
-      <span style="font-size:11.5px;color:var(--text-dim);">{{ prev_month }}号 推奨銘柄 平均</span>
-      <span style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green);">+{{ avg }}%</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim);">
-      <span>勝率 <span style="color:var(--text);font-weight:600;">{{ win }}%</span></span>
-      <span>最高 <span style="color:var(--green);font-weight:600;">+{{ best }}%</span></span>
-      <span>最低 <span style="color:var(--red);font-weight:600;">{{ worst }}%</span></span>
-      <span>{{ count }}銘柄</span>
-    </div>
-  </div>
-</section>
-
-[6] <article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">01</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">🚀 衛星ビジネス・宇宙インフラ</h2>
-      <div class="tp-theme__angle">スペースXのIPO観測を契機に、衛星通信・地球観測など宇宙インフラのサプライチェーン全体へ先行投資。防衛・民間需要の二極成長を狙う。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 8</span>
-    <span class="tp-chip">市場: 9</span>
-    <span class="tp-chip">新規: 9</span>
-    <span class="tp-chip">持続: 9</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: RKLB (テーマ直結度90, 業績モメンタム38, バリュエーション20, 財務健全性20, カタリスト90) 総合≈52 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">Rocket Lab</div>
-        <div class="tp-stock-row__sub">RKLB<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,14 10,11 21,8 32,5 42,2" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$137.53</div>
-      <div class="tp-stock-row__change tp-up">+9.63%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="90" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">90</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="38" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">38</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="20" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">20</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-    </div>
-
-    <!-- 2位: ASTS (テーマ直結度88, 業績モメンタム25, バリュエーション22, 財務健全性20, カタリスト85) 総合≈49 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">AST SpaceMobile</div>
-        <div class="tp-stock-row__sub">ASTS<span class="tier">ハイリスク</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,15 10,12 21,9 32,6 42,3" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$107.08</div>
-      <div class="tp-stock-row__change tp-up">+11.28%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="22" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">22</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="85" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">85</div>
-      </div>
-    </div>
-
-    <!-- 3位: PL (テーマ直結度82, 業績モメンタム30, バリュエーション18, 財務健全性20, カタリスト72) 総合≈46 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">3</div>
-      <div>
-        <div class="tp-stock-row__name">Planet Labs</div>
-        <div class="tp-stock-row__sub">PL<span class="tier">思惑</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,13 10,10 21,8 32,6 42,4" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$44.95</div>
-      <div class="tp-stock-row__change tp-up">+5.80%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="82" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">82</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="30" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">30</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="18" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">18</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="25" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">25</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
-      </div>
-    </div>
-
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">
-          ・スペースX IPO観測の後退または無期延期により、セクター全体のセンチメントが急冷する<br>
-          ・打ち上げ失敗・衛星コンステレーション展開の遅延により、資金調達環境が悪化し希薄化リスクが顕在化する<br>
-          ・米国の宇宙関連輸出規制強化や地政学リスクの拡大により、国際商業契約が停止・縮小される
-        </div>
-      </div>
-    </div>
-  </div>
-  <p style="font-size:12px;color:var(--text-mute);margin-top:8px">※ データ未取得: MAXR（yfinance取得エラー）</p>
-</article>
-
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">02</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">⚡ 化合物半導体・次世代パワーデバイス</h2>
-      <div class="tp-theme__angle">SiC／GaN材料・装置で世界シェアを握る日本企業への集中投資。EV・AIデータセンターの電力効率化需要を長期で取り込む。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 9</span>
-    <span class="tp-chip">市場: 8</span>
-    <span class="tp-chip">新規: 7</span>
-    <span class="tp-chip">持続: 9</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: 信越化学 (テーマ直結度92, 業績モメンタム62, バリュエーション65, 財務健全性100, カタリスト78) 総合≈79 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">信越化学工業</div>
-        <div class="tp-stock-row__sub">4063.JP<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,10 10,8 21,9 32,7 42,6" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥7,034</div>
-      <div class="tp-stock-row__change tp-up">+2.58%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="92" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">92</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="65" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">65</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="100" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">100</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
-      </div>
-    </div>
-
-    <!-- 2位: 日立製作所 (テーマ直結度80, 業績モメンタム58, バリュエーション58, 財務健全性80, カタリスト70) 総合≈70 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">日立製作所</div>
-        <div class="tp-stock-row__sub">6501.JP<span class="tier">大型安定</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,8 10,10 21,11 32,12 42,13" fill="none" stroke="#e07070" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥5,002</div>
-      <div class="tp-stock-row__change tp-down">-2.36%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="58" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">58</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="58" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">58</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="80" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">80</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="70" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">70</div>
-      </div>
-    </div>
-
-    <!-- 3位: 太陽誘電 (テーマ直結度50, 業績モメンタム45, バリュエーション32, 財務健全性60, カタリスト62) 総合≈49 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">3</div>
-      <div>
-        <div class="tp-stock-row__name">太陽誘電</div>
-        <div class="tp-stock-row__sub">6976.JP<span class="tier">出遅れ</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,14 10,11 21,9 32,7 42,4" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">¥9,102</div>
-      <div class="tp-stock-row__change tp-up">+11.75%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="50" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">50</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="45" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">45</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill" data-width="32" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">32</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="60" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">60</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-    </div>
-
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">
-          ・半導体市況の急激な下振れにより、SiCウェハーや関連部品の価格が大幅下落し各社の収益性が悪化する<br>
-          ・中国・欧州メーカーの大規模増産により競合が激化し、日本企業の価格優位性・シェアが侵食される<br>
-          ・EV市場の成長鈍化やAIデータセンター投資の一時停滞により、パワーデバイス需要の拡大ペースが想定を下回る
-        </div>
-      </div>
-    </div>
-  </div>
-</article>
-
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">03</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">💰 米国連続増配株</h2>
-      <div class="tp-theme__angle">AI・成長株の高ボラティリティへのヘッジとして、60年超の連続増配実績を持つ優良銘柄をコア資産に配置。複利と安定配当で長期資産形成を支える。</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    <span class="tp-chip">政策: 5</span>
-    <span class="tp-chip">市場: 8</span>
-    <span class="tp-chip">新規: 6</span>
-    <span class="tp-chip">持続: 10</span>
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    <!-- 1位: JNJ (テーマ直結度90, 業績モメンタム78, バリュエーション62, 財務健全性100, カタリスト68) 総合≈81 -->
-    <div class="tp-stock-row tp-stock-row--top">
-      <div class="tp-stock-row__rank">1</div>
-      <div>
-        <div class="tp-stock-row__name">Johnson &amp; Johnson</div>
-        <div class="tp-stock-row__sub">JNJ<span class="tier">本命</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,12 10,11 21,9 32,8 42,7" fill="none" stroke="#7dc679" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$234.26</div>
-      <div class="tp-stock-row__change tp-up">+1.09%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="90" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">90</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="78" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">78</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">バリュエーション</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="62" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">62</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">財務健全性</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="100" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">100</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">カタリスト期待</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--mid" data-width="68" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value">68</div>
-      </div>
-    </div>
-
-    <!-- 2位: KO (テーマ直結度88, 業績モメンタム72, バリュエーション60, 財務健全性100, カタリスト58) 総合≈78 -->
-    <div class="tp-stock-row">
-      <div class="tp-stock-row__rank">2</div>
-      <div>
-        <div class="tp-stock-row__name">Coca-Cola</div>
-        <div class="tp-stock-row__sub">KO<span class="tier">大型安定</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><polyline points="0,9 10,9 21,10 32,10 42,10" fill="none" stroke="#e07070" stroke-width="1.5"/></svg>
-      <div class="tp-stock-row__price">$81.09</div>
-      <div class="tp-stock-row__change tp-down">-0.10%</div>
-    </div>
-    <div class="tp-score-bars">
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">テーマ直結度</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="88" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">88</div>
-      </div>
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">業績モメンタム</div>
-        <div class="tp-score-bar__track"><div class="tp-score-bar__fill tp-score-bar__fill--hi" data-width="72" style="width:0%;"></div></div>
-        <div class="tp-score-bar__value tp-score-bar__value--hi">72</div>
-      </div>
-      <div class="tp-score-bar">  ← テーマ1件分
-<article class="tp-theme">
-  <div class="tp-theme__head">
-    <div class="tp-theme__num">{{ '%02d' % theme.idx }}</div>
-    <div class="tp-theme__title-block">
-      <h2 class="tp-theme__title">{{ theme.name }}</h2>
-      <div class="tp-theme__angle">{{ theme.angle }}</div>
-    </div>
-  </div>
-  <div class="tp-theme__chips">
-    {% for c in theme.score_chips %}<span class="tp-chip">{{ c }}</span>{% endfor %}
-  </div>
-  <div class="tp-theme__stocks">
-    <div class="tp-stocks-head"><span>#</span><span>銘柄</span><span>CHART</span><span>VALUE</span><span>1D</span></div>
-
-    {% for s in theme.stocks %}
-    <div class="tp-stock-row{% if loop.first %} tp-stock-row--top{% endif %}">
-      <div class="tp-stock-row__rank">{{ s.rank }}</div>
-      <div>
-        <div class="tp-stock-row__name">{{ s.name }}</div>
-        <div class="tp-stock-row__sub">{{ s.code }}.{{ s.market }}<span class="tier">{{ s.tier }}</span></div>
-      </div>
-      <svg width="42" height="18" viewBox="0 0 42 18"><path d="{{ s.spark_path }}" fill="none" stroke="{{ '#7dc679' if s.change>=0 else '#e16158' }}" stroke-width="1.2"/></svg>
-      <div class="tp-stock-row__price">{{ s.currency }}{{ s.price }}</div>
-      <div class="tp-stock-row__change {{ 'tp-up' if s.change>=0 else 'tp-down' }}">{{ '+' if s.change>=0 else '' }}{{ s.change }}%</div>
-    </div>
-    <div class="tp-score-bars">
-      {% for k, v in s.scores.items() %}
-      <div class="tp-score-bar">
-        <div class="tp-score-bar__label">{{ k }}</div>
-        <div class="tp-score-bar__track">
-          <div class="tp-score-bar__fill {{ 'tp-score-bar__fill--hi' if v>=70 else ('tp-score-bar__fill--mid' if v>=50 else '') }}" data-width="{{ v }}" style="width:0%;"></div>
-        </div>
-        <div class="tp-score-bar__value {{ 'tp-score-bar__value--hi' if v>=70 else '' }}">{{ v }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endfor %}
-  </div>
-  <div class="tp-theme__risk">
-    <div class="tp-callout tp-callout--risk">
-      <div>
-        <div class="tp-callout__title">失速シナリオ</div>
-        <div class="tp-callout__body">{{ theme.risk }}</div>
-      </div>
-    </div>
-  </div>
-</article>
-
-[7] <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（衛星ビジネス・宇宙インフラ）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Rocket Lab Corporation<div class="name-sub">RKLB.US</div></td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-      <tr>
-        <td>AST SpaceMobile, Inc.<div class="name-sub">ASTS.US</div></td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-      <tr>
-        <td>Planet Labs PBC<div class="name-sub">PL.US</div></td>
-        <td class="stars">★★★★☆</td>
-        <td class="stars">★☆☆☆☆</td>
-        <td class="stars">★☆☆☆☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（化合物半導体・次世代パワーデバイス）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>信越化学工業<div class="name-sub">4063.JP</div></td>
-        <td class="stars">★★★★☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>日立製作所<div class="name-sub">6501.JP</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★★☆</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>太陽誘電<div class="name-sub">6976.JP</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★☆☆☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 3（米国連続増配株）</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>The Coca-Cola Company<div class="name-sub">KO.US</div></td>
-        <td class="stars">★★☆☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>Johnson &amp; Johnson<div class="name-sub">JNJ.US</div></td>
-        <td class="stars">★★★☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★☆☆</td>
-      </tr>
-      <tr>
-        <td>The Procter &amp; Gamble Company<div class="name-sub">PG.US</div></td>
-        <td class="stars">★★☆☆☆</td>
-        <td class="stars">★★★★★</td>
-        <td class="stars">★★★★☆</td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">銘柄比較 · Top 5</div></div>
-  <table class="tp-stars-table">
-    <thead><tr><th>銘柄</th><th>成長</th><th>安定</th><th>割安</th></tr></thead>
-    <tbody>
-      {% for s in top_stocks %}
-      <tr>
-        <td>{{ s.name }}<div class="name-sub">{{ s.code }}.{{ s.market }}</div></td>
-        <td class="stars">{{ s.growth_stars }}</td>
-        <td class="stars">{{ s.stability_stars }}</td>
-        <td class="stars">{{ s.value_stars }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-[8] <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜衛星ビジネス・宇宙インフラ</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Rocket Lab<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">RKLB</div></td>
-        <td>
-          <span class="rel">上流①</span>Aerojet Rocketdyne（AJRD）― エンジン部品・推進系部材の供給元<br>
-          <span class="rel">上流②</span>Hexcel Corporation（HXL）― 炭素繊維複合材料（機体構造材）の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>NASA ― 科学ミッション衛星の打ち上げ契約顧客<br>
-          <span class="rel">下流②</span>DARPA / 米国防総省 ― 国防・偵察衛星の打ち上げ・衛星システム契約顧客
-        </td>
-      </tr>
-      <tr>
-        <td>AST SpaceMobile<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">ASTS</div></td>
-        <td>
-          <span class="rel">上流①</span>Rocket Lab（RKLB）― 衛星バス・コンポーネントおよび打ち上げサービスの提供元<br>
-          <span class="rel">上流②</span>Thales Alenia Space（非上場）― 大型衛星アンテナパネルの製造・部品供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>AT&T（T）― 商用衛星通信サービスの提携通信キャリア顧客<br>
-          <span class="rel">下流②</span>Vodafone Group（VOD）― 欧州・新興国向け衛星通信サービスの提携キャリア顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Planet Labs<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">PL</div></td>
-        <td>
-          <span class="rel">上流①</span>SpaceX（非上場）― 衛星コンステレーションの打ち上げサービス提供元<br>
-          <span class="rel">上流②</span>SSTL（Surrey Satellite Technology、Airbus子会社）― 小型衛星バス・センサー技術の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>米国政府機関（NGA / USGS）― 防衛・地理情報向け地球観測データの主要購入顧客<br>
-          <span class="rel">下流②</span>Esri（非上場）― GISプラットフォームへの衛星画像データ連携・再販顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜化合物半導体・次世代パワーデバイス</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>信越化学工業<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">4063</div></td>
-        <td>
-          <span class="rel">上流①</span>太平洋セメント（5233）― SiCウェハー製造に使用する高純度炭化ケイ素原料の供給元<br>
-          <span class="rel">上流②</span>昭和電工マテリアルズ（旧日立化成、非上場）― 研磨材・スラリー等ウェハー加工補助材の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>STMicroelectronics（STM）― SiCウェハーを使ったパワーデバイス製造の主要顧客<br>
-          <span class="rel">下流②</span>ローム（6963）― 国内SiCパワーデバイスメーカーとしての主要ウェハー購入顧客
-        </td>
-      </tr>
-      <tr>
-        <td>日立製作所<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6501</div></td>
-        <td>
-          <span class="rel">上流①</span>信越化学工業（4063）― SiCウェハー・シリコン材料の主要調達先<br>
-          <span class="rel">上流②</span>富士電機（6504）― パワーモジュール製造向けリードフレーム・封止材等の部品供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>East Japan Railway（JR東日本、9020）― 鉄道車両向けSiCインバーターシステムの採用顧客<br>
-          <span class="rel">下流②</span>日立エナジー（Hitachi Energy、非上場子会社経由）― 電力インフラ向けパワーコンバージョン製品の顧客
-        </td>
-      </tr>
-      <tr>
-        <td>太陽誘電<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">6976</div></td>
-        <td>
-          <span class="rel">上流①</span>住友金属鉱山（5713）― 積層セラミックコンデンサ（MLCC）用ニッケル粉末・貴金属材料の供給元<br>
-          <span class="rel">上流②</span>堺化学工業（4078）― 誘電体セラミック原料（チタン酸バリウム等）の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>Toyota Motor（7203）― 車載向けMLCC・インダクタ等受動部品の大口購入顧客<br>
-          <span class="rel">下流②</span>Apple Inc.（AAPL）― スマートフォン・ウェアラブル向けMLCCの主要採用顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析｜米国連続増配株</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流（仕入先・部品提供）</th><th>下流（顧客・取引先）</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Coca-Cola<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">KO</div></td>
-        <td>
-          <span class="rel">上流①</span>Archer-Daniels-Midland（ADM）― 甘味料（コーンシロップ・砂糖）および農産物原料の主要サプライヤー<br>
-          <span class="rel">上流②</span>Berry Global Group（BERY）― PETボトル・包装容器の主要部材供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>McDonald's Corporation（MCD）― 世界最大規模のフードサービス飲料提供パートナー兼顧客<br>
-          <span class="rel">下流②</span>Walmart Inc.（WMT）― 最大規模の小売流通チャネル顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Johnson &amp; Johnson<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">JNJ</div></td>
-        <td>
-          <span class="rel">上流①</span>Lonza Group（LONN）― 医薬品原薬（API）・バイオ医薬品CMO（受託製造）としての主要供給元<br>
-          <span class="rel">上流②</span>Becton Dickinson（BDX）― 医療機器製造向けデバイス部品・無菌包材の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>McKesson Corporation（MCK）― 医薬品・医療機器の大手卸売・流通顧客<br>
-          <span class="rel">下流②</span>CVS Health（CVS）― 処方薬・市販薬・医療消耗品の大手小売・薬局チェーン顧客
-        </td>
-      </tr>
-      <tr>
-        <td>Procter &amp; Gamble<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">PG</div></td>
-        <td>
-          <span class="rel">上流①</span>International Flavors &amp; Fragrances（IFF）― 洗剤・シャンプー等向け香料・界面活性剤原料の供給元<br>
-          <span class="rel">上流②</span>Celanese Corporation（CE）― 包装材・容器向け樹脂・化学原料の供給元
-        </td>
-        <td>
-          <span class="rel">下流①</span>Walmart Inc.（WMT）― 日用消費財の世界最大の小売流通チャネル顧客<br>
-          <span class="rel">下流②</span>Amazon.com（AMZN）― EC経由の日用品販売における主要オンライン流通顧客
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">サプライチェーン分析</div></div>
-  <table class="tp-supply-table">
-    <thead><tr><th>銘柄</th><th>上流</th><th>下流</th></tr></thead>
-    <tbody>
-      {% for s in top_3 %}
-      <tr>
-        <td>{{ s.name }}<div class="name-sub" style="font-family:var(--mono);font-size:9.5px;color:var(--text-mute);margin-top:1px;">{{ s.code }}</div></td>
-        <td>{% for u in s.upstream %}<span class="rel">{{ u.rel }}</span>{{ u.name }}<br>{% endfor %}</td>
-        <td>{% for d in s.downstream %}<span class="rel">{{ d.rel }}</span>{{ d.name }}<br>{% endfor %}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-[9] <section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>
-  <div class="tp-sources">
-    <div class="tp-sources__group">衛星ビジネス・宇宙インフラ</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTE5OUmtYUnoyMk4wQlA0cjYtX3VxSzNaWHVYLWM1cExRQzdvT2Vza0tiT194bkt2ZjNreWw3UlV4S0FhZU9HQko1VHlLR09fVzVHQ3F3?oc=5" target="_blank" rel="noopener">｢衛星ビジネス｣関連銘柄を紹介！ 史上最大のIPO｢スペースX｣のナスダック上場を6月12日に控え、関連テーマで資金流入が見込める｢衛星ビジネス｣関連株を解説 - ダイヤモンド・オンライン</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiU0FVX3lxTFA2VzJOQkZLdUxNZ0VrZV82Ym9pa3M2TFIyOC1rMjRfTDRVdXZOMkRGdWMxeHQtSmFveHRzWThBVjFaZUZtSGdTX3hzQk1kal92TWpn?oc=5" target="_blank" rel="noopener">【NISA】“1年で株価2倍”が狙える｢テーマ株｣2銘柄！ フィジカルAI関連で業績を伸ばす｢ダイフク｣、意外な防衛関連銘柄として注目される｢スカパーJSAT｣を紹介 - ダイヤモンド・オンライン</a>
-    <div class="tp-sources__group">化合物半導体・次世代パワーデバイス</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMingFBVV95cUxQTDJ2U19jTmhndGNKeDhmS0tyUVBXal9GNERNb2h6dXpibXcydUFORTI5NjNGYlRyNmV0Mkd4UklweHhVQndmS0ZVZ05salpwRGRpS0JmUllDUEVqVGNRRk0yLWdObHJUWHJFTS03R2gxR2g2S0hKcVNOaXZJQnBLQUYteE1HSVNwYm5pdHMxaFNyejVNcXBHSmFfVjdHdw?oc=5" target="_blank" rel="noopener">日本の化合物半導体材料市場調査レポート、規模とシェア、予測2035年 - researchnester.jp</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiT0FVX3lxTE1nUGtGeFNWUGw0aS1zdWUtdkUxM2I5c0twUkxtOThnc0N3M1Q4cURERzJ4Tm5iazVoYlJWekt3V1lySUR3S0NGLXVtY0V3bG8?oc=5" target="_blank" rel="noopener">GaNパワーデバイス市場は2035年までに69億8100万米ドル規模へ急拡大 高効率電力変換需要を背景にCAGR 28.28％で成長予測 - アットプレス</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiiwJBVV95cUxOR01VcEQ5OG1qQ2ZkeWVFV1YtUWxrS0ktMmc4b0JjamVCTjFiakNRbGl6VHJNdDlMWEFtOU43aWJXM1lGWXlWTTFNZDM2dC13WExiX1NZbkhURkNqOXRlVEQ2bndHM0FPMERITF9rYngxckZwa1VfN0lVdkpDTmF4S0VIZjVRaVZuVTZCbGROX0dvaUxGT3BOOHlWalVfSHNuaF9jdkVLdGh4RkYzemtjOHpzMUVjWko1TERralVVLTN5ZzNkSnBlWVJ6X3JrRHkzNkczS2h6ZGhXeEFSVDIwRmJXNHhXWjJzalRrQjhBS0p0OVJoVTR0SnFDc29yd3Z2bGNVb0otYW1CeTg?oc=5" target="_blank" rel="noopener">炭化ケイ素 (SiC) デバイスの市場規模、シェア |トレンド [2034] - Fortune Business Insights</a>
-    <div class="tp-sources__group">米国連続増配株</div>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMiX0FVX3lxTE5KVjdZTVFNNlo1dnBXR3ZoaVVpd0FreFRGYjY5dTJGZkFaZFk2VDdrTG5wRnh0VmZrZXFySnRBdUVJclVDY2g4M2p1RkVxRklvdHc5Mk1GblVzNjIwOUZB?oc=5" target="_blank" rel="noopener">米国連続増配株とは？ AI以外の分散投資先として注目 野村證券・村山誠 - nomura.co.jp</a>
-    <a class="tp-sources__link" href="https://news.google.com/rss/articles/CBMia0FVX3lxTFA2b0V0aFBDek1nbHdOekhKNlljSVlpZXptcEVjWkt3c2pGMUJSbWFIandPVGRSbkE4emdHZ1VrWi03Rm5FVzBSbUdLcEdMWU5YNDVMVHRicDRPaTVJU2NTZmxURDV6dVNjSnJn?oc=5" target="_blank" rel="noopener">1分でチェック！今週の米国株式 - SBI証券</a>
-  </div>
-</section>
-
-<section class="tp-section">
-  <div class="tp-section__head"><div class="tp-kicker">主要ソース</div></div>
-  <div class="tp-sources">
-    {% for src in sources %}
-    <div class="tp-sources__group">{{ src.source }}</div>
-    {% for l in src.links %}<a class="tp-sources__link" href="{{ l.url }}">{{ l.title }}</a>{% endfor %}
-    {% endfor %}
-  </div>
-</section>
-
-[10]   (CHAT_PROXY_URL が設定されてれば、既存のチャットウィジェットJSをここに)
-===============================================================================
--->
 
 </body>
 </html>
