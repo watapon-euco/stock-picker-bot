@@ -24,6 +24,7 @@ from src.utils.gemini_client import GeminiClient
 from src.utils.helpers import safe_url
 from src.utils.line_client import LineClient
 from src.utils.rss_fetcher import fetch_news
+from src.utils.ticker_utils import normalize_ticker
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -51,7 +52,10 @@ def _collect_codes() -> List[str]:
 
 
 def _collect_stocks_with_names() -> List[Dict]:
-    """stock_data.json + watchlist.json から {code, name} リストを重複なしで返す。"""
+    """stock_data.json + watchlist.json から {code, name, market} リストを重複なしで返す。
+
+    market フィールドは JP/US 銘柄を正しいティッカーへ正規化するために使う。
+    """
     stocks: List[Dict] = []
     seen: set = set()
 
@@ -67,7 +71,11 @@ def _collect_stocks_with_names() -> List[Dict]:
                 for stock in theme_block.get("stocks", []):
                     code = str(stock.get("code", "")).strip()
                     if code and code not in seen:
-                        stocks.append({"code": code, "name": stock.get("name", code)})
+                        stocks.append({
+                            "code": code,
+                            "name": stock.get("name", code),
+                            "market": stock.get("market", "JP"),
+                        })
                         seen.add(code)
         except Exception as e:
             logger.warning(f"Failed to read stock_data.json: {e}")
@@ -79,7 +87,11 @@ def _collect_stocks_with_names() -> List[Dict]:
             for stock in wl.get("stocks", []):
                 code = str(stock.get("code", "")).strip()
                 if code and code not in seen:
-                    stocks.append({"code": code, "name": stock.get("name", code)})
+                    stocks.append({
+                        "code": code,
+                        "name": stock.get("name", code),
+                        "market": stock.get("market", "JP"),
+                    })
                     seen.add(code)
         except Exception as e:
             logger.warning(f"Failed to read watchlist.json: {e}")
@@ -94,14 +106,18 @@ def _collect_stocks_with_names() -> List[Dict]:
 _BATCH_SIZE = 20  # backtest.py と同じチャンクサイズ
 
 
-def _to_yf_ticker(code: str) -> str:
-    """日本株コードに .T サフィックスを付与する。"""
-    if code.endswith(".T") or code.endswith(".OS"):
-        return code
-    return code + ".T"
+def _to_yf_ticker(code: str, market: str = None) -> str:
+    """銘柄コードを yfinance ティッカーに正規化する。
+
+    market 未指定時はコード形式から自動判定する（4桁数字→JP, 英字→US）。
+    日本株は ``.T``、米国株はティッカーそのまま（BRK.B→BRK-B）。
+    """
+    return normalize_ticker(str(code).strip(), market)
 
 
-def _fetch_weekly_changes_batch(codes: List[str], name_map: Dict[str, str]) -> List[Dict]:
+def _fetch_weekly_changes_batch(
+    codes: List[str], name_map: Dict[str, str], market_map: Optional[Dict[str, str]] = None
+) -> List[Dict]:
     """
     銘柄コードリストの1ヶ月分日足データをバッチ取得し、
     各銘柄の週次変化率・出来高比率を計算して返す。
@@ -114,7 +130,10 @@ def _fetch_weekly_changes_batch(codes: List[str], name_map: Dict[str, str]) -> L
     if not codes:
         return []
 
-    ticker_to_code = {_to_yf_ticker(c): c for c in codes}
+    if market_map is None:
+        market_map = {}
+
+    ticker_to_code = {_to_yf_ticker(c, market_map.get(c)): c for c in codes}
     all_tickers = list(ticker_to_code.keys())
     results: List[Dict] = []
 
@@ -180,6 +199,7 @@ def _fetch_weekly_changes_batch(codes: List[str], name_map: Dict[str, str]) -> L
                     "code": code,
                     "ticker": ticker,
                     "name": name,
+                    "market": market_map.get(code, "JP"),
                     "current_price": round(current_price, 2),
                     "week_change_pct": round(week_change_pct, 2),
                     "vol_ratio": vol_ratio,
@@ -206,11 +226,15 @@ def is_surging(price_change_pct, vol_ratio, avg_volume_30d) -> bool:
     return False
 
 
-def _build_top5(codes: List[str], name_map: Optional[Dict[str, str]] = None) -> List[Dict]:
+def _build_top5(
+    codes: List[str],
+    name_map: Optional[Dict[str, str]] = None,
+    market_map: Optional[Dict[str, str]] = None,
+) -> List[Dict]:
     """銘柄コードから急騰銘柄を抽出してスコア順に上位5件を返す。"""
     if name_map is None:
         name_map = {}
-    all_data = _fetch_weekly_changes_batch(codes, name_map)
+    all_data = _fetch_weekly_changes_batch(codes, name_map, market_map)
     results = [
         d for d in all_data
         if is_surging(d.get("week_change_pct"), d.get("vol_ratio"), d.get("avg_volume_30d"))
@@ -414,11 +438,12 @@ def _build_earnings_calendar_section() -> str:
     for stock in stocks_with_names[:30]:
         code = stock["code"]
         name = stock.get("name", code)
+        stock_market = stock.get("market", "JP")
         try:
-            result = fetch_upcoming_earnings(code, lookahead_days=7)
+            result = fetch_upcoming_earnings(code, lookahead_days=7, market=stock_market)
             if result and result.get("earnings_date"):
                 earnings_date = result["earnings_date"]
-                market = "T" if not str(code).replace(".", "").isalpha() else "US"
+                market = "US" if stock_market == "US" else "T"
                 rows_html.append(
                     f'<div class="tp-earnings-row">'
                     f'{icon_svg}'
@@ -451,7 +476,7 @@ def _build_surging_stocks_html(stocks: List[Dict]) -> str:
     for i, s in enumerate(stocks, start=1):
         code = _html.escape(str(s.get("code", "")))
         name = _html.escape(str(s.get("name", code)))
-        market = "T" if not str(s.get("code", "")).replace(".", "").isalpha() else "US"
+        market = "US" if s.get("market") == "US" else "T"
         pct = s.get("week_change_pct", 0.0) or 0.0
         pct_color = "#7dc679" if pct >= 0 else "#e16158"
         pct_str = f"{pct:+.1f}%"
@@ -776,10 +801,11 @@ def run() -> None:
     stocks_with_names = _collect_stocks_with_names()
     codes = [s["code"] for s in stocks_with_names]
     name_map = {s["code"]: s["name"] for s in stocks_with_names}
+    market_map = {s["code"]: s.get("market", "JP") for s in stocks_with_names}
     logger.info(f"Collected {len(codes)} ticker codes to scan")
     top5: List[Dict] = []
     if codes:
-        top5 = _build_top5(codes, name_map)
+        top5 = _build_top5(codes, name_map, market_map)
         logger.info(f"Found {len(top5)} surging stocks")
 
     # 4. HTMLレポート生成・保存

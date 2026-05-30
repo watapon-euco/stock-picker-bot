@@ -6,24 +6,30 @@ from typing import Dict, Optional
 
 import yfinance as yf
 
+from src.utils.ticker_utils import normalize_ticker
+
 logger = logging.getLogger(__name__)
 
 
-def _to_ticker(code: str) -> str:
-    """証券コードを yfinance ティッカーに変換（日本株は .T サフィックス）。"""
-    code = str(code).strip()
-    if not code.endswith(".T") and not code.endswith(".OS"):
-        code = code + ".T"
-    return code
+def _to_ticker(code: str, market: str = None) -> str:
+    """証券コードを yfinance ティッカーに変換する。
+
+    market 未指定時はコード形式から自動判定する（4桁数字→JP, 英字→US）。
+    日本株は ``.T`` サフィックス、米国株はティッカーそのまま（BRK.B→BRK-B）。
+    """
+    return normalize_ticker(str(code).strip(), market)
 
 
-def fetch_upcoming_earnings(code: str, lookahead_days: int = 3) -> Optional[Dict]:
+def fetch_upcoming_earnings(
+    code: str, lookahead_days: int = 3, market: str = None
+) -> Optional[Dict]:
     """
     指定銘柄の今後 N 日以内の決算予定を取得する。
 
     Args:
-        code: 証券コード（例: "7203"）
+        code: 証券コード（例: "7203", "AAPL"）
         lookahead_days: 今日から何日先までを対象にするか（デフォルト 3）
+        market: "JP" または "US"。None の場合はコード形式から自動判定する。
 
     Returns:
         決算情報の dict、該当なしまたは取得失敗時は None。
@@ -37,7 +43,7 @@ def fetch_upcoming_earnings(code: str, lookahead_days: int = 3) -> Optional[Dict
             "eps_actual": float | None,
         }
     """
-    ticker_str = _to_ticker(code)
+    ticker_str = _to_ticker(code, market)
     today = date.today()
     cutoff = today + timedelta(days=lookahead_days)
 

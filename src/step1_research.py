@@ -352,6 +352,38 @@ def check_sector_overlap(sectors_by_theme: Dict[str, List[str]]) -> Dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 生データのマージ（テクニカル指標・株価履歴の保全）
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Gemini の構造化レスポンスはプロンプトのスキーマに無いフィールド（テクニカル指標・
+# 株価履歴など）を欠落させる。これらは yfinance の生データから決定論的に復元する。
+# trade_levels（売買プラン）の計算とチャート描画はこの生データに依存する。
+_RAW_FIELDS_TO_PRESERVE = (
+    "technicals",
+    "price_history_6m",
+    "52w_high",
+    "52w_low",
+    "data_source",
+)
+
+
+def _merge_raw_into_structured(stocks: List[Dict], raw_results: Dict[str, Optional[Dict]]) -> None:
+    """Gemini 構造化銘柄に yfinance 生データ（テクニカル指標・株価履歴等）を補完する。
+
+    code をキーに突き合わせ、Gemini が落としたフィールドを生データから復元する。
+    Gemini が既に値を持つフィールドは尊重し、欠落分のみ補う（in-place 更新）。
+    """
+    for stock in stocks:
+        code = str(stock.get("code", "")).strip()
+        raw = raw_results.get(code)
+        if not raw:
+            continue
+        for field in _RAW_FIELDS_TO_PRESERVE:
+            if stock.get(field) in (None, "", {}, []) and raw.get(field) is not None:
+                stock[field] = raw[field]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Phase C: 株価データ取得 + 構造化
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -459,6 +491,10 @@ def phase_c_fetch_and_structure(
         if not stocks:
             logger.warning(f"Gemini returned no structured stocks for: {theme_name}")
             continue
+
+        # Gemini が落とすテクニカル指標・株価履歴を生データから復元
+        # （売買プラン計算・チャート描画はこの生データに依存する）
+        _merge_raw_into_structured(stocks, raw_results)
 
         failed_codes = [
             c["code"] for c in candidates

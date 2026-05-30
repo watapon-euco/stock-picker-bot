@@ -149,6 +149,45 @@ def test_fetch_upcoming_earnings_adds_T_suffix():
     assert captured.get("sym") == "7203.T"
 
 
+def test_fetch_upcoming_earnings_us_ticker_no_suffix():
+    """米国株は .T を付けず、ティッカーをそのまま使うこと（market 自動判定）。"""
+    import src.utils.earnings_fetcher as mod
+
+    df = _make_earnings_df(days_from_today=1)
+    captured = {}
+
+    def mock_ticker(sym):
+        captured["sym"] = sym
+        t = mock.MagicMock()
+        t.earnings_dates = df
+        return t
+
+    with mock.patch("yfinance.Ticker", side_effect=mock_ticker):
+        mod.fetch_upcoming_earnings("AAPL")
+
+    assert captured.get("sym") == "AAPL"
+
+
+def test_fetch_upcoming_earnings_us_market_explicit():
+    """market='US' を明示した場合も .T が付かないこと。"""
+    import src.utils.earnings_fetcher as mod
+
+    df = _make_earnings_df(days_from_today=1)
+    captured = {}
+
+    def mock_ticker(sym):
+        captured["sym"] = sym
+        t = mock.MagicMock()
+        t.earnings_dates = df
+        return t
+
+    with mock.patch("yfinance.Ticker", side_effect=mock_ticker):
+        mod.fetch_upcoming_earnings("BRK.B", market="US")
+
+    # yfinance 慣例でドットはハイフンに正規化される
+    assert captured.get("sym") == "BRK-B"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # step_earnings_check: 重複通知防止ロジック
 # ─────────────────────────────────────────────────────────────────────────────

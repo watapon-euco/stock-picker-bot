@@ -49,6 +49,18 @@ def _collect_all_codes(theme_history: dict) -> tuple:
     return list(codes), market_map
 
 
+def _collect_benchmark_pairs(theme_history: dict) -> list:
+    """対指数α算出用に (year_month, market) ペアを重複なしで収集する。"""
+    pairs = set()
+    for theme in theme_history.get("themes", []):
+        ym = theme.get("year_month", "")
+        if not ym:
+            continue
+        for stock in theme.get("stocks", []):
+            pairs.add((ym, stock.get("market", "JP")))
+    return list(pairs)
+
+
 def _build_hero_return(cumulative: dict) -> str:
     avg = cumulative.get("avg_return_pct", 0.0)
     sign = "+" if avg >= 0 else ""
@@ -141,24 +153,29 @@ def _build_top_picks(monthly: list) -> str:
 def _build_summary_cards(cumulative: dict) -> str:
     total = cumulative.get("total_picks", 0)
     win_rate = round(cumulative.get("overall_win_rate", 0.0) * 100, 1)
-    avg_ret = cumulative.get("avg_return_pct", 0.0)
 
-    max_dd = cumulative.get("max_drawdown_pct", 0.0)
+    # 対指数α（超過リターン）。ベンチマーク未取得時は "—"。
+    avg_alpha = cumulative.get("avg_alpha_pct")
+    if avg_alpha is None:
+        alpha_str = "—"
+        alpha_cls = ""
+    else:
+        alpha_sign = "+" if avg_alpha >= 0 else ""
+        alpha_str = f"{alpha_sign}{avg_alpha}%"
+        alpha_cls = "tp-kpi__value--green" if avg_alpha >= 0 else "tp-kpi__value--red"
 
-    win_months = cumulative.get("win_months", "—")
-    total_months = cumulative.get("total_months", "")
-    win_months_str = f"{win_months} / {total_months}" if total_months else str(win_months)
-
-    avg_cls = "tp-kpi__value--green" if avg_ret >= 0 else "tp-kpi__value--red"
+    # 指数に勝った銘柄の割合
+    alpha_win = cumulative.get("alpha_win_rate")
+    alpha_win_str = f"{round(alpha_win * 100, 1)}%" if alpha_win is not None else "—"
 
     return (
         '<div class="tp-kpi-grid">\n'
         f'  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div>'
         f'<div class="tp-kpi__value">{win_rate}%</div></div>\n'
-        f'  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div>'
-        f'<div class="tp-kpi__value tp-kpi__value--red">{max_dd}%</div></div>\n'
-        f'  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div>'
-        f'<div class="tp-kpi__value tp-kpi__value--green">{_html.escape(str(win_months_str))}</div></div>\n'
+        f'  <div class="tp-kpi"><div class="tp-kpi__label">対指数α</div>'
+        f'<div class="tp-kpi__value {alpha_cls}">{_html.escape(alpha_str)}</div></div>\n'
+        f'  <div class="tp-kpi"><div class="tp-kpi__label">指数勝率</div>'
+        f'<div class="tp-kpi__value">{_html.escape(alpha_win_str)}</div></div>\n'
         f'  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div>'
         f'<div class="tp-kpi__value">{total}</div></div>\n'
         '</div>'
@@ -289,16 +306,30 @@ def run():
         fetched = sum(1 for v in current_prices.values() if v is not None)
         logger.info(f"価格取得完了: {fetched}/{len(all_codes)} 銘柄")
 
+    # 対指数α算出のためベンチマーク（日経/S&P500）リターンを取得
+    benchmark_returns = {}
+    if all_codes:
+        from src.utils.backtest import fetch_benchmark_returns
+        pairs = _collect_benchmark_pairs(theme_history)
+        try:
+            benchmark_returns = fetch_benchmark_returns(pairs)
+            logger.info(f"ベンチマーク取得: {len(benchmark_returns)}/{len(pairs)} (year_month, market) ペア")
+        except Exception as e:
+            logger.warning(f"ベンチマーク取得失敗（αはスキップ）: {e}")
+            benchmark_returns = {}
+
     from src.utils.backtest import calculate_performance
-    perf = calculate_performance(theme_history, current_prices)
+    perf = calculate_performance(theme_history, current_prices, benchmark_returns or None)
 
     monthly = perf["monthly"]
     cumulative = perf["cumulative"]
 
+    alpha = cumulative.get("avg_alpha_pct")
     logger.info(
         f"集計完了: 累計{cumulative['total_picks']}銘柄, "
         f"勝率{round(cumulative['overall_win_rate']*100,1)}%, "
-        f"平均リターン{cumulative['avg_return_pct']}%"
+        f"平均リターン{cumulative['avg_return_pct']}%, "
+        f"対指数α{alpha if alpha is not None else '—'}"
     )
 
     template = TEMPLATE_PATH.read_text(encoding="utf-8")

@@ -105,6 +105,74 @@ def fetch_current_prices(codes: List[str], market_map: Dict[str, str] = None) ->
     return result
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ベンチマーク（指数）リターン取得
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 市場ごとの代表指数。推奨銘柄のリターンを指数比で評価し超過リターン（α）を出す。
+_BENCHMARK_TICKERS = {"JP": "^N225", "US": "^GSPC"}
+
+
+def _fetch_index_current(ticker: str) -> Optional[float]:
+    """指数の直近終値を取得する。"""
+    try:
+        import yfinance as yf
+        hist = yf.Ticker(ticker).history(period="5d", auto_adjust=True)
+        if hist.empty:
+            return None
+        return float(hist["Close"].dropna().iloc[-1])
+    except Exception as e:
+        logger.warning(f"指数現在値取得エラー ({ticker}): {e}")
+        return None
+
+
+def _fetch_index_month_end(ticker: str, year_month: str) -> Optional[float]:
+    """指数の指定年月の月末終値を取得する。"""
+    try:
+        import yfinance as yf
+        year, month = map(int, year_month.split("-"))
+        if month == 12:
+            next_year, next_month = year + 1, 1
+        else:
+            next_year, next_month = year, month + 1
+        start = f"{year:04d}-{month:02d}-01"
+        end = f"{next_year:04d}-{next_month:02d}-01"
+        hist = yf.Ticker(ticker).history(start=start, end=end, auto_adjust=True)
+        if hist.empty:
+            return None
+        return float(hist["Close"].dropna().iloc[-1])
+    except Exception as e:
+        logger.warning(f"指数月末価格取得エラー ({ticker}, {year_month}): {e}")
+        return None
+
+
+def fetch_benchmark_returns(pairs) -> Dict[Tuple[str, str], float]:
+    """各 (year_month, market) について指数の推奨時〜現在のリターン(%)を取得する。
+
+    推奨銘柄のリターンと同期間で比較し、超過リターン（α）算出に使う。
+
+    Args:
+        pairs: (year_month, market) タプルの iterable（重複可）。
+    Returns:
+        {(year_month, market): return_pct} の dict。取得失敗ペアは含めない。
+    """
+    unique_pairs = set(pairs)
+    current_cache: Dict[str, Optional[float]] = {}
+    results: Dict[Tuple[str, str], float] = {}
+
+    for year_month, market in unique_pairs:
+        ticker = _BENCHMARK_TICKERS.get(market, _BENCHMARK_TICKERS["JP"])
+        if ticker not in current_cache:
+            current_cache[ticker] = _fetch_index_current(ticker)
+        current = current_cache[ticker]
+        start = _fetch_index_month_end(ticker, year_month)
+        if current is None or start is None or start == 0:
+            continue
+        results[(year_month, market)] = round((current - start) / start * 100, 2)
+
+    return results
+
+
 def fetch_month_end_price(code: str, year_month: str, market: str = None) -> Optional[float]:
     """
     指定年月の月末終値を取得する（推奨時価格の代替）。
@@ -175,13 +243,20 @@ def _extract_monthly_entries(theme_history: dict) -> List[dict]:
 # パフォーマンス計算
 # ─────────────────────────────────────────────────────────────────────────────
 
-def calculate_performance(theme_history: dict, current_prices: Dict[str, Optional[float]]) -> dict:
+def calculate_performance(
+    theme_history: dict,
+    current_prices: Dict[str, Optional[float]],
+    benchmark_returns: Optional[Dict[Tuple[str, str], float]] = None,
+) -> dict:
     """
     過去推奨銘柄の現在パフォーマンスを計算する。
 
     Args:
         theme_history: theme_history.json の中身（dictとして読み込んだもの）
         current_prices: {code: current_price} の dict（None は価格不明）
+        benchmark_returns: {(year_month, market): index_return_pct} の dict。
+            指定すると各銘柄・各月・累計に対し指数比の超過リターン（α）を算出する。
+            None の場合は α 関連フィールドは None になる。
     Returns:
         monthly リストと cumulative サマリーを含む dict
     """
@@ -221,6 +296,14 @@ def calculate_performance(theme_history: dict, current_prices: Dict[str, Optiona
 
                 return_pct = (current_price - price_at_pick) / price_at_pick * 100
 
+                # ベンチマーク（指数）比の超過リターン（α）
+                benchmark_return = None
+                alpha_pct = None
+                if benchmark_returns is not None:
+                    benchmark_return = benchmark_returns.get((year_month, stock_market))
+                    if benchmark_return is not None:
+                        alpha_pct = round(return_pct - benchmark_return, 2)
+
                 from src.utils.ticker_utils import get_currency
                 currency = get_currency(stock_market)
                 pick = {
@@ -236,6 +319,8 @@ def calculate_performance(theme_history: dict, current_prices: Dict[str, Optiona
                     "current_price": current_price,
                     "return_pct": round(return_pct, 2),
                     "is_winner": return_pct > 0,
+                    "benchmark_return_pct": benchmark_return,
+                    "alpha_pct": alpha_pct,
                 }
                 picks_this_month.append(pick)
                 all_picks.append(pick)
@@ -258,6 +343,9 @@ def calculate_performance(theme_history: dict, current_prices: Dict[str, Optiona
         avg_return = sum(returns) / len(returns)
         win_rate = len(winners) / len(picks_this_month)
 
+        month_alphas = [p["alpha_pct"] for p in picks_this_month if p["alpha_pct"] is not None]
+        avg_alpha_month = round(sum(month_alphas) / len(month_alphas), 2) if month_alphas else None
+
         sorted_by_return = sorted(picks_this_month, key=lambda p: p["return_pct"])
         top = sorted_by_return[-1]
         worst = sorted_by_return[0]
@@ -267,6 +355,7 @@ def calculate_performance(theme_history: dict, current_prices: Dict[str, Optiona
             "themes": [t.get("name", "") for t in themes],
             "pick_count": len(picks_this_month),
             "avg_return_pct": round(avg_return, 2),
+            "avg_alpha_pct": avg_alpha_month,
             "win_rate": round(win_rate, 4),
             "top_performer": {
                 "code": top["code"],
@@ -292,6 +381,14 @@ def calculate_performance(theme_history: dict, current_prices: Dict[str, Optiona
     best_pick = max(all_picks, key=lambda p: p["return_pct"]) if all_picks else None
     worst_pick = min(all_picks, key=lambda p: p["return_pct"]) if all_picks else None
 
+    all_alphas = [p["alpha_pct"] for p in all_picks if p["alpha_pct"] is not None]
+    avg_alpha_overall = round(sum(all_alphas) / len(all_alphas), 2) if all_alphas else None
+    # 指数に勝った銘柄の割合（α>0）。ベンチマーク未取得時は None。
+    alpha_win_rate = (
+        round(sum(1 for a in all_alphas if a > 0) / len(all_alphas), 4)
+        if all_alphas else None
+    )
+
     return {
         "monthly": monthly_results,
         "cumulative": {
@@ -299,6 +396,8 @@ def calculate_performance(theme_history: dict, current_prices: Dict[str, Optiona
             "winning_picks": winning_picks,
             "overall_win_rate": round(overall_win_rate, 4),
             "avg_return_pct": round(avg_return_overall, 2),
+            "avg_alpha_pct": avg_alpha_overall,
+            "alpha_win_rate": alpha_win_rate,
             "best_pick_ever": best_pick,
             "worst_pick_ever": worst_pick,
         },

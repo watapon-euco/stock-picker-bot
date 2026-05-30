@@ -18,6 +18,7 @@ from src.step_weekly_flash import (
     _collect_codes,
     _render_html,
     _select_top_news,
+    _to_yf_ticker,
     _update_weekly_index,
     is_surging,
     _build_flex_footer,
@@ -245,6 +246,30 @@ class TestBuildFlexContents:
         contents = _build_flex_contents("2026-W21", [], [], "https://ex.com")
         header_text = contents["header"]["contents"][0]["text"]
         assert "2026-W21" in header_text
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# _to_yf_ticker — JP/US 正規化
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestToYfTicker:
+    def test_jp_code_gets_t_suffix(self):
+        assert _to_yf_ticker("7203") == "7203.T"
+
+    def test_jp_code_with_market(self):
+        assert _to_yf_ticker("7203", "JP") == "7203.T"
+
+    def test_us_code_no_suffix_autodetect(self):
+        assert _to_yf_ticker("AAPL") == "AAPL"
+
+    def test_us_code_with_market(self):
+        assert _to_yf_ticker("AAPL", "US") == "AAPL"
+
+    def test_us_dotted_ticker_normalized(self):
+        assert _to_yf_ticker("BRK.B", "US") == "BRK-B"
+
+    def test_existing_suffix_preserved(self):
+        assert _to_yf_ticker("7203.T") == "7203.T"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

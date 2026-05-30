@@ -22,6 +22,7 @@ from src.config import CLAUDE_MODEL, GEMINI_MODEL
 from src.utils.claude_batch import ClaudeBatchClient
 from src.utils.helpers import atomic_write_json, build_source_links_html
 from src.utils.ticker_utils import format_price, get_currency
+from src.utils.trade_levels import compute_trade_levels
 from src.utils.yfinance_fetcher import fetch_multiple
 
 load_dotenv()
@@ -603,6 +604,88 @@ send.addEventListener('click',doSend);
 input.addEventListener('keydown',function(e){{if(e.key==='Enter')doSend();}});
 }})();
 </script>"""
+
+
+def build_trade_plan_section(stock_data: List[Dict], top_n: int = 5) -> str:
+    """各テーマ上位 top_n 銘柄の売買プラン表（Python生成・決定論的）。
+
+    yfinance のテクニカル指標・52週高安から compute_trade_levels で
+    エントリー帯・損切り・目標株価・リスクリワード比を算出して表示する。
+    LLM に依存しないため数値の一貫性が保証される。テクニカルが取れない
+    銘柄（Stooq フォールバック等で current_price が無い）はスキップする。
+    """
+    blocks: List[str] = []
+
+    for theme_data in stock_data:
+        theme_name = theme_data.get("theme_name", "")
+        rows: List[str] = []
+
+        for stock in theme_data.get("stocks", [])[:top_n]:
+            current_price = stock.get("current_price")
+            levels = compute_trade_levels(
+                current_price,
+                technicals=stock.get("technicals"),
+                price_52w_high=stock.get("52w_high") or stock.get("price_52w_high"),
+                price_52w_low=stock.get("52w_low") or stock.get("price_52w_low"),
+            )
+            if not levels:
+                continue
+
+            market = stock.get("market", "JP")
+            currency = get_currency(market)
+            suffix = "US" if market == "US" else "JP"
+            name = html.escape(str(stock.get("name", "")))
+            code = html.escape(str(stock.get("code", "")))
+
+            entry = f"{format_price(levels['entry_low'], currency)}〜{format_price(levels['entry_high'], currency)}"
+            stop = format_price(levels["stop_loss"], currency)
+            target = format_price(levels["target"], currency)
+
+            rr = levels["risk_reward"]
+            if rr is None:
+                rr_html = '<span style="color:var(--text-mute)">—</span>'
+            else:
+                rr_cls = "tp-up" if levels["risk_reward_good"] else ""
+                rr_html = f'<span class="{rr_cls}">1:{rr}</span>'
+
+            sig = levels["rsi_signal"]
+            if sig == "過熱":
+                sig_color = "var(--red)"
+            elif sig == "売られすぎ":
+                sig_color = "var(--green)"
+            else:
+                sig_color = "var(--text-mute)"
+            rsi_val = f"{levels['rsi']}" if levels["rsi"] is not None else "—"
+            sig_html = f'<span style="color:{sig_color}">{html.escape(sig)} {html.escape(rsi_val)}</span>'
+
+            rows.append(
+                f'<tr>'
+                f'<td>{name}<div class="name-sub">{code}.{suffix}</div></td>'
+                f'<td class="stars">{html.escape(entry)}</td>'
+                f'<td class="stars">{html.escape(stop)}</td>'
+                f'<td class="stars">{html.escape(target)}</td>'
+                f'<td class="stars">{rr_html}</td>'
+                f'<td class="stars">{sig_html}</td>'
+                f'</tr>'
+            )
+
+        if not rows:
+            continue
+
+        blocks.append(
+            '<section class="tp-section">\n'
+            f'  <div class="tp-section__head"><div class="tp-kicker">売買プラン · {html.escape(theme_name)}</div></div>\n'
+            '  <table class="tp-stars-table">\n'
+            '    <thead><tr><th>銘柄</th><th>エントリー</th><th>損切り</th><th>目標</th><th>R/R</th><th>RSI</th></tr></thead>\n'
+            '    <tbody>\n' + "\n".join(rows) + '\n    </tbody>\n'
+            '  </table>\n'
+            '  <p style="font-size:10px;color:var(--text-mute);margin-top:6px;line-height:1.5">'
+            '※ エントリー帯はMA25等のサポートを基準にした目安。損切り・目標は機械的算出値であり投資助言ではありません。'
+            'R/R（リスクリワード比）は 1:2 以上を緑表示。RSIは70以上で過熱（高値掴み注意）。</p>\n'
+            '</section>\n'
+        )
+
+    return "\n".join(blocks)
 
 
 def build_sector_warning_html(themes_data: Dict) -> str:
@@ -1189,6 +1272,10 @@ def run():
     if sector_warning_html:
         logger.info("Sector overlap warning banner will be shown")
 
+    # 売買プランセクション（Python生成・決定論的: エントリー/損切り/目標/RR/RSI）
+    trade_plan_html = build_trade_plan_section(stock_data)
+    logger.info(f"Trade plan section: {len(trade_plan_html)} chars")
+
     # Chart.js 初期化スクリプト（Python生成）
     chart_init_script = build_chart_init_script(stock_data)
     logger.info(f"Chart init script: {len(chart_init_script)} chars for stock charts")
@@ -1217,6 +1304,7 @@ def run():
         "{{CHANGES_SECTION}}": changes_html,
         "{{PERFORMANCE_SECTION}}": performance_html,
         "{{THEME_RANKING_SECTIONS}}": ranking_sections_html,
+        "{{TRADE_PLAN_SECTION}}": trade_plan_html,
         "{{SOURCE_LINKS_SECTION}}": source_links_html,
         "{{SECTOR_WARNING_BANNER}}": sector_warning_html,
         "{{RISK_SCENARIOS_SECTION}}": risk_scenarios_html,
