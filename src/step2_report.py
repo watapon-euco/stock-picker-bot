@@ -21,6 +21,13 @@ from dotenv import load_dotenv
 from src.config import CLAUDE_MODEL, GEMINI_MODEL
 from src.utils.claude_batch import ClaudeBatchClient
 from src.utils.helpers import atomic_write_json, build_source_links_html
+from src.utils.portfolio import (
+    assess_data_quality,
+    compute_volatility,
+    find_duplicate_stocks,
+    suggest_position_weights,
+    theme_relative_valuation,
+)
 from src.utils.ticker_utils import format_price, get_currency
 from src.utils.trade_levels import compute_trade_levels
 from src.utils.yfinance_fetcher import fetch_multiple
@@ -688,6 +695,111 @@ def build_trade_plan_section(stock_data: List[Dict], top_n: int = 5) -> str:
     return "\n".join(blocks)
 
 
+def build_portfolio_guide_section(stock_data: List[Dict], top_n: int = 3) -> str:
+    """ポートフォリオ構築ガイド（Python生成・決定論的）。
+
+    各テーマ上位 top_n 銘柄を一つのバスケットとして、推奨配分（確信度×逆ボラ）・
+    テーマ内相対バリュエーション・データ品質を一覧化する。さらに複数テーマに
+    重複する銘柄（集中リスク）を警告する。いずれも投資助言ではなく機械的指標。
+    """
+    # バスケット構築 + テーマ内相対バリュエーション
+    basket: List[Dict] = []
+    for theme_data in stock_data:
+        theme_name = theme_data.get("theme_name", "")
+        theme_stocks = theme_data.get("stocks", [])
+        rel_val = theme_relative_valuation(theme_stocks)
+        for idx, stock in enumerate(theme_stocks[:top_n]):
+            if stock.get("current_price") is None:
+                continue
+            code = str(stock.get("code", "")).strip()
+            basket.append({
+                "code": code,
+                "name": stock.get("name", code),
+                "market": stock.get("market", "JP"),
+                "theme_name": theme_name,
+                "rank": idx + 1,
+                "volatility": compute_volatility(stock.get("price_history_6m")),
+                "valuation": rel_val.get(code),
+                "quality": assess_data_quality(stock),
+            })
+
+    if not basket:
+        return ""
+
+    weights = suggest_position_weights(basket)
+
+    rows: List[str] = []
+    for item, weight in zip(basket, weights):
+        suffix = "US" if item["market"] == "US" else "JP"
+        name = html.escape(str(item["name"]))
+        code = html.escape(str(item["code"]))
+        theme = html.escape(str(item["theme_name"]))
+
+        val = item["valuation"]
+        if val == "割安":
+            val_html = '<span class="tp-up">割安</span>'
+        elif val == "割高":
+            val_html = '<span class="tp-down">割高</span>'
+        elif val == "中立":
+            val_html = '<span style="color:var(--text-mute)">中立</span>'
+        else:
+            val_html = '<span style="color:var(--text-mute)">—</span>'
+
+        q = item["quality"]
+        if q["level"] == "低":
+            reasons = html.escape("・".join(q["reasons"]))
+            quality_html = f'<span class="tp-down" title="{reasons}">低 ⚠</span>'
+        else:
+            quality_html = '<span style="color:var(--green)">高</span>'
+
+        rows.append(
+            f'<tr>'
+            f'<td>{name}<div class="name-sub">{code}.{suffix}</div></td>'
+            f'<td class="stars" style="color:var(--gold);font-weight:700">{weight}%</td>'
+            f'<td class="stars">{val_html}</td>'
+            f'<td class="stars">{quality_html}</td>'
+            f'<td class="stars" style="font-size:9.5px;color:var(--text-mute)">{theme}</td>'
+            f'</tr>'
+        )
+
+    # 集中リスク: 複数テーマ重複銘柄
+    dupes = find_duplicate_stocks(stock_data)
+    dupe_html = ""
+    if dupes:
+        items_txt = "、".join(
+            f'{html.escape(d["name"])}（{html.escape("・".join(d["themes"]))}）'
+            for d in dupes
+        )
+        dupe_html = (
+            '  <div class="tp-callout tp-callout--warn" style="margin-top:10px">\n'
+            '    <div class="tp-callout__body">\n'
+            f'      <strong style="color:var(--gold)">銘柄重複:</strong> {items_txt} '
+            'が複数テーマに登場しています。実質的な集中投資にならないよう配分にご注意ください。\n'
+            '    </div>\n'
+            '  </div>\n'
+        )
+
+    low_count = sum(1 for it in basket if it["quality"]["level"] == "低")
+    low_note = (
+        f'　データ品質「低」{low_count}銘柄はStooq代替等で指標が欠落しています。'
+        if low_count else ""
+    )
+
+    return (
+        '<section class="tp-section">\n'
+        '  <div class="tp-section__head"><div class="tp-kicker">ポートフォリオ・ガイド</div></div>\n'
+        '  <table class="tp-stars-table">\n'
+        '    <thead><tr><th>銘柄</th><th>推奨配分</th><th>相対バリュ</th><th>データ</th><th>テーマ</th></tr></thead>\n'
+        '    <tbody>\n' + "\n".join(rows) + '\n    </tbody>\n'
+        '  </table>\n'
+        + dupe_html +
+        '  <p style="font-size:10px;color:var(--text-mute);margin-top:6px;line-height:1.5">'
+        '※ 推奨配分は確信度（テーマ内順位）×逆ボラティリティで機械的に算出し合計100%に正規化（1銘柄上限30%）。'
+        '相対バリュはテーマ内PER中央値比。投資助言ではありません。' + low_note + '</p>\n'
+        '</section>\n'
+    )
+
+
 def build_sector_warning_html(themes_data: Dict) -> str:
     if not themes_data.get("sector_overlap_warning", False):
         return ""
@@ -1276,6 +1388,10 @@ def run():
     trade_plan_html = build_trade_plan_section(stock_data)
     logger.info(f"Trade plan section: {len(trade_plan_html)} chars")
 
+    # ポートフォリオ・ガイド（Python生成・決定論的: 推奨配分/相対バリュ/データ品質/重複）
+    portfolio_guide_html = build_portfolio_guide_section(stock_data)
+    logger.info(f"Portfolio guide section: {len(portfolio_guide_html)} chars")
+
     # Chart.js 初期化スクリプト（Python生成）
     chart_init_script = build_chart_init_script(stock_data)
     logger.info(f"Chart init script: {len(chart_init_script)} chars for stock charts")
@@ -1305,6 +1421,7 @@ def run():
         "{{PERFORMANCE_SECTION}}": performance_html,
         "{{THEME_RANKING_SECTIONS}}": ranking_sections_html,
         "{{TRADE_PLAN_SECTION}}": trade_plan_html,
+        "{{PORTFOLIO_GUIDE_SECTION}}": portfolio_guide_html,
         "{{SOURCE_LINKS_SECTION}}": source_links_html,
         "{{SECTOR_WARNING_BANNER}}": sector_warning_html,
         "{{RISK_SCENARIOS_SECTION}}": risk_scenarios_html,

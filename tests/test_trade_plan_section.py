@@ -1,6 +1,10 @@
-"""step2_report.build_trade_plan_section / step1 の生データマージのテスト"""
+"""step2_report.build_trade_plan_section / build_portfolio_guide_section /
+step1 の生データマージのテスト"""
 from src.step1_research import _merge_raw_into_structured
-from src.step2_report import build_trade_plan_section
+from src.step2_report import (
+    build_portfolio_guide_section,
+    build_trade_plan_section,
+)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -64,6 +68,78 @@ class TestBuildTradePlanSection:
 
     def test_empty_stock_data_returns_empty(self):
         assert build_trade_plan_section([]) == ""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# build_portfolio_guide_section
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestBuildPortfolioGuideSection:
+    def _theme(self, name, stocks):
+        return {"theme_name": name, "stocks": stocks}
+
+    def _stock(self, code, name, per, price=1000.0, source="yfinance", sector="電機"):
+        return {
+            "code": code, "name": name, "market": "JP", "per": per, "pbr": 1.2,
+            "current_price": price, "sector": sector, "data_source": source,
+            "price_history_6m": {"closes": [1000 + (i % 3) * 10 for i in range(30)]},
+        }
+
+    def test_empty_returns_empty(self):
+        assert build_portfolio_guide_section([]) == ""
+
+    def test_no_valid_price_returns_empty(self):
+        data = [self._theme("AI", [{"code": "1", "name": "X", "current_price": None}])]
+        assert build_portfolio_guide_section(data) == ""
+
+    def test_renders_weights_summing_to_100(self):
+        data = [self._theme("AI", [
+            self._stock("1", "A", 10.0),
+            self._stock("2", "B", 20.0),
+            self._stock("3", "C", 30.0),
+        ])]
+        out = build_portfolio_guide_section(data)
+        assert "ポートフォリオ・ガイド" in out
+        assert "推奨配分" in out
+        # 配分%の合計が100
+        import re
+        pcts = [int(m) for m in re.findall(r">(\d+)%</td>", out)]
+        assert sum(pcts) == 100
+
+    def test_relative_valuation_flag(self):
+        data = [self._theme("AI", [
+            self._stock("1", "Cheap", 8.0),
+            self._stock("2", "Mid", 20.0),
+            self._stock("3", "Pricey", 40.0),
+        ])]
+        out = build_portfolio_guide_section(data)
+        assert "割安" in out
+        assert "割高" in out
+
+    def test_low_quality_badge_for_stooq(self):
+        data = [self._theme("AI", [
+            self._stock("1", "Good", 10.0),
+            {"code": "2", "name": "Stooq銘柄", "market": "JP", "per": None,
+             "pbr": None, "current_price": 500.0, "sector": "", "data_source": "stooq"},
+        ])]
+        out = build_portfolio_guide_section(data)
+        assert "低" in out
+
+    def test_duplicate_stock_warning(self):
+        data = [
+            self._theme("AI", [self._stock("6758", "ソニー", 15.0)]),
+            self._theme("半導体", [self._stock("6758", "ソニー", 15.0)]),
+        ]
+        out = build_portfolio_guide_section(data)
+        assert "銘柄重複" in out
+        assert "ソニー" in out
+
+    def test_xss_escaped(self):
+        data = [self._theme("AI", [
+            self._stock("1", "<script>x</script>", 10.0),
+        ])]
+        out = build_portfolio_guide_section(data)
+        assert "<script>" not in out
 
 
 # ─────────────────────────────────────────────────────────────────────────────
