@@ -250,6 +250,65 @@
       "name": "株主還元強化・資本効率改善",
       "year_month": "2026-05",
       "icon": "💰"
+    },
+    {
+      "name": "次世代パワー半導体（GaN・SiC）",
+      "year_month": "2026-06",
+      "icon": "⚡",
+      "stocks": [
+        {
+          "code": "6963",
+          "market": "JP",
+          "name": "ROHM Co., Ltd.",
+          "rank": 1,
+          "price_at_pick": 5205.0
+        },
+        {
+          "code": "6501",
+          "market": "JP",
+          "name": "Hitachi, Ltd.",
+          "rank": 2,
+          "price_at_pick": 5115.0
+        }
+      ]
+    },
+    {
+      "name": "量子コンピューティング",
+      "year_month": "2026-06",
+      "icon": "⚛️",
+      "stocks": [
+        {
+          "code": "6723",
+          "market": "JP",
+          "name": "ルネサスエレクトロニクス",
+          "rank": 1,
+          "price_at_pick": 4441.0
+        },
+        {
+          "code": "6501",
+          "market": "JP",
+          "name": "日立製作所",
+          "rank": 2,
+          "price_at_pick": 5115.0
+        },
+        {
+          "code": "9432",
+          "market": "JP",
+          "name": "日本電信電話",
+          "rank": 3,
+          "price_at_pick": 148.3
+        }
+      ]
+    },
+    {
+      "name": "次世代パワー半導体（GaN・SiC）",
+      "year_month": "2026-06",
+      "icon": "⚡"
+    },
+    {
+      "name": "量子コンピューティング",
+      "year_month": "2026-06",
+      "icon": "⚛️"
     }
   ]
 }
