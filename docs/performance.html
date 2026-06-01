@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>推奨銘柄成績ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script
+  src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+  integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g"
+  crossorigin="anonymous"></script>
+<style>
+  .perf-hero { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
+  .perf-hero__num { font-family: var(--serif); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1; letter-spacing: -.02em; font-variant-numeric: oldstyle-nums; }
+  .perf-hero__pct { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--green); }
+  .perf-hero__note { margin-left: 8px; font-size: 11.5px; color: var(--text-dim); }
+  #monthlyReturnChart { width: 100%; height: 220px; display: block; }
+
+  .perf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .perf-table thead th {
+    font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.15em;
+    color: var(--text-mute); text-align: left; font-weight: 600;
+    padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer; user-select: none;
+  }
+  .perf-table thead th:hover { color: var(--text); }
+  .perf-table tbody td {
+    padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border);
+    color: var(--text-dim); vertical-align: middle;
+  }
+  .perf-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+  .perf-table .col-month { font-family: var(--mono); font-size: 11px; color: var(--text-mute); white-space: nowrap; }
+  .perf-table .col-code { font-family: var(--mono); font-size: 11px; color: var(--gold); }
+  .perf-table .col-name { font-family: var(--serif); font-size: 13px; font-weight: 600; color: var(--text); }
+  .perf-table .col-return { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: right; white-space: nowrap; }
+  .perf-table .col-price { font-family: var(--mono); font-size: 11px; color: var(--text-mute); text-align: right; white-space: nowrap; }
+
+  .filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 12px; }
+  .filter-bar label { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; color: var(--text-mute); text-transform: uppercase; }
+  .filter-bar select {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border-gold); padding: 5px 10px;
+    font-family: var(--mono); font-size: 11px; border-radius: 0;
+  }
+</style>
+</head>
+<body>
+<div class="tp-wrap">
+
+  <header class="tp-masthead">
+    <div class="tp-masthead__brand">
+      <span class="tp-masthead__brand-mark"></span>
+      <span class="tp-masthead__brand-name">The Picker</span>
+      <span class="tp-masthead__brand-sub">PERFORMANCE</span>
+    </div>
+    <span class="tp-masthead__meta">UPD 2026-06-01 06:53 UTC</span>
+  </header>
+
+  <section class="tp-cover">
+    <div class="tp-cover__kicker">BACKTEST DASHBOARD</div>
+    <h1 class="tp-cover__title">推奨銘柄の<br>累計成績</h1>
+    <!-- pythonが <div class="perf-hero"><span class="perf-hero__num" style="color:var(--green);">+6.45</span><span class="perf-hero__pct" style="color:var(--green);">%</span><span class="perf-hero__note">平均リターン</span></div> に <div class="perf-hero">…</div> を出力。
+         未対応なら "" で空文字置換 → サイレントスキップ -->
+    <div class="perf-hero"><span class="perf-hero__num" style="color:var(--green);">+6.45</span><span class="perf-hero__pct" style="color:var(--green);">%</span><span class="perf-hero__note">平均リターン</span></div>
+    <div class="tp-byline">2026-05 〜 2026-06</div>
+  </section>
+
+  <!-- KPI grid — pythonが <div class="tp-kpi-grid">
+  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div><div class="tp-kpi__value">50.0%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div><div class="tp-kpi__value tp-kpi__value--red">0.0%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div><div class="tp-kpi__value tp-kpi__value--green">—</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div><div class="tp-kpi__value">12</div></div>
+</div> に <div class="tp-kpi-grid">…</div> を出力 -->
+  <section class="tp-section--tight">
+    <div class="tp-kpi-grid">
+  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div><div class="tp-kpi__value">50.0%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div><div class="tp-kpi__value tp-kpi__value--red">0.0%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div><div class="tp-kpi__value tp-kpi__value--green">—</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div><div class="tp-kpi__value">12</div></div>
+</div>
+  </section>
+
+  <!-- Best / Worst — pythonが <div class="tp-best-worst"><div class="tp-best-worst__cell"><div class="tp-best-worst__head"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7dc679" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span class="tp-mini">BEST</span></div><div class="tp-best-worst__name">Taiyo Yuden Co., Ltd.</div><div class="tp-best-worst__value tp-up">+76.44%</div></div><div class="tp-best-worst__cell"><div class="tp-best-worst__head"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e16158" stroke-width="1.7"><path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/></svg><span class="tp-mini">WORST</span></div><div class="tp-best-worst__name">Mitsubishi Electric Corporation</div><div class="tp-best-worst__value tp-down">-7.17%</div></div></div> に <div class="tp-best-worst">…</div> を出力 -->
+  <section class="tp-section--tight">
+    <div class="tp-best-worst"><div class="tp-best-worst__cell"><div class="tp-best-worst__head"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7dc679" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span class="tp-mini">BEST</span></div><div class="tp-best-worst__name">Taiyo Yuden Co., Ltd.</div><div class="tp-best-worst__value tp-up">+76.44%</div></div><div class="tp-best-worst__cell"><div class="tp-best-worst__head"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e16158" stroke-width="1.7"><path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/></svg><span class="tp-mini">WORST</span></div><div class="tp-best-worst__name">Mitsubishi Electric Corporation</div><div class="tp-best-worst__value tp-down">-7.17%</div></div></div>
+  </section>
+
+  <div class="tp-divider-dashed"></div>
+
+  <!-- Monthly chart -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">月別 · 平均リターン</div></div>
+    <canvas id="monthlyReturnChart"></canvas>
+  </section>
+
+  <!-- Monthly distribution -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">月別 · 内訳</div></div>
+    <div style="font-family:var(--mono);font-size:8.5px;color:var(--text-mute);letter-spacing:.15em;padding-bottom:6px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:38px 1fr 44px 56px;gap:10px;">
+      <span>月</span><span>分布</span><span style="text-align:right;">勝率</span><span style="text-align:right;">リターン</span>
+    </div>
+    <!-- pythonが <div class="tp-monthly-row">…</div> × N を出力 -->
+    <div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-03</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">—</span><span class="tp-monthly-row__return" style="color:var(--text-mute)">データなし</span></div>
+<div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-04</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">—</span><span class="tp-monthly-row__return" style="color:var(--text-mute)">データなし</span></div>
+<div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-05</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-fill" style="left:50%;width:50.0%;background:var(--green);"></div><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">57.1%</span><span class="tp-monthly-row__return tp-up">+11.15%</span></div>
+<div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-06</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-fill" style="left:49.3%;width:0.7%;background:var(--red);"></div><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">40.0%</span><span class="tp-monthly-row__return tp-down">-0.15%</span></div>
+  </section>
+
+  <div class="tp-divider-dashed"></div>
+
+  <!-- Top picks — pythonが <div class="tp-perf-row tp-perf-row--top"><div class="tp-perf-row__rank">1</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Taiyo Yuden Co., Ltd.</div><div class="tp-perf-row__sub">6976 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+76.44%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">2</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Shin-Etsu Chemical Co., Ltd.</div><div class="tp-perf-row__sub">4063 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+10.79%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">3</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Hitachi, Ltd.</div><div class="tp-perf-row__sub">6501 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+2.48%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">4</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Mitsubishi UFJ Financial Group, Inc.</div><div class="tp-perf-row__sub">8306 · 株主還元強化・資本効率改善 · 2026-05</div></div><div class="tp-perf-row__return tp-up">+0.8%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">5</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Hitachi, Ltd.</div><div class="tp-perf-row__sub">6501 · 次世代パワー半導体（GaN・SiC） · 2026-06</div></div><div class="tp-perf-row__return tp-up">+0.22%</div></div> に <div class="tp-perf-row">…</div> × N を出力 -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">ベストパフォーマー</div></div>
+    <div class="tp-perf-row tp-perf-row--top"><div class="tp-perf-row__rank">1</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Taiyo Yuden Co., Ltd.</div><div class="tp-perf-row__sub">6976 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+76.44%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">2</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Shin-Etsu Chemical Co., Ltd.</div><div class="tp-perf-row__sub">4063 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+10.79%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">3</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Hitachi, Ltd.</div><div class="tp-perf-row__sub">6501 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+2.48%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">4</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Mitsubishi UFJ Financial Group, Inc.</div><div class="tp-perf-row__sub">8306 · 株主還元強化・資本効率改善 · 2026-05</div></div><div class="tp-perf-row__return tp-up">+0.8%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">5</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Hitachi, Ltd.</div><div class="tp-perf-row__sub">6501 · 次世代パワー半導体（GaN・SiC） · 2026-06</div></div><div class="tp-perf-row__return tp-up">+0.22%</div></div>
+  </section>
+
+  <!-- Individual stocks (filtered table) -->
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">個別銘柄パフォーマンス</div></div>
+    <div class="filter-bar">
+      <label for="theme-filter">テーマ:</label>
+      <select id="theme-filter">
+        <option value="">すべて</option>
+        <option value="化合物半導体・次世代パワーデバイス">化合物半導体・次世代パワーデバイス</option>
+<option value="電力インフラ・データセンター最適化">電力インフラ・データセンター最適化</option>
+<option value="株主還元強化・資本効率改善">株主還元強化・資本効率改善</option>
+<option value="次世代パワー半導体（GaN・SiC）">次世代パワー半導体（GaN・SiC）</option>
+<option value="量子コンピューティング">量子コンピューティング</option>
+      </select>
+      <label for="month-filter">月:</label>
+      <select id="month-filter">
+        <option value="">すべて</option>
+        <option value="2026-05">2026-05</option>
+<option value="2026-06">2026-06</option>
+      </select>
+    </div>
+    <table class="perf-table" id="stocks-table">
+      <thead>
+        <tr>
+          <th data-col="year_month">月</th>
+          <th data-col="code">コード</th>
+          <th data-col="name">銘柄</th>
+          <th data-col="price" style="text-align:right;">推奨/現在</th>
+          <th data-col="return_pct" style="text-align:right;">リターン</th>
+        </tr>
+      </thead>
+      <tbody id="stocks-tbody">
+        <tr data-theme="化合物半導体・次世代パワーデバイス" data-year_month="2026-05" data-return_pct="10.79"><td class="col-month">2026-05</td><td class="col-code">4063</td><td class="col-name">Shin-Etsu Chemical Co., Ltd.</td><td class="col-price">¥7,034 → ¥7,793</td><td class="col-return tp-up">+10.79%</td></tr>
+<tr data-theme="化合物半導体・次世代パワーデバイス" data-year_month="2026-05" data-return_pct="2.48"><td class="col-month">2026-05</td><td class="col-code">6501</td><td class="col-name">Hitachi, Ltd.</td><td class="col-price">¥5,002 → ¥5,126</td><td class="col-return tp-up">+2.48%</td></tr>
+<tr data-theme="化合物半導体・次世代パワーデバイス" data-year_month="2026-05" data-return_pct="76.44"><td class="col-month">2026-05</td><td class="col-code">6976</td><td class="col-name">Taiyo Yuden Co., Ltd.</td><td class="col-price">¥9,102 → ¥16,060</td><td class="col-return tp-up">+76.44%</td></tr>
+<tr data-theme="電力インフラ・データセンター最適化" data-year_month="2026-05" data-return_pct="-0.77"><td class="col-month">2026-05</td><td class="col-code">6501</td><td class="col-name">Hitachi, Ltd.</td><td class="col-price">¥5,166 → ¥5,126</td><td class="col-return tp-down">-0.77%</td></tr>
+<tr data-theme="電力インフラ・データセンター最適化" data-year_month="2026-05" data-return_pct="-7.17"><td class="col-month">2026-05</td><td class="col-code">6503</td><td class="col-name">Mitsubishi Electric Corporation</td><td class="col-price">¥6,558 → ¥6,088</td><td class="col-return tp-down">-7.17%</td></tr>
+<tr data-theme="株主還元強化・資本効率改善" data-year_month="2026-05" data-return_pct="0.8"><td class="col-month">2026-05</td><td class="col-code">8306</td><td class="col-name">Mitsubishi UFJ Financial Group, Inc.</td><td class="col-price">¥2,999 → ¥3,023</td><td class="col-return tp-up">+0.8%</td></tr>
+<tr data-theme="株主還元強化・資本効率改善" data-year_month="2026-05" data-return_pct="-4.49"><td class="col-month">2026-05</td><td class="col-code">7203</td><td class="col-name">Toyota Motor Corporation</td><td class="col-price">¥3,042 → ¥2,906</td><td class="col-return tp-down">-4.49%</td></tr>
+<tr data-theme="次世代パワー半導体（GaN・SiC）" data-year_month="2026-06" data-return_pct="-0.44"><td class="col-month">2026-06</td><td class="col-code">6963</td><td class="col-name">ROHM Co., Ltd.</td><td class="col-price">¥5,205 → ¥5,182</td><td class="col-return tp-down">-0.44%</td></tr>
+<tr data-theme="次世代パワー半導体（GaN・SiC）" data-year_month="2026-06" data-return_pct="0.22"><td class="col-month">2026-06</td><td class="col-code">6501</td><td class="col-name">Hitachi, Ltd.</td><td class="col-price">¥5,115 → ¥5,126</td><td class="col-return tp-up">+0.22%</td></tr>
+<tr data-theme="量子コンピューティング" data-year_month="2026-06" data-return_pct="-0.54"><td class="col-month">2026-06</td><td class="col-code">6723</td><td class="col-name">ルネサスエレクトロニクス</td><td class="col-price">¥4,441 → ¥4,417</td><td class="col-return tp-down">-0.54%</td></tr>
+<tr data-theme="量子コンピューティング" data-year_month="2026-06" data-return_pct="0.22"><td class="col-month">2026-06</td><td class="col-code">6501</td><td class="col-name">日立製作所</td><td class="col-price">¥5,115 → ¥5,126</td><td class="col-return tp-up">+0.22%</td></tr>
+<tr data-theme="量子コンピューティング" data-year_month="2026-06" data-return_pct="-0.2"><td class="col-month">2026-06</td><td class="col-code">9432</td><td class="col-name">日本電信電話</td><td class="col-price">¥148 → ¥148</td><td class="col-return tp-down">-0.2%</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="tp-colophon">
+    過去の成績は将来を保証しません<br>
+    DATA: yfinance · NOT INVESTMENT ADVICE
+  </footer>
+
+</div>
+
+<script>
+(function() {
+  const labels = ["2026-03", "2026-04", "2026-05", "2026-06"];
+  const returns = [null, null, 11.15, -0.15];
+  if (!labels.length) return;
+  const ctx = document.getElementById('monthlyReturnChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{
+      data: returns,
+      backgroundColor: returns.map(v => v === null ? 'transparent' : (v >= 0 ? 'rgba(125,198,121,0.85)' : 'rgba(225,97,88,0.85)')),
+      borderRadius: 0, borderSkipped: false,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0d1626', borderColor: '#d4a341', borderWidth: 1,
+          titleFont: { family: 'JetBrains Mono', size: 11 },
+          bodyFont: { family: 'JetBrains Mono', size: 11 },
+          callbacks: { label: ctx => ctx.parsed.y === null ? 'データなし' : (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(1) + '%' }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#9aa3b8', font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } },
+        y: { ticks: { color: '#9aa3b8', font: { family: 'JetBrains Mono', size: 10 }, callback: v => (v>=0?'+':'')+v+'%' },
+             grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+})();
+
+// Filter
+(function() {
+  const themeF = document.getElementById('theme-filter');
+  const monthF = document.getElementById('month-filter');
+  function apply() {
+    const t = themeF.value, m = monthF.value;
+    document.querySelectorAll('#stocks-tbody tr').forEach(row => {
+      const rt = row.getAttribute('data-theme') || '';
+      const rm = row.getAttribute('data-year_month') || '';
+      const show = (!t || rt === t) && (!m || rm === m);
+      row.style.display = show ? '' : 'none';
+    });
+  }
+  themeF.addEventListener('change', apply);
+  monthF.addEventListener('change', apply);
+})();
+
+// Sort
+(function() {
+  const tbody = document.getElementById('stocks-tbody');
+  const state = { col: null, asc: true };
+  document.querySelectorAll('#stocks-table th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.getAttribute('data-col');
+      if (state.col === c) state.asc = !state.asc; else { state.col = c; state.asc = true; }
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const va = a.getAttribute('data-' + c) || a.querySelector('td.col-' + c)?.textContent || '';
+        const vb = b.getAttribute('data-' + c) || b.querySelector('td.col-' + c)?.textContent || '';
+        const na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return state.asc ? na - nb : nb - na;
+        return state.asc ? va.localeCompare(vb, 'ja') : vb.localeCompare(va, 'ja');
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
+})();
+</script>
+
+<!--
+===============================================================================
+PYTHON 生成HTML 例 (step6_backtest.py で組み立てる雛形)
+===============================================================================
+
+[1] <div class="perf-hero"><span class="perf-hero__num" style="color:var(--green);">+6.45</span><span class="perf-hero__pct" style="color:var(--green);">%</span><span class="perf-hero__note">平均リターン</span></div>
+<div class="perf-hero">
+  <span class="perf-hero__num">{{ '+' if avg>=0 else '' }}{{ avg|round(1) }}</span>
+  <span class="perf-hero__pct">%</span>
+  <span class="perf-hero__note">平均リターン</span>
+</div>
+
+[2] <div class="tp-kpi-grid">
+  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div><div class="tp-kpi__value">50.0%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div><div class="tp-kpi__value tp-kpi__value--red">0.0%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div><div class="tp-kpi__value tp-kpi__value--green">—</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div><div class="tp-kpi__value">12</div></div>
+</div>
+<div class="tp-kpi-grid">
+  <div class="tp-kpi"><div class="tp-kpi__label">勝率</div><div class="tp-kpi__value">{{ win_rate }}%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">最大DD</div><div class="tp-kpi__value tp-kpi__value--red">{{ max_dd }}%</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">勝月</div><div class="tp-kpi__value tp-kpi__value--green">{{ win_months }} / {{ total_months }}</div></div>
+  <div class="tp-kpi"><div class="tp-kpi__label">推奨</div><div class="tp-kpi__value">{{ total_picks }}</div></div>
+</div>
+
+[3] <div class="tp-best-worst"><div class="tp-best-worst__cell"><div class="tp-best-worst__head"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7dc679" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg><span class="tp-mini">BEST</span></div><div class="tp-best-worst__name">Taiyo Yuden Co., Ltd.</div><div class="tp-best-worst__value tp-up">+76.44%</div></div><div class="tp-best-worst__cell"><div class="tp-best-worst__head"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e16158" stroke-width="1.7"><path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/></svg><span class="tp-mini">WORST</span></div><div class="tp-best-worst__name">Mitsubishi Electric Corporation</div><div class="tp-best-worst__value tp-down">-7.17%</div></div></div>
+<div class="tp-best-worst">
+  <div class="tp-best-worst__cell">
+    <div class="tp-best-worst__head">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7dc679" stroke-width="1.7"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+      <span class="tp-mini">BEST</span>
+    </div>
+    <div class="tp-best-worst__name">{{ best.name }}</div>
+    <div class="tp-best-worst__value tp-up">+{{ best.return }}%</div>
+  </div>
+  <div class="tp-best-worst__cell">
+    <div class="tp-best-worst__head">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e16158" stroke-width="1.7"><path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/></svg>
+      <span class="tp-mini">WORST</span>
+    </div>
+    <div class="tp-best-worst__name">{{ worst.name }}</div>
+    <div class="tp-best-worst__value tp-down">{{ worst.return }}%</div>
+  </div>
+</div>
+
+[4] <div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-03</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">—</span><span class="tp-monthly-row__return" style="color:var(--text-mute)">データなし</span></div>
+<div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-04</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">—</span><span class="tp-monthly-row__return" style="color:var(--text-mute)">データなし</span></div>
+<div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-05</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-fill" style="left:50%;width:50.0%;background:var(--green);"></div><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">57.1%</span><span class="tp-monthly-row__return tp-up">+11.15%</span></div>
+<div class="tp-monthly-row"><span class="tp-monthly-row__month">2026-06</span><div class="tp-monthly-row__bar"><div class="tp-monthly-row__bar-fill" style="left:49.3%;width:0.7%;background:var(--red);"></div><div class="tp-monthly-row__bar-axis"></div></div><span class="tp-monthly-row__win">40.0%</span><span class="tp-monthly-row__return tp-down">-0.15%</span></div>  ← 月次1行
+<div class="tp-monthly-row">
+  <span class="tp-monthly-row__month">{{ m.year_month }}</span>
+  <div class="tp-monthly-row__bar">
+    (bar: ret>=0 → left:50%, width:abs(ret)/maxAbs*50%, bg:var(--green))
+    (bar: ret<0  → left:(50% - width), width:abs(ret)/maxAbs*50%, bg:var(--red))
+    <div class="tp-monthly-row__bar-fill" style="left:50%;width:25%;background:var(--green);"></div>
+    <div class="tp-monthly-row__bar-axis"></div>
+  </div>
+  <span class="tp-monthly-row__win">{{ m.win }}%</span>
+  <span class="tp-monthly-row__return {{ 'tp-up' if m.avg>=0 else 'tp-down' }}">{{ '+' if m.avg>=0 else '' }}{{ m.avg }}%</span>
+</div>
+
+[5] <div class="tp-perf-row tp-perf-row--top"><div class="tp-perf-row__rank">1</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Taiyo Yuden Co., Ltd.</div><div class="tp-perf-row__sub">6976 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+76.44%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">2</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Shin-Etsu Chemical Co., Ltd.</div><div class="tp-perf-row__sub">4063 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+10.79%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">3</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Hitachi, Ltd.</div><div class="tp-perf-row__sub">6501 · 化合物半導体・次世代パワーデバイス · 2026-05</div></div><div class="tp-perf-row__return tp-up">+2.48%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">4</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Mitsubishi UFJ Financial Group, Inc.</div><div class="tp-perf-row__sub">8306 · 株主還元強化・資本効率改善 · 2026-05</div></div><div class="tp-perf-row__return tp-up">+0.8%</div></div>
+<div class="tp-perf-row"><div class="tp-perf-row__rank">5</div><div class="tp-perf-row__body"><div class="tp-perf-row__name">Hitachi, Ltd.</div><div class="tp-perf-row__sub">6501 · 次世代パワー半導体（GaN・SiC） · 2026-06</div></div><div class="tp-perf-row__return tp-up">+0.22%</div></div>  ← Top pick 1行
+<div class="tp-perf-row{% if loop.first %} tp-perf-row--top{% endif %}">
+  <div class="tp-perf-row__rank">{{ loop.index }}</div>
+  <div class="tp-perf-row__body">
+    <div class="tp-perf-row__name">{{ s.name }}</div>
+    <div class="tp-perf-row__sub">{{ s.code }} · {{ s.theme }} · {{ s.month }}</div>
+  </div>
+  <div class="tp-perf-row__return {{ 'tp-up' if s.return>=0 else 'tp-down' }}">{{ '+' if s.return>=0 else '' }}{{ s.return }}%</div>
+</div>
+
+[6] <tr data-theme="化合物半導体・次世代パワーデバイス" data-year_month="2026-05" data-return_pct="10.79"><td class="col-month">2026-05</td><td class="col-code">4063</td><td class="col-name">Shin-Etsu Chemical Co., Ltd.</td><td class="col-price">¥7,034 → ¥7,793</td><td class="col-return tp-up">+10.79%</td></tr>
+<tr data-theme="化合物半導体・次世代パワーデバイス" data-year_month="2026-05" data-return_pct="2.48"><td class="col-month">2026-05</td><td class="col-code">6501</td><td class="col-name">Hitachi, Ltd.</td><td class="col-price">¥5,002 → ¥5,126</td><td class="col-return tp-up">+2.48%</td></tr>
+<tr data-theme="化合物半導体・次世代パワーデバイス" data-year_month="2026-05" data-return_pct="76.44"><td class="col-month">2026-05</td><td class="col-code">6976</td><td class="col-name">Taiyo Yuden Co., Ltd.</td><td class="col-price">¥9,102 → ¥16,060</td><td class="col-return tp-up">+76.44%</td></tr>
+<tr data-theme="電力インフラ・データセンター最適化" data-year_month="2026-05" data-return_pct="-0.77"><td class="col-month">2026-05</td><td class="col-code">6501</td><td class="col-name">Hitachi, Ltd.</td><td class="col-price">¥5,166 → ¥5,126</td><td class="col-return tp-down">-0.77%</td></tr>
+<tr data-theme="電力インフラ・データセンター最適化" data-year_month="2026-05" data-return_pct="-7.17"><td class="col-month">2026-05</td><td class="col-code">6503</td><td class="col-name">Mitsubishi Electric Corporation</td><td class="col-price">¥6,558 → ¥6,088</td><td class="col-return tp-down">-7.17%</td></tr>
+<tr data-theme="株主還元強化・資本効率改善" data-year_month="2026-05" data-return_pct="0.8"><td class="col-month">2026-05</td><td class="col-code">8306</td><td class="col-name">Mitsubishi UFJ Financial Group, Inc.</td><td class="col-price">¥2,999 → ¥3,023</td><td class="col-return tp-up">+0.8%</td></tr>
+<tr data-theme="株主還元強化・資本効率改善" data-year_month="2026-05" data-return_pct="-4.49"><td class="col-month">2026-05</td><td class="col-code">7203</td><td class="col-name">Toyota Motor Corporation</td><td class="col-price">¥3,042 → ¥2,906</td><td class="col-return tp-down">-4.49%</td></tr>
+<tr data-theme="次世代パワー半導体（GaN・SiC）" data-year_month="2026-06" data-return_pct="-0.44"><td class="col-month">2026-06</td><td class="col-code">6963</td><td class="col-name">ROHM Co., Ltd.</td><td class="col-price">¥5,205 → ¥5,182</td><td class="col-return tp-down">-0.44%</td></tr>
+<tr data-theme="次世代パワー半導体（GaN・SiC）" data-year_month="2026-06" data-return_pct="0.22"><td class="col-month">2026-06</td><td class="col-code">6501</td><td class="col-name">Hitachi, Ltd.</td><td class="col-price">¥5,115 → ¥5,126</td><td class="col-return tp-up">+0.22%</td></tr>
+<tr data-theme="量子コンピューティング" data-year_month="2026-06" data-return_pct="-0.54"><td class="col-month">2026-06</td><td class="col-code">6723</td><td class="col-name">ルネサスエレクトロニクス</td><td class="col-price">¥4,441 → ¥4,417</td><td class="col-return tp-down">-0.54%</td></tr>
+<tr data-theme="量子コンピューティング" data-year_month="2026-06" data-return_pct="0.22"><td class="col-month">2026-06</td><td class="col-code">6501</td><td class="col-name">日立製作所</td><td class="col-price">¥5,115 → ¥5,126</td><td class="col-return tp-up">+0.22%</td></tr>
+<tr data-theme="量子コンピューティング" data-year_month="2026-06" data-return_pct="-0.2"><td class="col-month">2026-06</td><td class="col-code">9432</td><td class="col-name">日本電信電話</td><td class="col-price">¥148 → ¥148</td><td class="col-return tp-down">-0.2%</td></tr>  ← 全銘柄テーブル1行
+<tr data-theme="{{ s.theme }}" data-year_month="{{ s.year_month }}" data-return_pct="{{ s.return_pct }}">
+  <td class="col-month">{{ s.year_month }}</td>
+  <td class="col-code">{{ s.code }}</td>
+  <td class="col-name">{{ s.name }}</td>
+  <td class="col-price">{{ s.price_at_pick }} → {{ s.current_price }}</td>
+  <td class="col-return {{ 'tp-up' if s.return_pct>=0 else 'tp-down' }}">{{ '+' if s.return_pct>=0 else '' }}{{ s.return_pct }}%</td>
+</tr>
+
+[7] ["2026-03", "2026-04", "2026-05", "2026-06"], [null, null, 11.15, -0.15]  ← JS配列をそのまま埋める
+  例: ["2025.06","2025.07",…]
+      [2.4,-1.8,…]
+
+===============================================================================
+-->
+
+</body>
+</html>
