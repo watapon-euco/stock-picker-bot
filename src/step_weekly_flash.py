@@ -468,6 +468,67 @@ def _build_earnings_calendar_section() -> str:
     )
 
 
+def _build_dividend_calendar_section() -> str:
+    """14日以内に権利落ち（ex-dividend）を迎える銘柄を列挙する。
+
+    決算予定と対になる投資イベント。権利付き最終日に向けた仕込み判断に使う。
+    """
+    try:
+        from src.utils.dividend_fetcher import fetch_upcoming_dividend
+    except ImportError:
+        return ""
+
+    stocks_with_names = _collect_stocks_with_names()
+    if not stocks_with_names:
+        return ""
+
+    icon_svg = (
+        '<svg class="tp-earnings-row__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">'
+        '<circle cx="12" cy="12" r="9"/>'
+        '<path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 010 3h-3a1.5 1.5 0 000 3h4"/>'
+        '</svg>'
+    )
+
+    rows_html = []
+    for stock in stocks_with_names[:30]:
+        code = stock["code"]
+        name = stock.get("name", code)
+        stock_market = stock.get("market", "JP")
+        try:
+            result = fetch_upcoming_dividend(code, lookahead_days=14, market=stock_market)
+            if result and result.get("ex_date"):
+                market = "US" if stock_market == "US" else "T"
+                yld = result.get("dividend_yield")
+                yld_str = f"利回り{yld:.1f}%" if isinstance(yld, (int, float)) and yld < 1 else (
+                    f"利回り{yld:.1f}%" if isinstance(yld, (int, float)) else ""
+                )
+                sub = f'{_html.escape(code)}.{_html.escape(market)}'
+                if yld_str:
+                    sub += f' · {_html.escape(yld_str)}'
+                rows_html.append(
+                    f'<div class="tp-earnings-row">'
+                    f'{icon_svg}'
+                    f'<div class="tp-earnings-row__body">'
+                    f'<div class="tp-earnings-row__name">{_html.escape(name)}</div>'
+                    f'<div class="tp-earnings-row__sub">{sub}</div>'
+                    f'</div>'
+                    f'<div class="tp-earnings-row__date">{_html.escape(result["ex_date"])}</div>'
+                    f'</div>'
+                )
+        except Exception:
+            pass
+
+    if not rows_html:
+        return ""
+
+    return (
+        '<section class="tp-section">\n'
+        '  <div class="tp-section__head"><div class="tp-kicker">権利落ち予定（2週間以内）</div></div>\n'
+        + "\n".join(rows_html) + "\n"
+        '</section>\n'
+    )
+
+
 def _build_surging_stocks_html(stocks: List[Dict]) -> str:
     if not stocks:
         return '<div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>'
@@ -548,6 +609,7 @@ def _render_html(
     monthly_url: str,
     market_indices_html: str = "",
     earnings_calendar_html: str = "",
+    dividend_calendar_html: str = "",
 ) -> str:
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     now_str = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M JST")
@@ -561,6 +623,7 @@ def _render_html(
         .replace("{{MONTHLY_REPORT_URL}}", safe_url(monthly_url))
         .replace("{{MARKET_INDICES_SECTION}}", market_indices_html)
         .replace("{{EARNINGS_CALENDAR_SECTION}}", earnings_calendar_html)
+        .replace("{{DIVIDEND_CALENDAR_SECTION}}", dividend_calendar_html)
     )
 
 
@@ -814,10 +877,12 @@ def run() -> None:
     news_html = _build_top_news_html(top_news)
     market_indices_html = _fetch_market_indices()
     earnings_calendar_html = _build_earnings_calendar_section()
+    dividend_calendar_html = _build_dividend_calendar_section()
     html_content = _render_html(
         week_label, date_range, stocks_html, news_html, monthly_url,
         market_indices_html=market_indices_html,
         earnings_calendar_html=earnings_calendar_html,
+        dividend_calendar_html=dividend_calendar_html,
     )
     out_path = _save_html(html_content, week_label)
 
