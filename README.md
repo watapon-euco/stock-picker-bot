@@ -137,6 +137,16 @@
 - 3日以内の決算を LINE で通知
 - `data/earnings_notified.json` で重複を回避
 
+**配当・権利落ちカレンダー** (Phase F4)
+- 週次速報に「権利落ち予定（2週間以内）」を表示（`src/utils/dividend_fetcher.py`）
+- 権利付き最終日に向けた仕込み・配当狙いの保有判断を支援
+- 決算アラートと対になる投資イベント（JP/US 両対応）
+
+**ニュース近重複除去** (Phase F5)
+- Google News が媒体違いで返す同一記事を、見出し正規化＋文字バイグラム
+  Jaccard 類似度で除去（`rss_fetcher.deduplicate_articles`）
+- Gemini に渡すニュースの多様性が増し、テーマ抽出の質が向上
+
 ### 信頼性向上
 
 **Stooq フォールバック** (Phase E1)
