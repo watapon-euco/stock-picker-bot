@@ -1219,7 +1219,7 @@ def run():
     year_month_label = f"{now.year}年{now.month}月"
     generated_date_label = now.strftime("%Y年%m月%d日")
     total_stocks = sum(len(t.get("stocks", [])) for t in stock_data)
-    archive_link_html = '<a href="archive/index.html">アーカイブ一覧</a>'
+    archive_link_html = '<a id="js-archive-link" href="archive/index.html">アーカイブ一覧</a>'
     ai_models_text = f"{GEMINI_MODEL} / {CLAUDE_MODEL}"
 
     # 新テンプレート用セクションをPythonで生成
