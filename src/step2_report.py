@@ -616,7 +616,7 @@ async function doSend(){{
 var q=input.value.trim();if(!q)return;
 input.value='';addMsg(q,'user');
 try{{
-var r=await fetch('{safe_proxy}',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{reportContext:document.title,message:q}})}});
+var r=await fetch('{safe_proxy}',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{reportContext:document.title,messages:[{{role:'user',content:q}}]}})}});
 var j=await r.json();
 addMsg(j.reply||'エラーが発生しました','ai');
 }}catch(e){{addMsg('接続エラー','ai');}}

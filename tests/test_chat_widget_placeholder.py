@@ -47,3 +47,15 @@ def test_no_api_key_in_template():
     content = _load_template()
     assert "sk-ant-" not in content, "API key must not appear in the template"
     assert "ANTHROPIC_API_KEY" not in content, "API key env var name must not appear in template"
+
+
+def test_chat_widget_sends_messages_array():
+    """ウィジェットは proxy/api/ask.js が期待する messages 配列形式で送信する。
+    旧実装は単数 message を送っており proxy 側で 400 になり機能しなかった。
+    """
+    from src.step2_report import build_chat_widget_section
+
+    html_out = build_chat_widget_section("https://example.vercel.app/api/ask")
+    assert "messages:[{role:'user',content:q}]" in html_out
+    # 旧形式の単数 message は送らない
+    assert "message:q" not in html_out

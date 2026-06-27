@@ -122,7 +122,7 @@ def _fetch_weekly_changes_batch(codes: List[str], name_map: Dict[str, str]) -> L
         chunk = all_tickers[chunk_start: chunk_start + _BATCH_SIZE]
         t0 = time.monotonic()
         try:
-            data = yf.download(chunk, period="1mo", group_by="ticker",
+            data = yf.download(chunk, period="1mo",
                                auto_adjust=True, progress=False)
             duration = time.monotonic() - t0
             log_api_call(
@@ -189,6 +189,21 @@ def _fetch_weekly_changes_batch(codes: List[str], name_map: Dict[str, str]) -> L
                 logger.warning(f"Failed to parse weekly data for {code}: {e}")
 
     return results
+
+
+def _derive_weekly_url(base_url: str, week_label: str) -> str:
+    """週次レポートの公開URLを base_url から導出する。
+
+    - 末尾が .htm/.html のファイル名なら除去（例: .../index.html → ...）
+    - 末尾の /weekly は除去して /weekly/weekly... の二重化を防ぐ
+      （README が WEEKLY_REPORT_BASE_URL の例として REPORT_URL/weekly を示すため）
+
+    Returns:
+        "{base}/weekly/{week_label}.html"。スキーム不正時は safe_url が "#" を返す。
+    """
+    base_url = re.sub(r"/[^/]+\.html?$", "", base_url).rstrip("/")
+    base_url = re.sub(r"/weekly/?$", "", base_url).rstrip("/")
+    return safe_url(base_url + f"/weekly/{week_label}.html")
 
 
 def is_surging(price_change_pct, vol_ratio, avg_volume_30d) -> bool:
@@ -830,10 +845,8 @@ def run() -> None:
     group_id = os.environ.get("LINE_GROUP_ID")
     if channel_token and group_id and not skip_line:
         # WEEKLY_REPORT_BASE_URL がなければ REPORT_URL から派生。
-        # 末尾が .htm/.html のファイル名で終わる場合はそれを除去してからパスを追加する。
         base_url = os.environ.get("WEEKLY_REPORT_BASE_URL", "") or monthly_url
-        base_url = re.sub(r"/[^/]+\.html?$", "", base_url).rstrip("/")
-        weekly_report_url = safe_url(base_url + f"/weekly/{week_label}.html")
+        weekly_report_url = _derive_weekly_url(base_url, week_label)
         flex_contents = _build_flex_contents(week_label, top5, top_news, weekly_report_url)
         line_client = LineClient(channel_token)
         _top5_is_fallback = bool(top5) and bool(top5[0].get("is_fallback"))
