@@ -1,26 +1,6 @@
 {
   "themes": [
     {
-      "name": "防衛・宇宙テック",
-      "year_month": "2026-03",
-      "icon": "🚀"
-    },
-    {
-      "name": "防災・デジタルインフラ",
-      "year_month": "2026-03",
-      "icon": "🛡️"
-    },
-    {
-      "name": "AI・パワー半導体",
-      "year_month": "2026-03",
-      "icon": "⚡"
-    },
-    {
-      "name": "フィジカルAI・ロボティクス",
-      "year_month": "2026-03",
-      "icon": "🤖"
-    },
-    {
       "name": "エネルギー・資源安定供給",
       "year_month": "2026-03",
       "icon": "⚡"
@@ -309,6 +289,91 @@
       "name": "量子コンピューティング",
       "year_month": "2026-06",
       "icon": "⚛️"
+    },
+    {
+      "name": "ダイヤモンド半導体・次世代素材",
+      "year_month": "2026-07",
+      "icon": "💎",
+      "stocks": [
+        {
+          "code": "6324",
+          "market": "JP",
+          "name": "ハーモニック・ドライブ・システムズ",
+          "rank": 1,
+          "price_at_pick": 7980.0
+        },
+        {
+          "code": "7203",
+          "market": "JP",
+          "name": "トヨタ自動車",
+          "rank": 2,
+          "price_at_pick": 2725.5
+        }
+      ]
+    },
+    {
+      "name": "データセンター向け液冷・送配電インフラ",
+      "year_month": "2026-07",
+      "icon": "⚡",
+      "stocks": [
+        {
+          "code": "6501",
+          "market": "JP",
+          "name": "Hitachi, Ltd.",
+          "rank": 1,
+          "price_at_pick": 4498.0
+        },
+        {
+          "code": "6367",
+          "market": "JP",
+          "name": "Daikin Industries, Ltd.",
+          "rank": 2,
+          "price_at_pick": 24565.0
+        }
+      ]
+    },
+    {
+      "name": "宇宙インフラ・商業宇宙輸送",
+      "year_month": "2026-07",
+      "icon": "🚀",
+      "stocks": [
+        {
+          "code": "4385",
+          "market": "JP",
+          "name": "Mercari, Inc.",
+          "rank": 1,
+          "price_at_pick": 3971.0
+        },
+        {
+          "code": "7747",
+          "market": "JP",
+          "name": "Asahi Intecc Co., Ltd.",
+          "rank": 2,
+          "price_at_pick": 3737.0
+        },
+        {
+          "code": "7011",
+          "market": "JP",
+          "name": "Mitsubishi Heavy Industries, Ltd.",
+          "rank": 3,
+          "price_at_pick": 3751.0
+        }
+      ]
+    },
+    {
+      "name": "ダイヤモンド半導体・次世代素材",
+      "year_month": "2026-07",
+      "icon": "💎"
+    },
+    {
+      "name": "データセンター向け液冷・送配電インフラ",
+      "year_month": "2026-07",
+      "icon": "⚡"
+    },
+    {
+      "name": "宇宙インフラ・商業宇宙輸送",
+      "year_month": "2026-07",
+      "icon": "🚀"
     }
   ]
 }
