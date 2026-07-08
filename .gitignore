@@ -35,3 +35,10 @@ data/news_articles.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code (allow shared settings/hooks, ignore local-only files)
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/session-start.sh

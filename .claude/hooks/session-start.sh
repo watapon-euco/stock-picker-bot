@@ -1,51 +1,26 @@
 #!/bin/bash
-set -euo pipefail
+# SessionStart hook: bootstrap ~/.claude/ from watapon-euco/Environment.
+#
+# Detection: if ~/.claude/CLAUDE.md already exists (an already-provisioned
+# local machine), do nothing. Ephemeral cloud containers start with no
+# ~/.claude/CLAUDE.md, so the sync always runs there. This avoids relying
+# on undocumented environment variables like CLAUDE_CODE_REMOTE.
 
-# Only run in remote (Claude Code on the web) environments
-if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+set -uo pipefail
+
+if [ -f "$HOME/.claude/CLAUDE.md" ]; then
   exit 0
 fi
 
-# Install dependencies based on what's present in the project
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+DOTFILES_REPO="https://github.com/watapon-euco/Environment"
+CLONE_DIR="/tmp/_env-dotfiles"
 
-# Node.js (npm)
-if [ -f "$PROJECT_DIR/package.json" ]; then
-  echo "Installing Node.js dependencies..."
-  cd "$PROJECT_DIR"
-  npm install
+if [ ! -d "$CLONE_DIR/.git" ]; then
+  rm -rf "$CLONE_DIR"
+  if ! git clone --depth 1 --quiet "$DOTFILES_REPO" "$CLONE_DIR"; then
+    echo "environment sync: clone failed; continuing without shared config" >&2
+    exit 0
+  fi
 fi
 
-# Python (pip)
-if [ -f "$PROJECT_DIR/requirements.txt" ]; then
-  echo "Installing Python dependencies (requirements.txt)..."
-  pip install -r "$PROJECT_DIR/requirements.txt"
-fi
-
-if [ -f "$PROJECT_DIR/pyproject.toml" ]; then
-  echo "Installing Python dependencies (pyproject.toml)..."
-  pip install -e "$PROJECT_DIR"
-fi
-
-# Ruby (bundler)
-if [ -f "$PROJECT_DIR/Gemfile" ]; then
-  echo "Installing Ruby dependencies..."
-  cd "$PROJECT_DIR"
-  bundle install
-fi
-
-# Go
-if [ -f "$PROJECT_DIR/go.mod" ]; then
-  echo "Installing Go dependencies..."
-  cd "$PROJECT_DIR"
-  go mod download
-fi
-
-# Rust
-if [ -f "$PROJECT_DIR/Cargo.toml" ]; then
-  echo "Building Rust dependencies..."
-  cd "$PROJECT_DIR"
-  cargo fetch
-fi
-
-echo "Session start hook completed."
+bash "$CLONE_DIR/setup.sh"
