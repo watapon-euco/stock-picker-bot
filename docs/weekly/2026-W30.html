@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>週次速報 2026-W30</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="tp-wrap">
+
+  <header class="tp-masthead tp-masthead--gold">
+    <div class="tp-masthead__brand">
+      <svg class="tp-ico" width="13" height="13" viewBox="0 0 24 24" fill="#d4a341" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+      <span class="tp-masthead__brand-name tp-masthead__brand-name--italic">The Weekly Flash</span>
+    </div>
+    <span class="tp-masthead__meta">2026-W30</span>
+  </header>
+
+  <nav class="tp-archive-nav">
+    <div class="tp-mode-toggle">
+      <a class="tp-mode-toggle__btn" href="../index.html">📊 月次</a>
+      <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">⚡ 週次</span>
+    </div>
+    <a href="index.html">バックナンバー</a>
+  </nav>
+
+  <section class="tp-cover">
+    <div class="tp-cover__kicker">2026/07/17 〜 2026/07/24 · 出来高2倍 + 5%超</div>
+    <h1 class="tp-cover__title">今週、市場を<br>動かした<span class="tp-italic-gold">5銘柄</span></h1>
+  </section>
+
+  <!-- Market indices — pythonが <section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">日経平均</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">64,611 <span style="font-size:9.5px">-2.7%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">S&amp;P 500</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">7,408.30 <span style="font-size:9.5px">-1.2%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">USD/JPY</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">163.71 <span style="font-size:9.5px">+0.4%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">VIX</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">18.75 <span style="font-size:9.5px">+0.3%</span></div></div>
+  </div>
+</section>
+ に
+       <div class="tp-stat-strip tp-stat-strip--4">...</div> を出力。
+       未対応なら python で "" を渡せばスキップされる。例HTML: 末尾コメント参照 -->
+  <section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">日経平均</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">64,611 <span style="font-size:9.5px">-2.7%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">S&amp;P 500</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">7,408.30 <span style="font-size:9.5px">-1.2%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">USD/JPY</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">163.71 <span style="font-size:9.5px">+0.4%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">VIX</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">18.75 <span style="font-size:9.5px">+0.3%</span></div></div>
+  </div>
+</section>
+
+
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">急騰銘柄</div></div>
+    <div class="tp-surge-head">
+      <span>#</span><span>銘柄 / セクター</span><span>CHART</span><span>VOL</span><span>WEEK</span>
+    </div>
+    <!-- pythonが <div class="tp-surge-row[--top]">...</div> × N を出力 -->
+    <div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>
+  </section>
+
+  <!-- Earnings calendar — pythonが  に
+       <section class="tp-section">…</section> を出力 -->
+  
+
+  <div class="tp-divider-dashed"></div>
+
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">気になるヘッドライン</div></div>
+    <!-- pythonが <article class="tp-news">...</article> × N を出力 -->
+    <article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;株式市場 注目 銘柄&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMiWkFVX3lxTFBVLWx3OHFFci1LMy1jZnFzZFZRb0ctM0JKZWVOaHJYNHpJUzI3SFRUOGVoa0ZNaVhheEwyQVp2T0Q5YVU3SWVnV1ZzTlRXSnUzUnA5Q0tFaWVEQQ?oc=5" target="_blank" rel="noopener">【緊急取材】日経平均「2,000円超下落」の真相…波乱の株式相場、今後の注目ポイントは？ - トウシル</a></h3><div class="tp-news__comment">日経平均の急落は市場全体のセンチメントに直結する重要事象であり、今後の相場動向を判断する上で不可欠な情報です。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;防衛 宇宙 半導体 日本株&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMidEFVX3lxTFBlZm5NQUMyeDEwV2phTGlReGRtU0V4U3l0NW9JdXZ6dERBZmtYMmppcGM0UVRPRlFHb0o1TWVrbnVoMHgtS3lPM0o2aWp1Sy00eW82MTNfaXZVTTJmYWF3d3d1clFYQ0RCRGVDeWp2X1NINEZK?oc=5" target="_blank" rel="noopener">半導体・防衛・宇宙株を一括投資…KB資産運用、国民成長ファンド連動の目標転換型を発売 - BigGo ファイナンス</a></h3><div class="tp-news__comment">半導体、防衛、宇宙といった成長性の高いテーマへの投資機会が拡大しており、中長期的な資産運用のトレンドを示唆しています。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;日本経済 新産業 成長 政策&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMikAFBVV95cUxQX2ZydEpkX3dSMkNKMWlhc29MY2JXUXh1RUczQ1locklsMWZaUHNtTlB5SmVvdjQ1a1djOHh1RlE0cVpfVEdKNF9CLTFCRWNydDJHOTVVM1pZRnU2ejhQZEh3Qy1hV2VvOE85a3d4MWNrMEotQ01BZk1KV2VMVmVLMnhWZXYzcjNyMzlWYVlJVUc?oc=5" target="_blank" rel="noopener">「スピード」と「高さ」へ転換する日本のスタートアップ政策。官民一体で挑む、新産業創出のロードマップ - Business Insider Japan</a></h3><div class="tp-news__comment">政府主導のスタートアップ政策の転換は、日本経済の構造変化と新たな投資機会の創出を意味する重要なマクロニュースです。</div></article>
+  </section>
+
+  <footer class="tp-colophon">
+    THE WEEKLY FLASH · 毎週金曜配信<br>
+    → <a href="https://watapon-euco.github.io/stock-picker-bot">月次レポートで詳細分析</a><br>
+    <span style="color:var(--text-mute)">2026-07-24 10:25 JST</span>
+  </footer>
+
+</div>
+
+<!--
+===============================================================================
+PYTHON 生成HTML 例（step_weekly_flash.py で組み立てる雛形）
+===============================================================================
+
+[1] <div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>  ← 急騰銘柄1行分
+<div class="tp-surge-row tp-surge-row--top">  (1位だけ --top クラス付加)
+  <div class="tp-surge-row__rank">1</div>
+  <div>
+    <div class="tp-surge-row__name">{{ stock.name }}</div>
+    <div class="tp-surge-row__sub">{{ stock.code }}.{{ stock.market }} · <span class="sector">{{ stock.sector }}</span></div>
+  </div>
+  <svg width="44" height="20" viewBox="0 0 44 20"><path d="..." fill="none" stroke="#7dc679" stroke-width="1.3" stroke-linecap="round"/></svg>
+  <div class="tp-surge-row__vol">×{{ stock.vol_ratio }}</div>
+  <div class="tp-surge-row__change">+{{ stock.change_pct }}%</div>
+</div>
+
+[2] <article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;株式市場 注目 銘柄&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMiWkFVX3lxTFBVLWx3OHFFci1LMy1jZnFzZFZRb0ctM0JKZWVOaHJYNHpJUzI3SFRUOGVoa0ZNaVhheEwyQVp2T0Q5YVU3SWVnV1ZzTlRXSnUzUnA5Q0tFaWVEQQ?oc=5" target="_blank" rel="noopener">【緊急取材】日経平均「2,000円超下落」の真相…波乱の株式相場、今後の注目ポイントは？ - トウシル</a></h3><div class="tp-news__comment">日経平均の急落は市場全体のセンチメントに直結する重要事象であり、今後の相場動向を判断する上で不可欠な情報です。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;防衛 宇宙 半導体 日本株&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMidEFVX3lxTFBlZm5NQUMyeDEwV2phTGlReGRtU0V4U3l0NW9JdXZ6dERBZmtYMmppcGM0UVRPRlFHb0o1TWVrbnVoMHgtS3lPM0o2aWp1Sy00eW82MTNfaXZVTTJmYWF3d3d1clFYQ0RCRGVDeWp2X1NINEZK?oc=5" target="_blank" rel="noopener">半導体・防衛・宇宙株を一括投資…KB資産運用、国民成長ファンド連動の目標転換型を発売 - BigGo ファイナンス</a></h3><div class="tp-news__comment">半導体、防衛、宇宙といった成長性の高いテーマへの投資機会が拡大しており、中長期的な資産運用のトレンドを示唆しています。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;日本経済 新産業 成長 政策&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMikAFBVV95cUxQX2ZydEpkX3dSMkNKMWlhc29MY2JXUXh1RUczQ1locklsMWZaUHNtTlB5SmVvdjQ1a1djOHh1RlE0cVpfVEdKNF9CLTFCRWNydDJHOTVVM1pZRnU2ejhQZEh3Qy1hV2VvOE85a3d4MWNrMEotQ01BZk1KV2VMVmVLMnhWZXYzcjNyMzlWYVlJVUc?oc=5" target="_blank" rel="noopener">「スピード」と「高さ」へ転換する日本のスタートアップ政策。官民一体で挑む、新産業創出のロードマップ - Business Insider Japan</a></h3><div class="tp-news__comment">政府主導のスタートアップ政策の転換は、日本経済の構造変化と新たな投資機会の創出を意味する重要なマクロニュースです。</div></article>  ← ニュース1本分
+<article class="tp-news">
+  <div class="tp-news__meta">
+    <span class="tp-news__source">{{ news.source.upper() }}</span>
+    <span class="tp-news__time">{{ news.date }}</span>
+  </div>
+  <h3 class="tp-news__title">{{ news.title }}</h3>
+  <div class="tp-news__comment">{{ news.comment }}</div>
+</article>
+
+[3] <section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">日経平均</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">64,611 <span style="font-size:9.5px">-2.7%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">S&amp;P 500</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">7,408.30 <span style="font-size:9.5px">-1.2%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">USD/JPY</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">163.71 <span style="font-size:9.5px">+0.4%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">VIX</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">18.75 <span style="font-size:9.5px">+0.3%</span></div></div>
+  </div>
+</section>
+  ← オプション(新規)
+<section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell">
+      <div class="tp-stat-cell__label">{{ idx.label }}</div>
+      <div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">{{ idx.value }}</div>
+    </div>
+    ... 4 cells total
+  </div>
+</section>
+
+[4]   ← オプション(新規)
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">来週の決算予定</div></div>
+  <div class="tp-earnings-row">
+    <svg class="tp-earnings-row__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <rect x="3" y="5" width="18" height="16" rx="1"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+      <line x1="8" y1="3" x2="8" y2="7"/>
+      <line x1="16" y1="3" x2="16" y2="7"/>
+    </svg>
+    <div class="tp-earnings-row__body">
+      <div class="tp-earnings-row__name">{{ company.name }}</div>
+      <div class="tp-earnings-row__sub">{{ company.code }}.{{ company.market }}</div>
+    </div>
+    <div class="tp-earnings-row__date">{{ company.date }}</div>
+  </div>
+  ... rows
+</section>
+
+===============================================================================
+-->
+
+</body>
+</html>
