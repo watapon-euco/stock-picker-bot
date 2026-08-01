@@ -1,36 +1,6 @@
 {
   "themes": [
     {
-      "name": "エネルギー・資源安定供給",
-      "year_month": "2026-03",
-      "icon": "⚡"
-    },
-    {
-      "name": "フードテック・農業DX",
-      "year_month": "2026-03",
-      "icon": "🌾"
-    },
-    {
-      "name": "高配当・増配株投資",
-      "year_month": "2026-03",
-      "icon": "💰"
-    },
-    {
-      "name": "物流フィジカルインターネット",
-      "year_month": "2026-03",
-      "icon": "🚚"
-    },
-    {
-      "name": "AIコンパニオン・ヒューマンインターフェース",
-      "year_month": "2026-03",
-      "icon": "🤖"
-    },
-    {
-      "name": "次世代ミサイル防衛・ゴールデン・ドーム",
-      "year_month": "2026-03",
-      "icon": "🛡️"
-    },
-    {
       "name": "高市政権・戦略17分野",
       "year_month": "2026-03",
       "icon": "📈"
@@ -374,6 +344,91 @@
       "name": "宇宙インフラ・商業宇宙輸送",
       "year_month": "2026-07",
       "icon": "🚀"
+    },
+    {
+      "name": "次世代AIアクセラレーター・インフラ",
+      "year_month": "2026-08",
+      "icon": "⚡",
+      "stocks": [
+        {
+          "code": "6857",
+          "market": "JP",
+          "name": "Advantest Corporation",
+          "rank": 1,
+          "price_at_pick": 32500.0
+        },
+        {
+          "code": "8035",
+          "market": "JP",
+          "name": "Tokyo Electron Limited",
+          "rank": 2,
+          "price_at_pick": 55500.0
+        }
+      ]
+    },
+    {
+      "name": "防衛・宇宙産業の民間転換",
+      "year_month": "2026-08",
+      "icon": "🚀",
+      "stocks": [
+        {
+          "code": "7741",
+          "market": "JP",
+          "name": "HOYA Corporation",
+          "rank": 1,
+          "price_at_pick": 24675.0
+        },
+        {
+          "code": "6758",
+          "market": "JP",
+          "name": "ソニーグループ",
+          "rank": 2,
+          "price_at_pick": 3787.0
+        }
+      ]
+    },
+    {
+      "name": "戦略的化学産業の再編",
+      "year_month": "2026-08",
+      "icon": "🧪",
+      "stocks": [
+        {
+          "code": "4063",
+          "market": "JP",
+          "name": "信越化学工業",
+          "rank": 1,
+          "price_at_pick": 5800.0
+        },
+        {
+          "code": "4005",
+          "market": "JP",
+          "name": "住友化学",
+          "rank": 2,
+          "price_at_pick": 521.3
+        },
+        {
+          "code": "4188",
+          "market": "JP",
+          "name": "三菱ケミカルグループ",
+          "rank": 3,
+          "price_at_pick": 1188.0
+        }
+      ]
+    },
+    {
+      "name": "次世代AIアクセラレーター・インフラ",
+      "year_month": "2026-08",
+      "icon": "⚡"
+    },
+    {
+      "name": "防衛・宇宙産業の民間転換",
+      "year_month": "2026-08",
+      "icon": "🚀"
+    },
+    {
+      "name": "戦略的化学産業の再編",
+      "year_month": "2026-08",
+      "icon": "🧪"
     }
   ]
 }
