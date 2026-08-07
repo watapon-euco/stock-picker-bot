@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>週次速報 2026-W32</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="tp-wrap">
+
+  <header class="tp-masthead tp-masthead--gold">
+    <div class="tp-masthead__brand">
+      <svg class="tp-ico" width="13" height="13" viewBox="0 0 24 24" fill="#d4a341" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+      <span class="tp-masthead__brand-name tp-masthead__brand-name--italic">The Weekly Flash</span>
+    </div>
+    <span class="tp-masthead__meta">2026-W32</span>
+  </header>
+
+  <nav class="tp-archive-nav">
+    <div class="tp-mode-toggle">
+      <a class="tp-mode-toggle__btn" href="../index.html">📊 月次</a>
+      <span class="tp-mode-toggle__btn tp-mode-toggle__btn--active">⚡ 週次</span>
+    </div>
+    <a href="index.html">バックナンバー</a>
+  </nav>
+
+  <section class="tp-cover">
+    <div class="tp-cover__kicker">2026/07/31 〜 2026/08/07 · 出来高2倍 + 5%超</div>
+    <h1 class="tp-cover__title">今週、市場を<br>動かした<span class="tp-italic-gold">5銘柄</span></h1>
+  </section>
+
+  <!-- Market indices — pythonが <section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">日経平均</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">65,607 <span style="font-size:9.5px">-0.1%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">S&amp;P 500</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">7,709.96 <span style="font-size:9.5px">-0.2%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">USD/JPY</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">158.39 <span style="font-size:9.5px">+0.5%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">VIX</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">15.28 <span style="font-size:9.5px">+0.9%</span></div></div>
+  </div>
+</section>
+ に
+       <div class="tp-stat-strip tp-stat-strip--4">...</div> を出力。
+       未対応なら python で "" を渡せばスキップされる。例HTML: 末尾コメント参照 -->
+  <section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">日経平均</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">65,607 <span style="font-size:9.5px">-0.1%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">S&amp;P 500</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">7,709.96 <span style="font-size:9.5px">-0.2%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">USD/JPY</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">158.39 <span style="font-size:9.5px">+0.5%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">VIX</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">15.28 <span style="font-size:9.5px">+0.9%</span></div></div>
+  </div>
+</section>
+
+
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">急騰銘柄</div></div>
+    <div class="tp-surge-head">
+      <span>#</span><span>銘柄 / セクター</span><span>CHART</span><span>VOL</span><span>WEEK</span>
+    </div>
+    <!-- pythonが <div class="tp-surge-row[--top]">...</div> × N を出力 -->
+    <div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>
+  </section>
+
+  <!-- Earnings calendar — pythonが  に
+       <section class="tp-section">…</section> を出力 -->
+  
+
+  <div class="tp-divider-dashed"></div>
+
+  <section class="tp-section">
+    <div class="tp-section__head"><div class="tp-kicker">気になるヘッドライン</div></div>
+    <!-- pythonが <article class="tp-news">...</article> × N を出力 -->
+    <article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;AI 半導体 EV 再生可能エネルギー 日本&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMiakFVX3lxTE1tbXVyUUVlS0E3VV9pVkFieWhRQnNiWFA4LUcwaVZsbE5LM3hVQ2hCekxXc2JTN2hWOHFUZjltY1NnelBnMEQycXNMWTY5S2gxWlZSTUhBZzhFSUhjNzlhVE1yekJEdUlNcFE?oc=5" target="_blank" rel="noopener">【JPIセミナー】NEDO「SiからSiC・GaNへ移行する電力変換 次世代パワー半導体の実装加速と適用拡大」8月20日(木)開催 - PR TIMES</a></h3><div class="tp-news__comment">次世代パワー半導体はAIやEVの普及に不可欠な技術であり、日本の産業競争力を左右する重要なテーマであるため。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;日本経済 新産業 成長 政策&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMingFBVV95cUxQR3d3R29tMFJ0UU5TbDhsMGdhNjNmY2dibGpDSVg4dGdWUkh0UTBnNS1ZWEhGdVN1ZnVoZ0JRUmpEelYwZjVuNHRNa2FuRWNsRGlTa3BCVkVxYUlxUTdETnd4LU9qLWtrbGIxNWplWGdCZVBIMnl4T0U2SWJQSmRyaHNKc3M0eDI0RlpHeXlfYTdrNXFBTzdvTnNDM3dQQQ?oc=5" target="_blank" rel="noopener">2026年以降に注目すべき日本の急成長産業15選 - researchnester.jp</a></h3><div class="tp-news__comment">中長期的な視点で日本の成長産業を把握することは、ポートフォリオ構築において極めて重要であるため。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;防衛 宇宙 半導体 日本株&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMiUkFVX3lxTE9DM2N2c09uQVRYeDlPeVNpU0lvMHlCbXRoamZuaVp1bm5WZWNHMms5c2NxM1dsT3hoeFVTYmxBc0tlZ2JLM2djb3YzNmEzY3lTWVE?oc=5" target="_blank" rel="noopener">GX 防衛テック-日本株式【513A】：株価・株式情報（夜間PTS含む） - Yahoo!ファイナンス</a></h3><div class="tp-news__comment">防衛や宇宙、半導体は政府の政策支援が厚く、今後の日本株市場における主要な成長セクターとして注目されるため。</div></article>
+  </section>
+
+  <footer class="tp-colophon">
+    THE WEEKLY FLASH · 毎週金曜配信<br>
+    → <a href="https://watapon-euco.github.io/stock-picker-bot">月次レポートで詳細分析</a><br>
+    <span style="color:var(--text-mute)">2026-08-07 09:06 JST</span>
+  </footer>
+
+</div>
+
+<!--
+===============================================================================
+PYTHON 生成HTML 例（step_weekly_flash.py で組み立てる雛形）
+===============================================================================
+
+[1] <div style="color:var(--text-mute);padding:16px 0;font-size:13px">今週の急騰銘柄はありませんでした。</div>  ← 急騰銘柄1行分
+<div class="tp-surge-row tp-surge-row--top">  (1位だけ --top クラス付加)
+  <div class="tp-surge-row__rank">1</div>
+  <div>
+    <div class="tp-surge-row__name">{{ stock.name }}</div>
+    <div class="tp-surge-row__sub">{{ stock.code }}.{{ stock.market }} · <span class="sector">{{ stock.sector }}</span></div>
+  </div>
+  <svg width="44" height="20" viewBox="0 0 44 20"><path d="..." fill="none" stroke="#7dc679" stroke-width="1.3" stroke-linecap="round"/></svg>
+  <div class="tp-surge-row__vol">×{{ stock.vol_ratio }}</div>
+  <div class="tp-surge-row__change">+{{ stock.change_pct }}%</div>
+</div>
+
+[2] <article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;AI 半導体 EV 再生可能エネルギー 日本&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMiakFVX3lxTE1tbXVyUUVlS0E3VV9pVkFieWhRQnNiWFA4LUcwaVZsbE5LM3hVQ2hCekxXc2JTN2hWOHFUZjltY1NnelBnMEQycXNMWTY5S2gxWlZSTUhBZzhFSUhjNzlhVE1yekJEdUlNcFE?oc=5" target="_blank" rel="noopener">【JPIセミナー】NEDO「SiからSiC・GaNへ移行する電力変換 次世代パワー半導体の実装加速と適用拡大」8月20日(木)開催 - PR TIMES</a></h3><div class="tp-news__comment">次世代パワー半導体はAIやEVの普及に不可欠な技術であり、日本の産業競争力を左右する重要なテーマであるため。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;日本経済 新産業 成長 政策&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMingFBVV95cUxQR3d3R29tMFJ0UU5TbDhsMGdhNjNmY2dibGpDSVg4dGdWUkh0UTBnNS1ZWEhGdVN1ZnVoZ0JRUmpEelYwZjVuNHRNa2FuRWNsRGlTa3BCVkVxYUlxUTdETnd4LU9qLWtrbGIxNWplWGdCZVBIMnl4T0U2SWJQSmRyaHNKc3M0eDI0RlpHeXlfYTdrNXFBTzdvTnNDM3dQQQ?oc=5" target="_blank" rel="noopener">2026年以降に注目すべき日本の急成長産業15選 - researchnester.jp</a></h3><div class="tp-news__comment">中長期的な視点で日本の成長産業を把握することは、ポートフォリオ構築において極めて重要であるため。</div></article>
+<article class="tp-news"><div class="tp-news__meta"><span class="tp-news__source">&quot;防衛 宇宙 半導体 日本株&quot; - GOOGLE ニュース</span><span class="tp-news__time"></span></div><h3 class="tp-news__title"><a href="https://news.google.com/rss/articles/CBMiUkFVX3lxTE9DM2N2c09uQVRYeDlPeVNpU0lvMHlCbXRoamZuaVp1bm5WZWNHMms5c2NxM1dsT3hoeFVTYmxBc0tlZ2JLM2djb3YzNmEzY3lTWVE?oc=5" target="_blank" rel="noopener">GX 防衛テック-日本株式【513A】：株価・株式情報（夜間PTS含む） - Yahoo!ファイナンス</a></h3><div class="tp-news__comment">防衛や宇宙、半導体は政府の政策支援が厚く、今後の日本株市場における主要な成長セクターとして注目されるため。</div></article>  ← ニュース1本分
+<article class="tp-news">
+  <div class="tp-news__meta">
+    <span class="tp-news__source">{{ news.source.upper() }}</span>
+    <span class="tp-news__time">{{ news.date }}</span>
+  </div>
+  <h3 class="tp-news__title">{{ news.title }}</h3>
+  <div class="tp-news__comment">{{ news.comment }}</div>
+</article>
+
+[3] <section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">日経平均</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">65,607 <span style="font-size:9.5px">-0.1%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">S&amp;P 500</div><div class="tp-stat-cell__value tp-stat-cell__value--red tp-stat-cell__value--mono">7,709.96 <span style="font-size:9.5px">-0.2%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">USD/JPY</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">158.39 <span style="font-size:9.5px">+0.5%</span></div></div>
+    <div class="tp-stat-cell"><div class="tp-stat-cell__label">VIX</div><div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">15.28 <span style="font-size:9.5px">+0.9%</span></div></div>
+  </div>
+</section>
+  ← オプション(新規)
+<section class="tp-section--tight">
+  <div class="tp-stat-strip tp-stat-strip--4">
+    <div class="tp-stat-cell">
+      <div class="tp-stat-cell__label">{{ idx.label }}</div>
+      <div class="tp-stat-cell__value tp-stat-cell__value--green tp-stat-cell__value--mono">{{ idx.value }}</div>
+    </div>
+    ... 4 cells total
+  </div>
+</section>
+
+[4]   ← オプション(新規)
+<section class="tp-section">
+  <div class="tp-section__head"><div class="tp-kicker">来週の決算予定</div></div>
+  <div class="tp-earnings-row">
+    <svg class="tp-earnings-row__icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+      <rect x="3" y="5" width="18" height="16" rx="1"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+      <line x1="8" y1="3" x2="8" y2="7"/>
+      <line x1="16" y1="3" x2="16" y2="7"/>
+    </svg>
+    <div class="tp-earnings-row__body">
+      <div class="tp-earnings-row__name">{{ company.name }}</div>
+      <div class="tp-earnings-row__sub">{{ company.code }}.{{ company.market }}</div>
+    </div>
+    <div class="tp-earnings-row__date">{{ company.date }}</div>
+  </div>
+  ... rows
+</section>
+
+===============================================================================
+-->
+
+</body>
+</html>
