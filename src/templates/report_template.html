@@ -47,8 +47,12 @@
   </nav>
   <script>
   (function(){
-    var a = document.getElementById('js-weekly-link');
-    if (location.pathname.indexOf('/archive/') > -1) a.href = '../weekly/index.html';
+    var inArchive = location.pathname.indexOf('/archive/') > -1;
+    if (!inArchive) return;
+    var weekly = document.getElementById('js-weekly-link');
+    if (weekly) weekly.href = '../weekly/index.html';
+    var archive = document.getElementById('js-archive-link');
+    if (archive) archive.href = 'index.html';
   })();
   </script>
 

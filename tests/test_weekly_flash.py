@@ -435,3 +435,90 @@ def test_weekly_template_no_unexpected_placeholders():
     found = set(re.findall(r"\{\{[A-Z_]+\}\}", content))
     unknown = found - EXPECTED_WEEKLY_PLACEHOLDERS
     assert not unknown, f"Unknown placeholders in weekly template: {unknown}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# yfinance バッチ取得の列パース（急騰銘柄が空になる回帰防止）
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestFetchWeeklyChangesBatch:
+    """yf.download のデフォルト列グルーピング (field, ticker) を正しくパースし、
+    急騰銘柄が常に空になる不具合 (group_by="ticker" 由来) を再発させないことを確認する。
+    """
+
+    def _make_multi_df(self):
+        import numpy as np
+        import pandas as pd
+
+        dates = pd.date_range("2026-01-01", periods=22, freq="B")
+        tickers = ["7203.T", "6758.T"]
+        fields = ["Open", "High", "Low", "Close", "Volume"]
+        cols = pd.MultiIndex.from_product([fields, tickers])
+        df = pd.DataFrame(index=dates, columns=cols, dtype=float)
+        # 7203.T: 横ばい後に +10% 急騰、出来高は終盤に増加
+        close_7203 = [1000.0] * 17 + [1000, 1020, 1050, 1080, 1100]
+        # 6758.T: 緩やかに上昇 (+約3%)
+        close_6758 = list(np.linspace(2000, 2060, 22))
+        for t, closes in (("7203.T", close_7203), ("6758.T", close_6758)):
+            df[("Close", t)] = closes
+            df[("Open", t)] = closes
+            df[("High", t)] = closes
+            df[("Low", t)] = closes
+            df[("Volume", t)] = [100_000] * 17 + [300_000] * 5
+        return df
+
+    def test_parses_default_grouped_columns(self):
+        from src.step_weekly_flash import _fetch_weekly_changes_batch
+
+        df = self._make_multi_df()
+        with patch("src.step_weekly_flash.yf.download", return_value=df) as m:
+            results = _fetch_weekly_changes_batch(
+                ["7203", "6758"], {"7203": "トヨタ", "6758": "ソニー"}
+            )
+
+        # group_by="ticker" を渡していないこと（列アクセスと整合）
+        assert "group_by" not in m.call_args.kwargs
+        codes = {r["code"] for r in results}
+        assert codes == {"7203", "6758"}, f"全銘柄がパースされるべき: {results}"
+        by_code = {r["code"]: r for r in results}
+        assert by_code["7203"]["week_change_pct"] > 5.0
+        assert by_code["7203"]["vol_ratio"] is not None
+
+    def test_surging_detected_end_to_end(self):
+        from src.step_weekly_flash import _build_top5
+
+        df = self._make_multi_df()
+        with patch("src.step_weekly_flash.yf.download", return_value=df):
+            top5 = _build_top5(["7203", "6758"], {"7203": "トヨタ", "6758": "ソニー"})
+
+        assert top5, "急騰銘柄が検出されるべき（空ではない）"
+        assert top5[0]["code"] == "7203"
+        assert not top5[0].get("is_fallback", False)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 週次URL導出（/weekly 二重化による 404 防止）
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestDeriveWeeklyUrl:
+    def test_from_root_url(self):
+        from src.step_weekly_flash import _derive_weekly_url
+        assert _derive_weekly_url("https://ex.github.io/repo/", "2026-W25") == \
+            "https://ex.github.io/repo/weekly/2026-W25.html"
+
+    def test_strips_index_html(self):
+        from src.step_weekly_flash import _derive_weekly_url
+        assert _derive_weekly_url("https://ex.github.io/repo/index.html", "2026-W25") == \
+            "https://ex.github.io/repo/weekly/2026-W25.html"
+
+    def test_no_double_weekly(self):
+        from src.step_weekly_flash import _derive_weekly_url
+        # README の例どおり末尾に /weekly を付けて設定しても二重化しない
+        assert _derive_weekly_url("https://ex.github.io/repo/weekly", "2026-W25") == \
+            "https://ex.github.io/repo/weekly/2026-W25.html"
+        assert _derive_weekly_url("https://ex.github.io/repo/weekly/", "2026-W25") == \
+            "https://ex.github.io/repo/weekly/2026-W25.html"
+
+    def test_invalid_scheme_blocked(self):
+        from src.step_weekly_flash import _derive_weekly_url
+        assert _derive_weekly_url("javascript:alert(1)", "2026-W25") == "#"
